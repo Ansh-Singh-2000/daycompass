@@ -112,9 +112,9 @@ export default function SettingsDialog({
                     <p className="text-sm text-muted-foreground -mt-2">
                         Set your typical daily start and end times. The AI will only schedule tasks within this window.
                     </p>
-                    <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+                    <div className="flex flex-row items-end gap-4">
                         <div className="flex-1">
-                            <Label htmlFor="start-time">Daily Start Time</Label>
+                            <Label htmlFor="start-time">Start Time</Label>
                             <Input
                                 id="start-time"
                                 type="time"
@@ -124,7 +124,7 @@ export default function SettingsDialog({
                             />
                         </div>
                         <div className="flex-1">
-                            <Label htmlFor="end-time">Daily End Time</Label>
+                            <Label htmlFor="end-time">End Time</Label>
                             <Input
                                 id="end-time"
                                 type="time"
@@ -140,9 +140,9 @@ export default function SettingsDialog({
                     <p className="text-sm text-muted-foreground -mt-2">
                         Set your typical wake and sleep times to adjust the visible range on the calendar.
                     </p>
-                    <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+                    <div className="flex flex-row items-end gap-4">
                         <div className="flex-1">
-                            <Label htmlFor="wake-time">Wake Up Time</Label>
+                            <Label htmlFor="wake-time">Wake Time</Label>
                             <Input
                                 id="wake-time"
                                 type="time"
@@ -166,7 +166,7 @@ export default function SettingsDialog({
               </div>
             </TabsContent>
             <TabsContent value="blocked" className="flex-1 flex flex-col min-h-0 py-4">
-              <div className="flex flex-col md:grid md:grid-cols-2 gap-8 flex-1 px-1 min-h-0">
+              <div className="flex-1 flex flex-col md:grid md:grid-cols-2 gap-8 px-1 min-h-0">
                 {/* Left Column / Top Section on Mobile: List */}
                 <div className="flex flex-col gap-3 min-h-0 flex-1">
                     <div className="shrink-0">
@@ -175,25 +175,27 @@ export default function SettingsDialog({
                             The AI will avoid scheduling tasks during these daily blocks.
                         </p>
                     </div>
-                    <ScrollArea className="flex-1 rounded-md border">
-                        <div className="p-2 space-y-2">
-                            {blockedTimes.length === 0 ? (
-                                <p className="text-sm text-muted-foreground text-center py-4">No blocked times added.</p>
-                            ) : (
-                                blockedTimes.map((bt) => (
-                                <div key={bt.id} className="flex items-center justify-between p-2 bg-primary/10 rounded-md text-sm">
-                                    <div>
-                                    <p className="font-semibold">{bt.title}</p>
-                                    <p className="text-muted-foreground">{bt.startTime} - {bt.endTime}</p>
+                    <div className="flex-1 min-h-0">
+                        <ScrollArea className="h-full rounded-md border">
+                            <div className="p-2 space-y-2">
+                                {blockedTimes.length === 0 ? (
+                                    <p className="text-sm text-muted-foreground text-center py-4">No blocked times added.</p>
+                                ) : (
+                                    blockedTimes.map((bt) => (
+                                    <div key={bt.id} className="flex items-center justify-between p-2 bg-primary/10 rounded-md text-sm">
+                                        <div>
+                                        <p className="font-semibold">{bt.title}</p>
+                                        <p className="text-muted-foreground">{bt.startTime} - {bt.endTime}</p>
+                                        </div>
+                                        <Button variant="ghost" size="icon" onClick={() => handleDeleteBlockedTime(bt.id)} aria-label={`Delete ${bt.title}`}>
+                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                        </Button>
                                     </div>
-                                    <Button variant="ghost" size="icon" onClick={() => handleDeleteBlockedTime(bt.id)} aria-label={`Delete ${bt.title}`}>
-                                    <Trash2 className="h-4 w-4 text-destructive" />
-                                    </Button>
-                                </div>
-                                ))
-                            )}
-                        </div>
-                    </ScrollArea>
+                                    ))
+                                )}
+                            </div>
+                        </ScrollArea>
+                    </div>
                 </div>
 
                 {/* Right Column / Bottom Section on Mobile: Form */}
