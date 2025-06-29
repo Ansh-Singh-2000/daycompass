@@ -80,12 +80,12 @@ export default function TaskForm({ onAddTask }: TaskFormProps) {
             <PlusCircle className="h-5 w-5" />
           </Button>
         </div>
-        <div className="flex items-start gap-2">
+        <div className="flex flex-wrap items-start gap-2">
           <FormField
             control={form.control}
             name="estimatedTime"
             render={({ field }) => (
-              <FormItem className="flex-1">
+              <FormItem className="w-24">
                 <FormControl>
                   <div className="relative">
                     <Input
@@ -128,7 +128,7 @@ export default function TaskForm({ onAddTask }: TaskFormProps) {
             control={form.control}
             name="deadline"
             render={({ field }) => (
-              <FormItem className="flex-1">
+              <FormItem className="flex-1 min-w-[150px]">
                  <Popover>
                   <PopoverTrigger asChild>
                     <FormControl>
