@@ -119,7 +119,7 @@ export default function AdjustScheduleDialog({
                             {message.role === 'assistant' && <Wand2 className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />}
                             <div className={cn(
                                 "p-3 rounded-lg max-w-sm",
-                                message.role === 'assistant' ? 'bg-muted' : 'bg-primary/20 text-primary-foreground'
+                                message.role === 'assistant' ? 'bg-muted' : 'bg-primary/20 text-card-foreground'
                             )}>
                                 <p className="leading-relaxed">{message.content}</p>
                             </div>
