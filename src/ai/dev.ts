@@ -1,4 +1,4 @@
 import { config } from 'dotenv';
 config();
 
-import '@/ai/flows/generate-daily-schedule.ts';
+import '@/ai/flows/generate-full-schedule';

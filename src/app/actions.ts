@@ -1,14 +1,14 @@
 'use server';
 
-import { generateDailySchedule, GenerateDailyScheduleInput } from '@/ai/flows/generate-daily-schedule';
+import { generateFullSchedule, GenerateFullScheduleInput } from '@/ai/flows/generate-full-schedule';
 
-export async function createSchedule(input: GenerateDailyScheduleInput) {
+export async function createSchedule(input: GenerateFullScheduleInput) {
   try {
-    const { schedule } = await generateDailySchedule(input);
-    if (!schedule) {
+    const result = await generateFullSchedule(input);
+    if (!result || !result.schedules) {
       throw new Error('AI failed to generate a schedule.');
     }
-    return { success: true, data: schedule };
+    return { success: true, data: result.schedules };
   } catch (error) {
     console.error('Error generating schedule:', error);
     // In a real app, you might want to log this error to a monitoring service.

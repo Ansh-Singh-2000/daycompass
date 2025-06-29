@@ -89,16 +89,25 @@ export default function Home() {
       ),
       timeConstraints: { startTime, endTime },
       currentDateTime: new Date().toISOString(),
-      scheduleDate: viewedDate.toISOString().split('T')[0],
+      startDate: format(new Date(), 'yyyy-MM-dd'),
     };
 
     const result = await createSchedule(input);
     
     if (result.success && result.data) {
-      setSchedules(prev => ({
-        ...prev,
-        [dateKey]: result.data.map(item => ({ ...item, id: mockUuid(), isCompleted: false }))
-      }));
+      const newSchedulesWithIds: Record<string, ScheduleItem[]> = {};
+        for (const dateKey in result.data) {
+            newSchedulesWithIds[dateKey] = result.data[dateKey].map(item => ({
+                ...item,
+                id: mockUuid(),
+                isCompleted: false
+            }));
+        }
+      setSchedules(newSchedulesWithIds);
+      toast({
+        title: "Schedule Generated!",
+        description: "Your tasks have been scheduled. Navigate the calendar to see the full plan.",
+      });
     } else {
       toast({
         variant: "destructive",
@@ -134,7 +143,7 @@ export default function Home() {
         <Card className="lg:col-span-1 flex flex-col overflow-hidden">
           <CardHeader>
             <CardTitle>Tasks &amp; Scheduling</CardTitle>
-            <CardDescription>Add tasks, set availability, and generate your schedule.</CardDescription>
+            <CardDescription>Add tasks, set availability, and generate your full schedule.</CardDescription>
           </CardHeader>
           <CardContent className="flex-1 flex flex-col gap-4 overflow-y-auto p-4 pt-2">
             <div className="pt-2">
@@ -180,7 +189,7 @@ export default function Home() {
                  <div className="absolute inset-0 flex items-center justify-center bg-card/50 backdrop-blur-sm z-10 rounded-lg">
                     <div className="flex flex-col items-center gap-4">
                       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-                      <p className="text-muted-foreground">Weaving your perfect day...</p>
+                      <p className="text-muted-foreground">Weaving your perfect schedule...</p>
                     </div>
                   </div>
               )}
@@ -198,7 +207,7 @@ export default function Home() {
                       <div className="text-center text-muted-foreground">
                         <CalendarDays className="mx-auto h-12 w-12" />
                         <p className="mt-4">Nothing scheduled for this day.</p>
-                        <p className="text-sm">The AI decided to keep this day clear. Try another date.</p>
+                        <p className="text-sm">The AI decided to keep this day clear. Try generating a new schedule.</p>
                       </div>
                     </div>
                   )
