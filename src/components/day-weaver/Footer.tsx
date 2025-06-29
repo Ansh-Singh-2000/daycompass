@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -20,10 +19,31 @@ const SocialLink = ({ href, icon, text }: { href: string; icon: React.ReactNode;
 
 export default function Footer() {
   const [currentYear, setCurrentYear] = useState<number | null>(null);
+  const [emailText, setEmailText] = useState('Email');
+  const emailAddress = 'boom10052006@gmail.com';
 
   useEffect(() => {
     setCurrentYear(new Date().getFullYear());
   }, []);
+
+  const handleCopyEmail = () => {
+    if (!navigator.clipboard) {
+      // Fallback for older browsers or insecure contexts
+      setEmailText(emailAddress);
+      setTimeout(() => setEmailText('Email'), 3000);
+      return;
+    }
+
+    navigator.clipboard.writeText(emailAddress).then(() => {
+      setEmailText('Copied!');
+      setTimeout(() => setEmailText('Email'), 2000); // Revert back after 2 seconds
+    }).catch(err => {
+      console.error('Failed to copy: ', err);
+      // If copy fails for any reason, display the email as a fallback
+      setEmailText(emailAddress);
+      setTimeout(() => setEmailText('Email'), 3000);
+    });
+  };
 
   return (
     <footer className="shrink-0 border-t">
@@ -35,7 +55,7 @@ export default function Footer() {
         </div>
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="sm">Contact Me</Button>
+            <Button variant="outline" size="sm">Contact Me</Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-2" side="top" align="end">
             <div className="flex flex-col gap-1">
@@ -49,11 +69,13 @@ export default function Footer() {
                 icon={<Send className="h-4 w-4" />}
                 text="Telegram"
               />
-              <SocialLink
-                href="mailto:boom10052006@gmail.com"
-                icon={<Mail className="h-4 w-4" />}
-                text="Email"
-              />
+              <button
+                onClick={handleCopyEmail}
+                className="flex w-full items-center gap-3 rounded-md p-2 text-left text-sm text-popover-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+              >
+                <Mail className="h-4 w-4" />
+                <span>{emailText}</span>
+              </button>
             </div>
           </PopoverContent>
         </Popover>
