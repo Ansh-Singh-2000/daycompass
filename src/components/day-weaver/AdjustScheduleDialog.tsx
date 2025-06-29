@@ -93,7 +93,7 @@ export default function AdjustScheduleDialog({
           <div className="flex flex-col gap-4 min-h-0">
              <h3 className="text-lg font-semibold">Chat with AI</h3>
             <Card className="flex-1 bg-background/50 flex flex-col">
-              <ScrollArea className="flex-1" ref={scrollAreaRef}>
+              <ScrollArea className="flex-1 min-h-0" ref={scrollAreaRef}>
                 <CardContent className="p-4 space-y-4">
                   {chatHistory.map((message) => (
                     <div key={message.id} className={cn(
@@ -141,8 +141,8 @@ export default function AdjustScheduleDialog({
                         </div>
                       </div>
                 )}
-                <ScrollArea className="h-full pr-4">
-                    <div className="space-y-2">
+                <ScrollArea className="absolute inset-0">
+                    <div className="space-y-2 p-4">
                     {proposedSchedule.map(task => (
                         <ProposedScheduleItem key={task.id} task={task} />
                     ))}
