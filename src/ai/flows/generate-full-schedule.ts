@@ -16,7 +16,7 @@ export type GenerateFullScheduleInput = z.infer<typeof GenerateFullScheduleInput
 export type GenerateFullScheduleOutput = z.infer<typeof GenerateFullScheduleOutputSchema>;
 
 function buildPrompt(input: GenerateFullScheduleInput): string {
-    const { tasks, blockedTimes, timeConstraints, currentDateTime, startDate, timezone } = input;
+    const { tasks, blockedTimes, timeConstraints, currentDateTime, startDate, timezone, currentScheduledTasks } = input;
 
     const taskDetails = tasks.map(task => 
         `- **Task:** "${task.title}" (ID: ${task.id})\n  - **Priority:** ${task.priority}\n  - **Estimated Time:** ${task.estimatedTime} minutes\n` +
@@ -26,6 +26,8 @@ function buildPrompt(input: GenerateFullScheduleInput): string {
     const blockedTimeDetails = blockedTimes.map(bt => 
         `- ${bt.title}: from ${bt.startTime} to ${bt.endTime}`
     ).join('\n');
+    
+    const currentScheduleJSON = currentScheduledTasks && currentScheduledTasks.length > 0 ? JSON.stringify(currentScheduledTasks, null, 2) : null;
 
     return `You are an expert scheduling AI. Your task is to take a list of tasks and create a complete, valid, and optimized schedule in JSON format.
 
@@ -45,12 +47,23 @@ CRITICAL RULES (NON-NEGOTIABLE):
 6.  RESPECT DAILY AVAILABILITY: For every day you schedule a task on, that task must be entirely within the user's daily availability window: from \`${timeConstraints.startTime}\` to \`${timeConstraints.endTime}\`.
 7.  AVOID BLOCKED TIMES: For every day you schedule a task on, that task MUST NOT overlap with any of the user's recurring daily blocked times. These apply to every day.
 8.  RESPECT DEADLINES: A task with a deadline MUST be scheduled to finish on or before its deadline.
-9.  SCHEDULE IN THE FUTURE: All tasks must be scheduled to start on or after the \`currentDateTime\`. Do not schedule any tasks in the past.
+9.  SCHEDULE IN THE FUTURE: Any newly scheduled or rescheduled \`startTime\` must be in the future, occurring after the \`currentDateTime\`. Do not move tasks to a time in the past.
 
 Context:
 - The current date and time is: \`${currentDateTime}\`
 - The user's timezone is: \`${timezone}\`. All inputs are in this timezone, and all output times must also be in this timezone in ISO 8601 format.
 - The schedule must start on or after this date: \`${startDate}\`
+${currentScheduleJSON ? `
+- The user already has a schedule. Use this as a strong reference. Your goal is to intelligently update this schedule, not recreate it from scratch.
+- Keep tasks at their currently scheduled time if possible.
+- Only move tasks if necessary to accommodate new/unscheduled tasks or to resolve conflicts.
+- Ensure all tasks from the Task List are present in the final schedule.
+
+Current Schedule Reference (JSON):
+\`\`\`json
+${currentScheduleJSON}
+\`\`\`
+` : ''}
 
 INPUTS:
 
@@ -63,7 +76,7 @@ ${blockedTimeDetails}
 Instructions:
 1.  Prioritize tasks with the earliest deadlines. For tasks without deadlines or with the same deadline, schedule higher priority tasks first.
 2.  Find the earliest possible valid slot for each task, starting from \`${startDate}\`. A valid slot is one that respects all of the critical rules above.
-3.  In the \`reasoning\` field of your JSON output, briefly explain your scheduling choices.
+3.  In the \`reasoning\` field of your JSON output, briefly explain your scheduling choices, especially any changes from the provided schedule reference.
 4.  Final Check: Before you output the JSON, double-check your generated \`scheduledTasks\` array against every single critical rule to ensure 100% compliance. If it fails any rule, you must fix it.
 
 Your final output MUST be a single, raw JSON object and nothing else. Do not wrap it in markdown backticks or any other text.`;

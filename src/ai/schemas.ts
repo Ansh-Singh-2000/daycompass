@@ -34,6 +34,7 @@ export const GenerateFullScheduleInputSchema = z.object({
   currentDateTime: z.string(),
   startDate: z.string(),
   timezone: z.string(),
+  currentScheduledTasks: z.array(AIScheduledTaskSchema).optional(),
 });
 
 // Output for both the generation and adjustment flows

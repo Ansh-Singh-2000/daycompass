@@ -169,7 +169,7 @@ export default function Home() {
         t.id === id ? { ...t, isCompleted: true } : t
       )
     );
-  }, [setPoints, setTasks]);
+  }, []);
   
   const handleToastDismiss = useCallback((taskId: string) => {
       if (actionedToastIds.current.has(taskId)) {
@@ -180,7 +180,7 @@ export default function Home() {
       if (task && !task.isCompleted) {
         setPoints(p => ({ ...p, losses: p.losses + 1 }));
       }
-  }, [setPoints]);
+  }, []);
 
   const checkOverdueTasks = useCallback(() => {
     const now = new Date();
@@ -286,6 +286,15 @@ export default function Home() {
     setIsGenerating(true);
     setReasoning(null);
 
+    const currentScheduledTasks = tasks
+      .filter(t => !t.isCompleted && t.startTime && t.endTime)
+      .map(t => ({
+        id: t.id,
+        title: t.title,
+        startTime: t.startTime!,
+        endTime: t.endTime!,
+    }));
+
     const input = {
       model,
       tasks: tasksToSchedule.map(t => ({
@@ -300,6 +309,7 @@ export default function Home() {
       currentDateTime: format(new Date(), "yyyy-MM-dd'T'HH:mm:ss.SSSXXX"),
       startDate: format(new Date(), 'yyyy-MM-dd'),
       timezone,
+      currentScheduledTasks,
     };
 
     const result = await createSchedule(input);
@@ -339,27 +349,40 @@ export default function Home() {
     setTasks(currentTasks => {
         const newScheduleMap = new Map(finalSchedule.map(t => [t.id, t]));
 
+        // Get IDs of tasks that were part of the generation but are not in the final schedule.
+        // This means the AI decided to unschedule them.
+        const originalUncompletedTasks = currentTasks.filter(t => !t.isCompleted).map(t => t.id);
+        const tasksToUnschedule = originalUncompletedTasks.filter(id => !newScheduleMap.has(id));
+
         return currentTasks.map(task => {
+            // Preserve completed tasks as they are.
             if (task.isCompleted) {
                 return task;
             }
 
+            // Update tasks that are in the new schedule.
             if (newScheduleMap.has(task.id)) {
                 const scheduledInfo = newScheduleMap.get(task.id)!;
                 return {
                     ...task,
                     startTime: scheduledInfo.startTime,
                     endTime: scheduledInfo.endTime,
-                    isCompleted: false,
-                    overdueNotified: false,
+                    isCompleted: false, // Ensure it's not completed
+                    overdueNotified: false, // Reset notification status
                 };
             }
             
-            return {
-                ...task,
-                startTime: undefined,
-                endTime: undefined,
-            };
+            // Unschedule tasks that were removed by the AI.
+            if (tasksToUnschedule.includes(task.id)) {
+                 return {
+                    ...task,
+                    startTime: undefined,
+                    endTime: undefined,
+                };
+            }
+
+            // Return other tasks (like newly added ones) unmodified.
+            return task;
         });
     });
     
