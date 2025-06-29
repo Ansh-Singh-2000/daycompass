@@ -183,7 +183,7 @@ export default function ScheduleCalendar({
               </span>
             </div>
           ))}
-          <div className="absolute bottom-0 right-0 w-full text-right pr-2 translate-y-1/2">
+          <div className="absolute bottom-0 right-0 w-full text-right pr-2 -translate-y-1/2">
              <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
                 {endHour % 12 === 0 ? 12 : endHour % 12}{' '}
                 <span className="text-xs">{endHour < 12 || endHour === 24 ? 'AM' : 'PM'}</span>
