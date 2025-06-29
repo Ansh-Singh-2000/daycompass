@@ -164,7 +164,7 @@ export default function ScheduleCalendar({
               className="text-right pr-2 pt-1 border-b"
               style={{ height: `${HOUR_HEIGHT_REM}rem` }}
             >
-              <span className="text-sm font-medium text-muted-foreground -translate-y-1/2 relative top-0">
+              <span className="text-sm font-medium text-gray-500 dark:text-gray-400 -translate-y-1/2 relative top-0">
                 {hour % 12 === 0 ? 12 : hour % 12}{' '}
                 <span className="text-xs">{hour < 12 || hour === 24 ? 'AM' : 'PM'}</span>
               </span>
@@ -202,7 +202,7 @@ export default function ScheduleCalendar({
                 key={item.id}
                 className={cn(
                   'absolute w-full p-2 text-xs rounded-lg overflow-hidden flex items-center justify-center',
-                  'bg-muted/30 dark:bg-white/10 border-y border-dashed border-border/50'
+                  'bg-gray-100 dark:bg-gray-800/70 border-y border-dashed border-gray-200 dark:border-gray-700/80'
                 )}
                 style={{
                   top: `${top}rem`,
@@ -210,7 +210,7 @@ export default function ScheduleCalendar({
                   zIndex: 0,
                 }}
               >
-                <span className="font-semibold text-muted-foreground/80">{item.title}</span>
+                <span className="font-semibold text-gray-500 dark:text-gray-300">{item.title}</span>
               </div>
             );
           })}
@@ -242,7 +242,7 @@ export default function ScheduleCalendar({
                 transition={{ delay: index * 0.05 }}
                 className={cn(
                   'absolute p-3 text-sm rounded-lg shadow-lg transition-all duration-300 overflow-hidden',
-                  item.isCompleted ? 'bg-green-100 dark:bg-green-900/50 border-green-300' : 'bg-card',
+                  item.isCompleted ? 'bg-green-100/80 dark:bg-green-500/20 border border-green-200 dark:border-green-500/40' : 'bg-card',
                 )}
                 style={{
                   top: `${top}rem`,
@@ -255,10 +255,10 @@ export default function ScheduleCalendar({
                 <div className="flex justify-between items-start h-full">
                   <div className="flex-1 overflow-hidden pr-2 flex flex-col justify-between h-full">
                     <div>
-                      <p className={cn('font-semibold leading-tight', item.isCompleted && 'line-through text-muted-foreground')}>
+                      <p className={cn('font-semibold leading-tight', item.isCompleted && 'line-through text-green-900/70 dark:text-green-300/80')}>
                         {item.name}
                       </p>
-                      <p className={cn('text-xs text-muted-foreground', item.isCompleted && 'line-through')}>
+                      <p className={cn('text-xs', item.isCompleted ? 'line-through text-green-800/70 dark:text-green-400/80' : 'text-muted-foreground')}>
                         {format(startDate, 'HH:mm')} - {format(endDate, 'HH:mm')}
                       </p>
                     </div>
