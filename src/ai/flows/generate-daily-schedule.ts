@@ -55,37 +55,46 @@ const prompt = ai.definePrompt({
   name: 'generateDailySchedulePrompt',
   input: {schema: GenerateDailyScheduleInputSchema},
   output: {schema: GenerateDailyScheduleOutputSchema},
-  prompt: `You are an expert productivity coach specializing in creating balanced and sustainable study schedules for students to prevent burnout. Your primary goal is to generate an optimized daily schedule based on the provided tasks and time constraints.
+  prompt: `You are an expert productivity coach. Your most important goal is to create a balanced, realistic, and sustainable study schedule that prevents burnout.
 
-  Tasks to schedule:
-  {{#each tasks}}
-  - Name: {{name}}, Priority: {{priority}}, Duration: {{duration}} minutes
-  {{/each}}
-  
-  Available time window:
-  - Start Time: {{timeConstraints.startTime}}
-  - End Time: {{timeConstraints.endTime}}
-  
-  **CRITICAL INSTRUCTIONS FOR A REALISTIC & SUSTAINABLE SCHEDULE:**
-  
-  1.  **No Burnout:** Your main priority is to create a schedule that is effective but also prevents student burnout. This means you should distribute tasks throughout the entire available time window, not just lump them all together.
-  2.  **Strategic Gaps (Breaks):** Instead of creating schedule items for breaks (e.g., "Short Break"), you **MUST** create empty time gaps between tasks.
-      -   After a task of 60-90 minutes, leave a gap of 15-20 minutes.
-      -   After a task longer than 90 minutes, leave a longer gap of at least 30-45 minutes.
-      -   Consider including a longer break of about 60-90 minutes around midday (e.g., between 12:00 and 14:00) for lunch, even if it's not in the task list.
-  3.  **Prioritization:** Schedule high-priority tasks during times when a student is likely to be most productive (e.g., morning or early afternoon), but don't schedule all high-priority tasks back-to-back.
-  4.  **Respect Time Constraints:** The entire schedule of tasks must fit between the provided startTime and endTime. The schedule should utilize the available time, not just the first few hours.
-  5.  **Output Format:** The output must be a valid JSON object containing only a "schedule" array. The array should only contain the tasks provided in the input. **Do not add tasks for breaks.**
-  
-  Example of a correct output with gaps (no break tasks):
-  {
-    "schedule": [
-      { "name": "High Priority Task", "startTime": "09:00", "endTime": "10:30" },
-      { "name": "Medium Priority Task", "startTime": "11:00", "endTime": "12:00" },
-      { "name": "Another Task", "startTime": "14:00", "endTime": "15:30" }
-    ]
-  }
-  `,
+You will be given a list of tasks and a time window. Your job is to schedule these tasks within the given window.
+
+Tasks to schedule:
+{{#each tasks}}
+- Name: {{name}}, Priority: {{priority}}, Duration: {{duration}} minutes
+{{/each}}
+
+Available time window:
+- Start Time: {{timeConstraints.startTime}}
+- End Time: {{timeConstraints.endTime}}
+
+**CRITICAL RULES FOR A SMART & SUSTAINABLE SCHEDULE:**
+
+1.  **ABSOLUTE TOP PRIORITY: PREVENT BURNOUT.** This is more important than finishing tasks quickly. The schedule MUST feel manageable and not overwhelming.
+
+2.  **UTILIZE THE ENTIRE DAY.** Do not cram all tasks into the morning. Spread the tasks across the *entire* available time window, from \`startTime\` to \`endTime\`. There should be significant gaps, especially in the middle of the day.
+
+3.  **CREATE STRATEGIC GAPS (BREAKS).** You **MUST NOT** create schedule items for breaks. Instead, create empty time gaps between scheduled tasks. The length of the gap should be proportional to the preceding task's length and intensity.
+    -   After a standard task (60-90 mins), leave a gap of 15-20 minutes.
+    -   After a long or high-priority task (over 90 mins), leave a substantial gap of at least 30-45 minutes.
+    -   **MANDATORY LUNCH BREAK:** You **MUST** ensure there is a long, empty gap of 60-90 minutes around midday (e.g., between 12:00 and 14:00) for lunch. Do this even if it's not in the task list.
+
+4.  **INTELLIGENT TASK PLACEMENT.**
+    -   Place high-priority tasks during peak focus times (e.g., mid-morning or late afternoon).
+    -   **NEVER** schedule more than two high-priority tasks back-to-back without a significant break. Mix in lower-priority tasks to vary the intensity.
+
+5.  **FINAL OUTPUT FORMAT.** The output must be a valid JSON object with a single "schedule" array. This array should only contain the tasks provided in the input. **Do not add tasks named "Break" or "Lunch".**
+
+Example of a good, spread-out schedule:
+{
+  "schedule": [
+    { "name": "High Priority Task", "startTime": "09:00", "endTime": "10:30" },
+    { "name": "Medium Priority Task", "startTime": "11:00", "endTime": "12:00" },
+    { "name": "Another Task", "startTime": "13:30", "endTime": "15:00" },
+    { "name": "Low Priority Task", "startTime": "16:00", "endTime": "16:45" }
+  ]
+}
+`,
 });
 
 const generateDailyScheduleFlow = ai.defineFlow(
