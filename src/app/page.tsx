@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { Task, ScheduleItem } from '@/lib/types';
+import type { Task, ScheduleItem, BlockedTime } from '@/lib/types';
 import { createSchedule } from './actions';
 import { useToast } from "@/hooks/use-toast";
 import Header from '@/components/day-weaver/Header';
@@ -9,29 +9,32 @@ import TaskForm from '@/components/day-weaver/TaskForm';
 import TaskList from '@/components/day-weaver/TaskList';
 import ScheduleControls from '@/components/day-weaver/ScheduleControls';
 import ScheduleCalendar from '@/components/day-weaver/ScheduleCalendar';
+import SettingsDialog from '@/components/day-weaver/SettingsDialog';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
-import { addDays, format } from 'date-fns';
+import { CalendarDays, ChevronLeft, ChevronRight, Info } from 'lucide-react';
+import { addDays, format, parseISO } from 'date-fns';
 
 let idCounter = 0;
 const mockUuid = () => `mock-uuid-${idCounter++}`;
 
 const today = new Date();
 const initialTasks: Task[] = [
-  { id: mockUuid(), name: 'Physics - Kinematics Problem Set', duration: 120, priority: 'high', deadline: addDays(today, 3) },
-  { id: mockUuid(), name: 'Chemistry - Chemical Bonding Revision', duration: 90, priority: 'medium', deadline: addDays(today, 5) },
-  { id: mockUuid(), name: 'Maths - Integral Calculus Practice', duration: 120, priority: 'high', deadline: addDays(today, 2) },
-  { id: mockUuid(), name: 'JEE Mock Test - Paper 1', duration: 180, priority: 'high', deadline: addDays(today, 1) },
-  { id: mockUuid(), name: 'Mock Test Analysis', duration: 60, priority: 'medium', deadline: addDays(today, 1) },
-  { id: mockUuid(), name: 'Organic Chemistry - Reaction Mechanisms', duration: 75, priority: 'high', deadline: addDays(today, 0) },
-  { id: mockUuid(), name: 'Physics - Rotational Motion', duration: 90, priority: 'medium', deadline: addDays(today, 4) },
-  { id: mockUuid(), name: 'Solve 200 Math problems', duration: 150, priority: 'high', deadline: addDays(today, 6) },
-  { id: mockUuid(), name: 'Review past mock test errors', duration: 60, priority: 'low', deadline: addDays(today, 7) },
-  { id: mockUuid(), name: 'JEE Mock Test - Paper 2', duration: 180, priority: 'high', deadline: addDays(today, 8) },
+  { id: mockUuid(), title: 'Physics - Kinematics Problem Set', estimatedTime: 120, priority: 'high', deadline: addDays(today, 3) },
+  { id: mockUuid(), title: 'Chemistry - Chemical Bonding Revision', estimatedTime: 90, priority: 'medium', deadline: addDays(today, 5) },
+  { id: mockUuid(), title: 'Maths - Integral Calculus Practice', estimatedTime: 120, priority: 'high', deadline: addDays(today, 2) },
+  { id: mockUuid(), title: 'JEE Mock Test - Paper 1', estimatedTime: 180, priority: 'high', deadline: addDays(today, 1) },
+  { id: mockUuid(), title: 'Mock Test Analysis', estimatedTime: 60, priority: 'medium', deadline: addDays(today, 1) },
+  { id: mockUuid(), title: 'Organic Chemistry - Reaction Mechanisms', estimatedTime: 75, priority: 'high', deadline: addDays(today, 0) },
+  { id: mockUuid(), title: 'Physics - Rotational Motion', estimatedTime: 90, priority: 'medium', deadline: addDays(today, 4) },
 ];
 
+const initialBlockedTimes: BlockedTime[] = [
+    { id: 'bt-1', title: 'Lunch Break', startTime: '13:00', endTime: '14:00' },
+    { id: 'bt-2', title: 'Evening Walk', startTime: '18:00', endTime: '18:30' },
+];
 
 export default function Home() {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
@@ -40,24 +43,30 @@ export default function Home() {
   const [startTime, setStartTime] = useState('09:00');
   const [endTime, setEndTime] = useState('21:00');
   const [viewedDate, setViewedDate] = useState(new Date());
+  const [blockedTimes, setBlockedTimes] = useState<BlockedTime[]>(initialBlockedTimes);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [reasoning, setReasoning] = useState<string | null>(null);
   const { toast } = useToast();
 
   const dateKey = format(viewedDate, 'yyyy-MM-dd');
-  const currentSchedule = schedules[dateKey];
+  const currentSchedule = schedules[dateKey] || [];
 
   const handleAddTask = (task: Omit<Task, 'id'>) => {
     setTasks(prev => [...prev, { ...task, id: mockUuid() }]);
-    setSchedules({}); // Invalidate all schedules if tasks change
+    setSchedules({}); 
+    setReasoning(null);
   };
 
   const handleDeleteTask = (id: string) => {
     setTasks(prev => prev.filter(task => task.id !== id));
-    setSchedules({}); // Invalidate all schedules if tasks change
+    setSchedules({});
+    setReasoning(null);
   };
 
   const handleReorderTasks = (newTasks: Task[]) => {
     setTasks(newTasks);
-    setSchedules({}); // Invalidate all schedules if tasks change
+    setSchedules({});
+    setReasoning(null);
   };
   
   const handlePrevDay = () => {
@@ -79,12 +88,15 @@ export default function Home() {
     }
     
     setIsLoading(true);
+    setReasoning(null);
 
     const input = {
-      tasks: tasks.map(({ id, ...rest }) => ({ 
-          ...rest,
-          deadline: rest.deadline?.toISOString()
+      tasks: tasks.map(t => ({
+          ...t,
+          estimatedTime: t.estimatedTime,
+          deadline: t.deadline?.toISOString()
       })),
+      blockedTimes: blockedTimes.map(({ id, ...rest }) => rest),
       timeConstraints: { startTime, endTime },
       currentDateTime: new Date().toISOString(),
       startDate: format(new Date(), 'yyyy-MM-dd'),
@@ -92,37 +104,43 @@ export default function Home() {
 
     const result = await createSchedule(input);
     
-    if (result.success && result.data && result.data.schedules) {
-      console.log('--- DEBUG: Raw AI schedule data received by client ---', result.data);
-      const newSchedulesWithIds: Record<string, ScheduleItem[]> = {};
-      result.data.schedules.forEach(dailySchedule => {
-        const dateKey = dailySchedule.date;
-        console.log(`--- DEBUG: Processing schedule for date key: "${dateKey}" ---`);
-        if (dateKey) { // Ensure dateKey is present
-            newSchedulesWithIds[dateKey] = dailySchedule.tasks.map(item => ({
-                ...item,
-                id: mockUuid(),
-                isCompleted: false
-            }));
+    if (result.success && result.data) {
+        const newSchedules: Record<string, ScheduleItem[]> = {};
+
+        for (const scheduledTask of result.data.scheduledTasks) {
+            const startDate = parseISO(scheduledTask.startTime);
+            const dateKey = format(startDate, 'yyyy-MM-dd');
+
+            if (!newSchedules[dateKey]) {
+                newSchedules[dateKey] = [];
+            }
+            
+            newSchedules[dateKey].push({
+                id: scheduledTask.id,
+                name: scheduledTask.title,
+                startTime: format(startDate, 'HH:mm'),
+                endTime: format(parseISO(scheduledTask.endTime), 'HH:mm'),
+                isCompleted: false,
+            });
         }
-      });
-      console.log('--- DEBUG: Processed schedules object to be set in state ---', newSchedulesWithIds);
-      setSchedules(newSchedulesWithIds);
+        
+        // Sort tasks within each day by start time
+        for(const date in newSchedules) {
+            newSchedules[date].sort((a,b) => a.startTime.localeCompare(b.startTime));
+        }
 
-      // Jump to the first day of the generated schedule
-      if (result.data.schedules.length > 0) {
-        // Sort to be safe, although AI should return in order
-        const sortedSchedules = [...result.data.schedules].sort((a, b) => a.date.localeCompare(b.date));
-        const firstDateStr = sortedSchedules[0].date;
-        // Handle potential timezone issues by parsing manually
-        const [year, month, day] = firstDateStr.split('-').map(Number);
-        setViewedDate(new Date(year, month - 1, day));
-      }
+        setSchedules(newSchedules);
+        setReasoning(result.data.reasoning);
 
-      toast({
-        title: "Schedule Generated!",
-        description: "Your tasks have been scheduled. Navigate the calendar to see the full plan.",
-      });
+        const firstDateStr = Object.keys(newSchedules).sort()[0];
+        if (firstDateStr) {
+            setViewedDate(parseISO(firstDateStr));
+        }
+
+        toast({
+            title: "Schedule Generated!",
+            description: "Your tasks have been scheduled.",
+        });
     } else {
       toast({
         variant: "destructive",
@@ -136,9 +154,7 @@ export default function Home() {
   const handleToggleComplete = (id: string) => {
     setSchedules(prev => {
       const daySchedule = prev[dateKey];
-      if (!daySchedule) {
-        return prev;
-      }
+      if (!daySchedule) return prev;
       return {
         ...prev,
         [dateKey]: daySchedule.map(item =>
@@ -150,15 +166,21 @@ export default function Home() {
 
   return (
     <div className="h-screen flex flex-col bg-background text-foreground">
+       <SettingsDialog 
+        isOpen={isSettingsOpen} 
+        onClose={() => setIsSettingsOpen(false)} 
+        blockedTimes={blockedTimes}
+        setBlockedTimes={setBlockedTimes}
+      />
       <div className="px-4 pt-4 lg:px-6 lg:pt-6">
-        <Header />
+        <Header onSettingsClick={() => setIsSettingsOpen(true)} />
       </div>
       <main className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 px-4 pb-4 lg:px-6 lg:pb-6 overflow-hidden">
         {/* Left Panel: Task Management */}
         <Card className="lg:col-span-1 flex flex-col overflow-hidden">
           <CardHeader>
-            <CardTitle>Tasks &amp; Scheduling</CardTitle>
-            <CardDescription>Add tasks, set availability, and generate your full schedule.</CardDescription>
+            <CardTitle>Tasks & Scheduling</CardTitle>
+            <CardDescription>Add tasks, set availability, and generate your schedule.</CardDescription>
           </CardHeader>
           <CardContent className="flex-1 flex flex-col gap-4 overflow-y-auto p-4 pt-2">
             <div className="pt-2">
@@ -199,6 +221,15 @@ export default function Home() {
             </div>
           </CardHeader>
           <CardContent className="flex-1 flex flex-col gap-4 overflow-y-hidden p-4 pt-0">
+            {reasoning && !isLoading && (
+                 <Alert>
+                    <Info className="h-4 w-4" />
+                    <AlertTitle>AI Reasoning</AlertTitle>
+                    <AlertDescription>
+                        {reasoning}
+                    </AlertDescription>
+                </Alert>
+            )}
             <div className="flex-1 relative min-h-0">
               {isLoading && (
                  <div className="absolute inset-0 flex items-center justify-center bg-card/50 backdrop-blur-sm z-10 rounded-lg">
@@ -208,8 +239,7 @@ export default function Home() {
                     </div>
                   </div>
               )}
-              {currentSchedule ? (
-                 currentSchedule.length > 0 ? (
+              {currentSchedule.length > 0 ? (
                   <ScheduleCalendar
                     schedule={currentSchedule}
                     onToggleComplete={handleToggleComplete}
@@ -221,22 +251,17 @@ export default function Home() {
                     <div className="flex items-center justify-center h-full border-2 border-dashed rounded-lg">
                       <div className="text-center text-muted-foreground">
                         <CalendarDays className="mx-auto h-12 w-12" />
-                        <p className="mt-4">Nothing scheduled for this day.</p>
-                        <p className="text-sm">The AI decided to keep this day clear. Try generating a new schedule.</p>
+                        <p className="mt-4">
+                            {Object.keys(schedules).length > 0 ? "Nothing scheduled for this day." : "Your schedule will appear here."}
+                        </p>
+                         <p className="text-sm">
+                            {Object.keys(schedules).length > 0 ? "The AI kept this day clear." : "Add some tasks and click Generate."}
+                        </p>
                       </div>
                     </div>
                   )
                  )
-              ) : (
-                !isLoading && (
-                  <div className="flex items-center justify-center h-full border-2 border-dashed rounded-lg">
-                    <div className="text-center text-muted-foreground">
-                      <CalendarDays className="mx-auto h-12 w-12" />
-                      <p className="mt-4">Your schedule will appear here once generated.</p>
-                    </div>
-                  </div>
-                )
-              )}
+              }
             </div>
           </CardContent>
         </Card>

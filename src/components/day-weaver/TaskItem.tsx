@@ -21,11 +21,11 @@ export default function TaskItem({ task, onDelete }: TaskItemProps) {
     <div className="flex items-center gap-2 p-3 bg-secondary/50 rounded-lg border">
       <GripVertical className="h-5 w-5 text-muted-foreground cursor-move" />
       <div className="flex-grow">
-        <p className="font-medium text-foreground">{task.name}</p>
+        <p className="font-medium text-foreground">{task.title}</p>
         <div className="flex items-center flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground mt-1">
           <div className="flex items-center gap-1.5">
             <Clock className="h-3.5 w-3.5" />
-            <span>{task.duration} min</span>
+            <span>{task.estimatedTime} min</span>
           </div>
           <div className="flex items-center gap-1.5">
              <BarChart3 className="h-3.5 w-3.5"/>
@@ -41,7 +41,7 @@ export default function TaskItem({ task, onDelete }: TaskItemProps) {
           )}
         </div>
       </div>
-      <Button variant="ghost" size="icon" onClick={onDelete} aria-label={`Delete task: ${task.name}`}>
+      <Button variant="ghost" size="icon" onClick={onDelete} aria-label={`Delete task: ${task.title}`}>
         <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
       </Button>
     </div>

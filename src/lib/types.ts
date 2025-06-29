@@ -2,10 +2,17 @@ export type TaskPriority = 'low' | 'medium' | 'high';
 
 export interface Task {
   id: string;
-  name: string;
-  duration: number; // in minutes
+  title: string;
+  estimatedTime: number; // in minutes
   priority: TaskPriority;
   deadline?: Date;
+}
+
+export interface BlockedTime {
+  id: string;
+  title: string;
+  startTime: string; // HH:mm
+  endTime: string; // HH:mm
 }
 
 export interface Schedule {

@@ -3,51 +3,27 @@
 import { generateFullSchedule, GenerateFullScheduleInput } from '@/ai/flows/generate-full-schedule';
 
 export async function createSchedule(input: GenerateFullScheduleInput) {
-  console.log("==========================================");
-  console.log("=== `createSchedule` SERVER ACTION START ===");
-  console.log("==========================================");
-  console.log("Received input:", JSON.stringify(input, null, 2));
-
   try {
-    console.log("Calling `generateFullSchedule`...");
-    const schedules = await generateFullSchedule(input);
-    console.log("`generateFullSchedule` returned successfully.");
+    const result = await generateFullSchedule(input);
     
-    // Stricter validation: Ensure there's a schedule array and that at least one task is scheduled in total.
-    const totalTasksScheduled = schedules?.schedules?.reduce((acc, day) => acc + day.tasks.length, 0) || 0;
-
-    if (!schedules || !schedules.schedules || totalTasksScheduled === 0) {
-      console.error('Validation Error: AI returned an empty or invalid schedule.');
-      throw new Error('AI failed to generate a schedule or returned an empty schedule.');
+    if (!result || !result.scheduledTasks || !result.reasoning) {
+      throw new Error('AI returned an incomplete or invalid schedule object.');
     }
     
-    console.log("Successfully processed schedule:", JSON.stringify(schedules, null, 2));
-    console.log("==========================================");
-    console.log("=== `createSchedule` SERVER ACTION END (SUCCESS) ===");
-    console.log("==========================================");
-    return { success: true, data: schedules };
+    if (result.scheduledTasks.length === 0 && input.tasks.length > 0) {
+        throw new Error('AI failed to schedule any tasks. It may have determined no valid schedule was possible.');
+    }
+    
+    return { success: true, data: result };
 
   } catch (error) {
-    console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-    console.error("!!!   ERROR IN `createSchedule` ACTION    !!!");
-    console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-    
     let errorMessage = 'Could not create a schedule. The AI may be busy or the request is invalid. Please check your tasks and try again.';
     
     if (error instanceof Error) {
-      console.error('ERROR NAME:', error.name);
-      console.error('ERROR MESSAGE:', error.message);
-      console.error('ERROR STACK:', error.stack);
       errorMessage = `Could not create a schedule. The AI may be busy or the request is invalid. Please check your tasks and try again. (Details: ${error.message})`;
     } else {
-      console.error('An unexpected non-Error object was thrown:', error);
       errorMessage = 'An unknown and unexpected error occurred.';
     }
-
-    console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-    console.log("==========================================");
-    console.log("=== `createSchedule` SERVER ACTION END (FAILURE) ===");
-    console.log("==========================================");
     
     return { success: false, error: errorMessage };
   }

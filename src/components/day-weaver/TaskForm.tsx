@@ -31,8 +31,8 @@ type TaskFormProps = {
 };
 
 const formSchema = z.object({
-  name: z.string().min(2, 'Task name must be at least 2 characters.'),
-  duration: z.coerce.number().min(1, 'Duration must be at least 1 minute.'),
+  title: z.string().min(2, 'Task title must be at least 2 characters.'),
+  estimatedTime: z.coerce.number().min(1, 'Duration must be at least 1 minute.'),
   priority: z.enum(['low', 'medium', 'high']),
   deadline: z.date().optional(),
 });
@@ -43,8 +43,8 @@ export default function TaskForm({ onAddTask }: TaskFormProps) {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: '',
-      duration: 30,
+      title: '',
+      estimatedTime: 30,
       priority: 'medium',
       deadline: undefined,
     },
@@ -52,8 +52,8 @@ export default function TaskForm({ onAddTask }: TaskFormProps) {
 
   const onSubmit: SubmitHandler<FormValues> = (data) => {
     onAddTask({
-      name: data.name,
-      duration: data.duration,
+      title: data.title,
+      estimatedTime: data.estimatedTime,
       priority: data.priority as TaskPriority,
       deadline: data.deadline,
     });
@@ -66,7 +66,7 @@ export default function TaskForm({ onAddTask }: TaskFormProps) {
         <div className="flex items-start gap-2">
           <FormField
             control={form.control}
-            name="name"
+            name="title"
             render={({ field }) => (
               <FormItem className="flex-1">
                 <FormControl>
@@ -83,7 +83,7 @@ export default function TaskForm({ onAddTask }: TaskFormProps) {
         <div className="flex items-start gap-2">
           <FormField
             control={form.control}
-            name="duration"
+            name="estimatedTime"
             render={({ field }) => (
               <FormItem className="w-24">
                 <FormControl>
