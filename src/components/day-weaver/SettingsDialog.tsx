@@ -52,40 +52,44 @@ export default function SettingsDialog({ isOpen, onClose, blockedTimes, setBlock
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Recurring Busy Times</DialogTitle>
           <DialogDescription>
             Add recurring times you are unavailable, like lunch or meetings. The AI will avoid scheduling tasks during these times.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="space-y-2">
+        <div className="grid gap-6 py-4">
+           {/* Add New Block Section */}
+          <div className="space-y-4">
             <h4 className="font-medium">Add New Block</h4>
-            <div className="grid grid-cols-3 items-center gap-4">
-              <Label htmlFor="title" className="text-right">Title</Label>
-              <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} className="col-span-2" placeholder="e.g. Lunch Break" />
+            <div className="space-y-3">
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label htmlFor="title" className="text-right">Title</Label>
+                <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} className="col-span-2" placeholder="e.g. Lunch Break" />
+              </div>
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label htmlFor="start-time" className="text-right">Start Time</Label>
+                <Input id="start-time" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className="col-span-2" />
+              </div>
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label htmlFor="end-time" className="text-right">End Time</Label>
+                <Input id="end-time" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="col-span-2" />
+              </div>
             </div>
-            <div className="grid grid-cols-3 items-center gap-4">
-               <Label htmlFor="start-time" className="text-right">Start Time</Label>
-               <Input id="start-time" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className="col-span-2" />
-            </div>
-            <div className="grid grid-cols-3 items-center gap-4">
-               <Label htmlFor="end-time" className="text-right">End Time</Label>
-               <Input id="end-time" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="col-span-2" />
-            </div>
-             <div className="flex justify-end">
+            <div className="flex justify-end">
                 <Button onClick={handleAddBlockedTime}>Add Time</Button>
             </div>
           </div>
-          <div className="space-y-2">
+           {/* Current Blocks Section */}
+          <div className="space-y-3">
             <h4 className="font-medium">Current Blocks</h4>
             <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
               {blockedTimes.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center">No blocked times added.</p>
+                <p className="text-sm text-muted-foreground text-center py-4">No blocked times added.</p>
               ) : (
                 blockedTimes.map((bt) => (
-                  <div key={bt.id} className="flex items-center justify-between p-2 bg-secondary/50 rounded-lg">
+                  <div key={bt.id} className="flex items-center justify-between p-2 bg-secondary rounded-lg">
                     <div>
                       <p className="font-semibold">{bt.title}</p>
                       <p className="text-sm text-muted-foreground">{bt.startTime} - {bt.endTime}</p>
