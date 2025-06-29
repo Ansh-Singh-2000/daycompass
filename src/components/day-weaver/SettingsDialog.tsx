@@ -87,7 +87,7 @@ export default function SettingsDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl flex flex-col h-[550px]">
+      <DialogContent className="sm:max-w-2xl flex flex-col h-[90vh]">
         <DialogHeader>
           <DialogTitle>Settings</DialogTitle>
           <DialogDescription>
@@ -193,40 +193,42 @@ export default function SettingsDialog({
 
                 <form onSubmit={handleAddBlockedTime} className="space-y-3 shrink-0">
                     <Label>Add New Block</Label>
-                    <div className="flex flex-col sm:flex-row items-end gap-2">
-                    <div className="flex-grow w-full">
-                        <Label htmlFor="block-title" className="sr-only">Title</Label>
-                        <Input
-                        id="block-title"
-                        value={newBlockTitle}
-                        onChange={(e) => setNewBlockTitle(e.target.value)}
-                        placeholder="e.g. Lunch"
-                        required
-                        />
-                    </div>
-                    <div className="w-full sm:w-[130px]">
-                        <Label htmlFor="block-start" className="sr-only">Start Time</Label>
-                        <Input
-                        id="block-start"
-                        type="time"
-                        value={newBlockStartTime}
-                        onChange={(e) => setNewBlockStartTime(e.target.value)}
-                        required
-                        />
-                    </div>
-                    <div className="w-full sm:w-[130px]">
-                        <Label htmlFor="block-end" className="sr-only">End Time</Label>
-                        <Input
-                        id="block-end"
-                        type="time"
-                        value={newBlockEndTime}
-                        onChange={(e) => setNewBlockEndTime(e.target.value)}
-                        required
-                        />
-                    </div>
-                    <Button type="submit" aria-label="Add Blocked Time" className="px-3 w-full sm:w-auto">
-                        <Plus className="h-4 w-4 mr-1" /> Add
-                    </Button>
+                    <div className="space-y-2">
+                      <div>
+                          <Label htmlFor="block-title" className="sr-only">Title</Label>
+                          <Input
+                          id="block-title"
+                          value={newBlockTitle}
+                          onChange={(e) => setNewBlockTitle(e.target.value)}
+                          placeholder="e.g. Lunch"
+                          required
+                          />
+                      </div>
+                      <div className="flex items-end gap-2">
+                          <div className="flex-1">
+                              <Label htmlFor="block-start" className="sr-only">Start Time</Label>
+                              <Input
+                              id="block-start"
+                              type="time"
+                              value={newBlockStartTime}
+                              onChange={(e) => setNewBlockStartTime(e.target.value)}
+                              required
+                              />
+                          </div>
+                          <div className="flex-1">
+                              <Label htmlFor="block-end" className="sr-only">End Time</Label>
+                              <Input
+                              id="block-end"
+                              type="time"
+                              value={newBlockEndTime}
+                              onChange={(e) => setNewBlockEndTime(e.target.value)}
+                              required
+                              />
+                          </div>
+                          <Button type="submit" aria-label="Add Blocked Time" className="px-3">
+                              <Plus className="h-4 w-4 mr-1" /> Add
+                          </Button>
+                      </div>
                     </div>
                 </form>
             </TabsContent>
