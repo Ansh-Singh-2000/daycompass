@@ -13,7 +13,7 @@ import type { BlockedTime } from "@/lib/types";
 import { Trash2, Plus } from "lucide-react";
 import { useState } from "react";
 
-let idCounter = 0;
+let idCounter = 3;
 const mockUuid = () => `mock-blocked-uuid-${idCounter++}`;
 
 interface SettingsDialogProps {
@@ -39,7 +39,7 @@ export default function SettingsDialog({ isOpen, onClose, blockedTimes, setBlock
       startTime,
       endTime,
     };
-    setBlockedTimes(prev => [...prev, newBlockedTime]);
+    setBlockedTimes(prev => [...prev, newBlockedTime].sort((a,b) => a.startTime.localeCompare(b.startTime)));
     setTitle('');
     setStartTime('');
     setEndTime('');
@@ -51,7 +51,7 @@ export default function SettingsDialog({ isOpen, onClose, blockedTimes, setBlock
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-xl">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Recurring Busy Times</DialogTitle>
           <DialogDescription>
@@ -59,11 +59,11 @@ export default function SettingsDialog({ isOpen, onClose, blockedTimes, setBlock
           </DialogDescription>
         </DialogHeader>
         
-        <div className="grid gap-4 py-4">
+        <div className="grid gap-6 py-4">
           
-          <div className="space-y-2">
+          <div className="space-y-3">
             <Label>Current Blocks</Label>
-            <div className="space-y-2 max-h-40 overflow-y-auto rounded-md border p-2">
+            <div className="space-y-2 max-h-48 overflow-y-auto rounded-md border p-2">
               {blockedTimes.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-4">No blocked times added.</p>
               ) : (
@@ -82,35 +82,41 @@ export default function SettingsDialog({ isOpen, onClose, blockedTimes, setBlock
             </div>
           </div>
 
-          <form onSubmit={handleAddBlockedTime} className="space-y-2">
+          <form onSubmit={handleAddBlockedTime} className="space-y-3">
              <Label>Add New Block</Label>
             <div className="flex items-end gap-2">
-              <Input
-                aria-label="Title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g. Lunch"
-                className="flex-grow"
-                required
-              />
-              <Input
-                aria-label="Start Time"
-                type="time"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                className="w-[120px]"
-                required
-              />
-              <Input
-                aria-label="End Time"
-                type="time"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                className="w-[120px]"
-                required
-              />
-              <Button type="submit" aria-label="Add Blocked Time">
-                <Plus className="h-4 w-4" />
+              <div className="flex-grow">
+                <Label htmlFor="block-title" className="sr-only">Title</Label>
+                <Input
+                  id="block-title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="e.g. Lunch"
+                  required
+                />
+              </div>
+              <div className="w-[130px]">
+                <Label htmlFor="block-start" className="sr-only">Start Time</Label>
+                <Input
+                  id="block-start"
+                  type="time"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="w-[130px]">
+                <Label htmlFor="block-end" className="sr-only">End Time</Label>
+                <Input
+                  id="block-end"
+                  type="time"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  required
+                />
+              </div>
+              <Button type="submit" aria-label="Add Blocked Time" className="px-3">
+                <Plus className="h-4 w-4 mr-1" /> Add
               </Button>
             </div>
           </form>

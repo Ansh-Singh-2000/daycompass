@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import type { Task, ScheduleItem, BlockedTime } from '@/lib/types';
-import { createSchedule } from './actions';
+import type { Task, ScheduleItem, BlockedTime, ProposedTask } from '@/lib/types';
+import { createSchedule, refineSchedule } from './actions';
 import { useToast } from "@/hooks/use-toast";
 import Header from '@/components/day-weaver/Header';
 import TaskForm from '@/components/day-weaver/TaskForm';
@@ -10,6 +10,7 @@ import TaskList from '@/components/day-weaver/TaskList';
 import ScheduleControls from '@/components/day-weaver/ScheduleControls';
 import ScheduleCalendar from '@/components/day-weaver/ScheduleCalendar';
 import SettingsDialog from '@/components/day-weaver/SettingsDialog';
+import AdjustScheduleDialog from '@/components/day-weaver/AdjustScheduleDialog';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from '@/components/ui/button';
@@ -38,17 +39,21 @@ const initialBlockedTimes: BlockedTime[] = [
 export default function Home() {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [schedules, setSchedules] = useState<Record<string, ScheduleItem[]>>({});
-  const [isLoading, setIsLoading] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isAdjusting, setIsAdjusting] = useState(false);
   const [startTime, setStartTime] = useState('09:00');
   const [endTime, setEndTime] = useState('21:00');
   const [viewedDate, setViewedDate] = useState(new Date());
   const [blockedTimes, setBlockedTimes] = useState<BlockedTime[]>(initialBlockedTimes);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isAdjustDialogOpen, setIsAdjustDialogOpen] = useState(false);
+  const [proposedSchedule, setProposedSchedule] = useState<ProposedTask[]>([]);
   const [reasoning, setReasoning] = useState<string | null>(null);
   const { toast } = useToast();
 
   const dateKey = format(viewedDate, 'yyyy-MM-dd');
   const currentSchedule = schedules[dateKey] || [];
+  const isLoading = isGenerating || isAdjusting;
 
   const handleAddTask = (task: Omit<Task, 'id'>) => {
     setTasks(prev => [...prev, { ...task, id: mockUuid() }]);
@@ -86,7 +91,7 @@ export default function Home() {
       return;
     }
     
-    setIsLoading(true);
+    setIsGenerating(true);
     setReasoning(null);
 
     const input = {
@@ -104,39 +109,16 @@ export default function Home() {
     const result = await createSchedule(input);
     
     if (result.success && result.data) {
-        const newSchedules: Record<string, ScheduleItem[]> = {};
-        
-        for (const scheduledTask of result.data.scheduledTasks) {
-            const taskDate = parseISO(scheduledTask.startTime);
-            const dateKey = format(taskDate, 'yyyy-MM-dd');
-
-            if (!newSchedules[dateKey]) {
-                newSchedules[dateKey] = [];
-            }
-
-            newSchedules[dateKey].push({
-                id: scheduledTask.id,
-                name: scheduledTask.title,
-                startTime: format(parseISO(scheduledTask.startTime), 'HH:mm'),
-                endTime: format(parseISO(scheduledTask.endTime), 'HH:mm'),
-                isCompleted: false,
-            });
-        }
-        
-        Object.values(newSchedules).forEach(day => day.sort((a,b) => a.startTime.localeCompare(b.startTime)));
-
-        setSchedules(newSchedules);
-        setReasoning(result.data.reasoning);
-
-        const firstDateStr = Object.keys(newSchedules).sort()[0];
-        if (firstDateStr) {
-            setViewedDate(parseISO(firstDateStr));
-        }
-
-        toast({
-            title: "Schedule Generated!",
-            description: "Your tasks have been scheduled.",
+        const enrichedProposedSchedule = result.data.scheduledTasks.map(scheduledTask => {
+          const originalTask = tasks.find(t => t.id === scheduledTask.id);
+          return {
+              ...scheduledTask,
+              priority: originalTask?.priority || 'medium',
+          };
         });
+        setProposedSchedule(enrichedProposedSchedule);
+        setReasoning(result.data.reasoning);
+        setIsAdjustDialogOpen(true);
     } else {
       toast({
         variant: "destructive",
@@ -144,7 +126,86 @@ export default function Home() {
         description: result.error || "An unknown error occurred.",
       });
     }
-    setIsLoading(false);
+    setIsGenerating(false);
+  };
+
+  const handleApplySchedule = (finalSchedule: ProposedTask[]) => {
+    const newSchedules: Record<string, ScheduleItem[]> = {};
+        
+    for (const scheduledTask of finalSchedule) {
+        const taskDate = parseISO(scheduledTask.startTime);
+        const dateKey = format(taskDate, 'yyyy-MM-dd');
+
+        if (!newSchedules[dateKey]) {
+            newSchedules[dateKey] = [];
+        }
+
+        newSchedules[dateKey].push({
+            id: scheduledTask.id,
+            name: scheduledTask.title,
+            startTime: format(parseISO(scheduledTask.startTime), 'HH:mm'),
+            endTime: format(parseISO(scheduledTask.endTime), 'HH:mm'),
+            isCompleted: false,
+        });
+    }
+    
+    Object.values(newSchedules).forEach(day => day.sort((a,b) => a.startTime.localeCompare(b.startTime)));
+
+    setSchedules(newSchedules);
+    setReasoning(null);
+
+    const firstDateStr = Object.keys(newSchedules).sort()[0];
+    if (firstDateStr) {
+        setViewedDate(parseISO(firstDateStr));
+    }
+
+    setIsAdjustDialogOpen(false);
+    setProposedSchedule([]);
+
+    toast({
+        title: "Schedule Applied!",
+        description: "Your new schedule is ready.",
+    });
+  }
+
+  const handleAdjustSchedule = async (userRequest: string) => {
+    setIsAdjusting(true);
+
+    const input = {
+      tasks: tasks.map(t => ({
+          ...t,
+          estimatedTime: t.estimatedTime,
+          deadline: t.deadline?.toISOString()
+      })),
+      blockedTimes: blockedTimes.map(({ id, ...rest }) => rest),
+      timeConstraints: { startTime, endTime },
+      currentDateTime: new Date().toISOString(),
+      startDate: format(new Date(), 'yyyy-MM-dd'),
+      currentScheduledTasks: proposedSchedule.map(({priority, ...rest}) => rest),
+      userRequest: userRequest
+    };
+
+    const result = await refineSchedule(input);
+
+    if (result.success && result.data) {
+        const enrichedProposedSchedule = result.data.scheduledTasks.map(scheduledTask => {
+          const originalTask = tasks.find(t => t.id === scheduledTask.id);
+          return {
+              ...scheduledTask,
+              priority: originalTask?.priority || 'medium',
+          };
+        });
+        setProposedSchedule(enrichedProposedSchedule);
+        setReasoning(result.data.reasoning);
+    } else {
+       toast({
+        variant: "destructive",
+        title: "Adjustment Failed",
+        description: result.error || "Could not adjust the schedule.",
+      });
+    }
+
+    setIsAdjusting(false);
   };
 
   const handleToggleComplete = (id: string) => {
@@ -162,23 +223,34 @@ export default function Home() {
 
   return (
     <div className="h-screen flex flex-col bg-background text-foreground">
-       <SettingsDialog 
+      <SettingsDialog 
         isOpen={isSettingsOpen} 
         onClose={() => setIsSettingsOpen(false)} 
         blockedTimes={blockedTimes}
         setBlockedTimes={setBlockedTimes}
       />
-      <header className="px-4 lg:px-6 py-3 border-b shrink-0">
-        <Header onSettingsClick={() => setIsSettingsOpen(true)} />
+      <AdjustScheduleDialog
+        isOpen={isAdjustDialogOpen}
+        onClose={() => setIsAdjustDialogOpen(false)}
+        proposedSchedule={proposedSchedule}
+        reasoning={reasoning}
+        onAdjust={handleAdjustSchedule}
+        onApply={handleApplySchedule}
+        isAdjusting={isAdjusting}
+      />
+      <header className="shrink-0 border-b">
+        <div className="px-4 lg:px-6 py-3">
+          <Header onSettingsClick={() => setIsSettingsOpen(true)} />
+        </div>
       </header>
       <main className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 px-4 py-4 lg:px-6 lg:py-4 overflow-hidden">
         {/* Left Panel: Task Management */}
         <Card className="lg:col-span-1 flex flex-col overflow-hidden">
-          <CardHeader className="p-4">
+          <CardHeader className="p-4 pb-2">
             <CardTitle>Tasks & Scheduling</CardTitle>
             <CardDescription>Add tasks, set availability, and generate your schedule.</CardDescription>
           </CardHeader>
-          <CardContent className="flex-1 flex flex-col gap-2 p-4 pt-0 overflow-hidden">
+          <CardContent className="flex-1 flex flex-col gap-2 p-4 pt-2 overflow-hidden">
             <div>
               <TaskForm onAddTask={handleAddTask} />
             </div>
@@ -186,10 +258,10 @@ export default function Home() {
               <TaskList tasks={tasks} onDeleteTask={handleDeleteTask} onReorderTasks={handleReorderTasks} />
             </div>
           </CardContent>
-          <CardFooter className="p-4 border-t">
+          <CardFooter className="p-4 pt-2 border-t">
             <ScheduleControls
               onGenerate={handleGenerateSchedule}
-              isLoading={isLoading}
+              isLoading={isGenerating}
               startTime={startTime}
               endTime={endTime}
               onStartTimeChange={setStartTime}
@@ -216,17 +288,17 @@ export default function Home() {
             </div>
           </CardHeader>
           <CardContent className="flex-1 flex flex-col gap-4 overflow-y-hidden p-4 pt-0">
-            {reasoning && !isLoading && (
+            {schedules[dateKey] && !isAdjustDialogOpen && (
                  <Alert>
                     <Info className="h-4 w-4" />
                     <AlertTitle>AI Reasoning</AlertTitle>
                     <AlertDescription>
-                        {reasoning}
+                        This schedule was generated based on your tasks and settings.
                     </AlertDescription>
                 </Alert>
             )}
             <div className="flex-1 relative min-h-0">
-              {isLoading && (
+              {isGenerating && (
                  <div className="absolute inset-0 flex items-center justify-center bg-card/50 backdrop-blur-sm z-10 rounded-lg">
                     <div className="flex flex-col items-center gap-4">
                       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>

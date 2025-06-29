@@ -25,3 +25,11 @@ export interface ScheduleItem extends Schedule {
   id: string;
   isCompleted: boolean;
 }
+
+export interface ProposedTask {
+    id: string;
+    title: string;
+    startTime: string; // ISO 8601 format
+    endTime: string; // ISO 8601 format
+    priority: TaskPriority;
+}

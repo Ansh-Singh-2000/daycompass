@@ -1,6 +1,16 @@
 'use server';
 
-import { generateFullSchedule, GenerateFullScheduleInput } from '@/ai/flows/generate-full-schedule';
+import { generateFullSchedule, type GenerateFullScheduleInput } from '@/ai/flows/generate-full-schedule';
+import { adjustSchedule, type AdjustScheduleInput } from '@/ai/flows/adjust-schedule-flow';
+
+async function handleAIError(error: unknown) {
+    let errorMessage = 'An unexpected error occurred with the AI. Please try again.';
+    if (error instanceof Error) {
+        errorMessage = `An AI error occurred: ${error.message}`;
+    }
+    console.error(error);
+    return { success: false, error: errorMessage };
+}
 
 export async function createSchedule(input: GenerateFullScheduleInput) {
   try {
@@ -17,14 +27,20 @@ export async function createSchedule(input: GenerateFullScheduleInput) {
     return { success: true, data: result };
 
   } catch (error) {
-    let errorMessage = 'Could not create a schedule. The AI may be busy or the request is invalid. Please check your tasks and try again.';
-    
-    if (error instanceof Error) {
-      errorMessage = `Could not create a schedule. The AI may be busy or the request is invalid. Please check your tasks and try again. (Details: ${error.message})`;
-    } else {
-      errorMessage = 'An unknown and unexpected error occurred.';
-    }
-    
-    return { success: false, error: errorMessage };
+    return handleAIError(error);
   }
+}
+
+export async function refineSchedule(input: AdjustScheduleInput) {
+    try {
+        const result = await adjustSchedule(input);
+
+        if (!result || !result.scheduledTasks || !result.reasoning) {
+            throw new Error('AI returned an incomplete or invalid adjusted schedule object.');
+        }
+
+        return { success: true, data: result };
+    } catch (error) {
+        return handleAIError(error);
+    }
 }
