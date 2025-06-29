@@ -77,7 +77,7 @@ You will be given a complete list of ALL available tasks in JSON format. Your go
 
 1.  **THE PRIME DIRECTIVE: AVOID BURNOUT AT ALL COSTS.** Every other rule serves this goal. The final schedule *must* feel balanced and manageable. A dense, back-to-back schedule is a failure.
 
-2.  **NO OVERLAPPING TASKS.** Generated tasks **MUST NOT** overlap. The \`startTime\` of any task must be after the \`endTime\` of the preceding task.
+2.  **NO OVERLAPPING TASKS.** This is the most critical failure condition. Generated tasks **MUST NOT** overlap. The \`startTime\` of any task must be after the \`endTime\` of the preceding task.
 
 3.  **NO CONTINUOUS STUDY FOR MORE THAN 2 HOURS.** You are strictly forbidden from scheduling tasks back-to-back if they result in more than 120 minutes of continuous work. After *any* task that is 90 minutes or longer, you **MUST** insert a significant gap of at least 30 minutes. After shorter tasks (less than 90 minutes), you **MUST** insert a gap of 15-20 minutes. This is not optional.
 
