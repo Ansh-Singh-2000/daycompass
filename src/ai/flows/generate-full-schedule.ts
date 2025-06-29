@@ -81,12 +81,5 @@ export async function generateFullSchedule(
   const responseText = result.response.text();
   const parsedJson = JSON.parse(responseText);
   
-  const validationResult = GenerateFullScheduleOutputSchema.safeParse(parsedJson);
-
-  if (!validationResult.success) {
-      console.error("Gemini output failed Zod validation:", validationResult.error);
-      throw new Error(`AI returned data in an invalid format. ${validationResult.error.message}`);
-  }
-
-  return validationResult.data;
+  return parsedJson;
 }

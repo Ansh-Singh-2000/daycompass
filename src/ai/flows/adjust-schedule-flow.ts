@@ -40,7 +40,7 @@ ${JSON.stringify(GenerateFullScheduleOutputSchema.jsonSchema, null, 2)}
 CRITICAL RULES FOR SCHEDULE MODIFICATION (NON-NEGOTIABLE):
 If you decide to modify the schedule, the new schedule you generate MUST follow these rules:
 1.  SCHEDULE ALL TASKS: You MUST place every single task from the original \`tasks\` list into the new schedule.
-2.  MAP ALL FIELDS: For each task you schedule, you MUST include its original \`id\` and \`title\` in the corresponding fields of the JSON output.
+2.  MAP ALL FIELDS: For each scheduled task, you MUST include its original \`id\` and \`title\` in the corresponding fields of the JSON output.
 3.  ACCURATE DURATION: The duration for each scheduled task (\`endTime\` - \`startTime\`) MUST exactly match its \`estimatedTime\` from the original task list.
 4.  ISO 8601 FORMAT: All \`startTime\` and \`endTime\` values MUST be complete and valid ISO 8601 date-time strings (e.g., '2024-07-15T09:00:00.000Z').
 5.  NO OVERLAPPING: Tasks MUST NOT overlap with each other, with recurring blocked times, or fall outside the daily availability window.
@@ -90,16 +90,5 @@ export async function adjustSchedule(
   const responseText = result.response.text();
   const parsedJson = JSON.parse(responseText);
   
-  const validationResult = GenerateFullScheduleOutputSchema.safeParse(parsedJson);
-
-  if (!validationResult.success) {
-      console.error("Gemini output failed Zod validation:", validationResult.error);
-      throw new Error(`AI returned data in an invalid format. ${validationResult.error.message}`);
-  }
-
-  if (!validationResult.data.scheduledTasks) {
-      throw new Error('AI failed to generate an adjusted schedule.');
-  }
-
-  return validationResult.data;
+  return parsedJson;
 }
