@@ -149,6 +149,7 @@ export default function ScheduleCalendar({
 
   const totalHours = endHour - startHour;
   const hourSegments = Array.from({ length: totalHours }, (_, i) => startHour + i);
+  const allHourMarkers = [...hourSegments, endHour];
   const HOUR_HEIGHT_REM = 6; // h-24
 
   if (!isLoading && schedule.length === 0 && !hasTasks) {
@@ -170,33 +171,30 @@ export default function ScheduleCalendar({
         style={{ height: `${totalHours * HOUR_HEIGHT_REM}rem` }}
       >
         {/* Time Column */}
-        <div className="relative border-b-2 border-slate-200 dark:border-slate-700">
-          {hourSegments.map((hour, index) => (
-            <div
-              key={hour}
-              className="text-right pr-2 border-t-2 border-slate-200 dark:border-slate-700"
-              style={{ height: `${HOUR_HEIGHT_REM}rem` }}
-            >
-              <span className="text-xs font-medium text-gray-500 dark:text-gray-400 -translate-y-1/2 relative top-0">
-                {hour % 12 === 0 ? 12 : hour % 12}{' '}
-                <span className="text-xs">{hour < 12 || hour === 24 ? 'AM' : 'PM'}</span>
-              </span>
-            </div>
-          ))}
-          <div className="absolute bottom-0 right-0 w-full text-right pr-2 -translate-y-1/2">
-             <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                {endHour % 12 === 0 ? 12 : endHour % 12}{' '}
-                <span className="text-xs">{endHour < 12 || endHour === 24 ? 'AM' : 'PM'}</span>
-            </span>
-          </div>
+        <div className="relative">
+          {allHourMarkers.map((hour, index) => {
+            const isLast = index === allHourMarkers.length - 1;
+            return (
+                <div
+                    key={`time-${hour}-${index}`}
+                    style={{ height: isLast ? 0 : `${HOUR_HEIGHT_REM}rem` }}
+                    className="text-right pr-2 border-t-2 border-slate-200 dark:border-slate-700"
+                >
+                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400 -translate-y-1/2 relative top-0">
+                        {hour % 12 === 0 ? 12 : hour % 12}{' '}
+                        <span className="text-xs">{hour < 12 || hour === 24 ? 'AM' : 'PM'}</span>
+                    </span>
+                </div>
+            )
+          })}
         </div>
 
         {/* Schedule Column */}
-        <div className="relative border-b-2 border-slate-200 dark:border-slate-700">
+        <div className="relative">
           {/* Hour lines */}
-          {hourSegments.map((hour, index) => (
+          {allHourMarkers.map((hour, index) => (
             <div
-              key={`line-${hour}`}
+              key={`line-${hour}-${index}`}
               className="absolute w-full border-t-2 border-slate-200 dark:border-slate-700"
               style={{ top: `${index * HOUR_HEIGHT_REM}rem` }}
             />
