@@ -10,7 +10,7 @@ import TaskForm from '@/components/day-weaver/TaskForm';
 import TaskList from '@/components/day-weaver/TaskList';
 import ScheduleControls from '@/components/day-weaver/ScheduleControls';
 import ScheduleCalendar from '@/components/day-weaver/ScheduleCalendar';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { CalendarDays } from 'lucide-react';
 
@@ -97,12 +97,12 @@ export default function Home() {
       <div className="px-4 pt-4 lg:px-6 lg:pt-6">
         <Header />
       </div>
-      <main className="flex-1 grid grid-cols-1 lg:grid-cols-5 gap-6 px-4 pb-4 lg:px-6 lg:pb-6 overflow-hidden">
+      <main className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 px-4 pb-4 lg:px-6 lg:pb-6 overflow-hidden">
         {/* Left Panel: Task Management */}
-        <Card className="lg:col-span-2 flex flex-col overflow-hidden">
+        <Card className="lg:col-span-1 flex flex-col overflow-hidden">
           <CardHeader>
-            <CardTitle>Task Management</CardTitle>
-            <CardDescription>Add, prioritize, and manage your tasks for the day.</CardDescription>
+            <CardTitle>Tasks &amp; Scheduling</CardTitle>
+            <CardDescription>Add tasks, set availability, and generate your schedule.</CardDescription>
           </CardHeader>
           <CardContent className="flex-1 flex flex-col gap-4 overflow-y-auto p-4 pt-0">
             <TaskForm onAddTask={handleAddTask} />
@@ -111,15 +111,7 @@ export default function Home() {
               <TaskList tasks={tasks} onDeleteTask={handleDeleteTask} onReorderTasks={handleReorderTasks} />
             </div>
           </CardContent>
-        </Card>
-
-        {/* Right Panel: Schedule */}
-        <Card className="lg:col-span-3 flex flex-col overflow-hidden">
-          <CardHeader>
-            <CardTitle>AI-Powered Schedule</CardTitle>
-            <CardDescription>Set your availability and let the AI weave your perfect day.</CardDescription>
-          </CardHeader>
-          <CardContent className="flex-1 flex flex-col gap-4 overflow-y-hidden p-4 pt-0">
+          <CardFooter className="p-4 border-t">
             <ScheduleControls
               onGenerate={handleGenerateSchedule}
               isLoading={isLoading}
@@ -128,6 +120,16 @@ export default function Home() {
               onStartTimeChange={setStartTime}
               onEndTimeChange={setEndTime}
             />
+          </CardFooter>
+        </Card>
+
+        {/* Right Panel: Schedule */}
+        <Card className="lg:col-span-2 flex flex-col overflow-hidden">
+          <CardHeader>
+            <CardTitle>Daily Schedule</CardTitle>
+            <CardDescription>Your AI-generated schedule for the day.</CardDescription>
+          </CardHeader>
+          <CardContent className="flex-1 flex flex-col gap-4 overflow-y-hidden p-4 pt-0">
             <div className="flex-1 relative min-h-0">
               {isLoading && (
                  <div className="absolute inset-0 flex items-center justify-center bg-card/50 backdrop-blur-sm z-10 rounded-lg">

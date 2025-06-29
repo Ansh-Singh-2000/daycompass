@@ -29,7 +29,7 @@ export default function ScheduleControls({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4 w-full">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <Label htmlFor="start-time">Start Time</Label>
@@ -54,7 +54,7 @@ export default function ScheduleControls({
           />
         </div>
       </div>
-      <Button type="submit" disabled={isLoading} className="w-full sm:w-auto bg-accent text-accent-foreground hover:bg-accent/90">
+      <Button type="submit" disabled={isLoading} className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
         {isLoading ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />

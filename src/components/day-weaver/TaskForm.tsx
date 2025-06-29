@@ -10,7 +10,6 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 import {
@@ -56,63 +55,54 @@ export default function TaskForm({ onAddTask }: TaskFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="flex items-start gap-2">
         <FormField
           control={form.control}
           name="name"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel>Task Name</FormLabel>
+            <FormItem className="flex-1">
               <FormControl>
-                <Input placeholder="e.g., Draft project proposal" {...field} />
+                <Input placeholder="Add a new task..." {...field} />
               </FormControl>
-              <FormMessage />
+              <FormMessage className="mt-1" />
             </FormItem>
           )}
         />
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="duration"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Duration (minutes)</FormLabel>
+        <FormField
+          control={form.control}
+          name="duration"
+          render={({ field }) => (
+            <FormItem className="w-24">
+              <FormControl>
+                <Input type="number" placeholder="Mins" {...field} />
+              </FormControl>
+              <FormMessage className="mt-1" />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="priority"
+          render={({ field }) => (
+            <FormItem className="w-[120px]">
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
-                  <Input type="number" placeholder="e.g., 60" {...field} />
+                  <SelectTrigger>
+                    <SelectValue placeholder="Priority" />
+                  </SelectTrigger>
                 </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="priority"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Priority</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select priority" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="high">High</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="low">Low</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <Button type="submit" className="w-full sm:w-auto">
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Add Task
+                <SelectContent>
+                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="low">Low</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage className="mt-1" />
+            </FormItem>
+          )}
+        />
+        <Button type="submit" size="icon" className="shrink-0" aria-label="Add Task">
+          <PlusCircle className="h-5 w-5" />
         </Button>
       </form>
     </Form>
