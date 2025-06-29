@@ -74,7 +74,17 @@ export default function TaskForm({ onAddTask }: TaskFormProps) {
           render={({ field }) => (
             <FormItem className="w-24">
               <FormControl>
-                <Input type="number" placeholder="Mins" {...field} />
+                <div className="relative">
+                  <Input
+                    type="number"
+                    placeholder="Mins"
+                    {...field}
+                    className="pr-12 text-right"
+                  />
+                  <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-muted-foreground pointer-events-none">
+                    min
+                  </span>
+                </div>
               </FormControl>
               <FormMessage className="mt-1" />
             </FormItem>

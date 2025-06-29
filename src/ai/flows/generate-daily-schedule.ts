@@ -55,9 +55,9 @@ const prompt = ai.definePrompt({
   name: 'generateDailySchedulePrompt',
   input: {schema: GenerateDailyScheduleInputSchema},
   output: {schema: GenerateDailyScheduleOutputSchema},
-  prompt: `You are an AI assistant specialized in generating optimized and realistic daily schedules.
+  prompt: `You are an expert productivity coach. Your job is to create an optimized daily schedule for a student.
 
-  Given the following tasks, their priorities, and time constraints, generate an efficient daily schedule. It is crucial to include breaks between tasks to make the schedule humanly possible.
+  Analyze the provided list of tasks, their priorities, and durations. Then, create a schedule within the given time constraints.
 
   Tasks:
   {{#each tasks}}
@@ -68,19 +68,18 @@ const prompt = ai.definePrompt({
   - Start Time: {{timeConstraints.startTime}}
   - End Time: {{timeConstraints.endTime}}
 
-  Instructions:
-  - Ensure that higher priority tasks are scheduled earlier in the day.
-  - Consider the duration of each task when allocating time slots.
-  - **Crucially, insert short breaks of 5-10 minutes between tasks.** Do not schedule tasks back-to-back. These breaks are essential for a sustainable study plan. Title these breaks "Short Break" or similar.
-  - The output should be a JSON object containing a "schedule" array. Each item in the array is an object with "name", "startTime", and "endTime".
-  - Each task and break should be scheduled within the provided time constraints.
+  **CRITICAL INSTRUCTIONS FOR A REALISTIC SCHEDULE:**
+  1.  **Prioritize:** Schedule high-priority tasks first.
+  2.  **Add Breaks:** This is the most important rule. **You MUST insert a short break (5-15 minutes) after every task.** For tasks longer than 90 minutes, consider a slightly longer break (15-20 minutes) afterward. Do not schedule any two tasks back-to-back without a break. Name the breaks "Short Break" or "Rest".
+  3.  **Respect Time:** The entire schedule, including tasks and breaks, must fit between the start and end times.
+  4.  **Format:** The output must be a valid JSON object with a "schedule" array.
 
-  Example Output JSON:
+  Example of a correct output with breaks:
   {
     "schedule": [
-      { "name": "Task 1", "startTime": "09:00", "endTime": "10:00" },
-      { "name": "Short Break", "startTime": "10:00", "endTime": "10:10" },
-      { "name": "Task 2", "startTime": "10:10", "endTime": "11:00" }
+      { "name": "High Priority Task", "startTime": "09:00", "endTime": "10:30" },
+      { "name": "Short Break", "startTime": "10:30", "endTime": "10:45" },
+      { "name": "Medium Priority Task", "startTime": "10:45", "endTime": "11:45" }
     ]
   }
   `,

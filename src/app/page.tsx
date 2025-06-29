@@ -104,7 +104,7 @@ export default function Home() {
             <CardTitle>Tasks &amp; Scheduling</CardTitle>
             <CardDescription>Add tasks, set availability, and generate your schedule.</CardDescription>
           </CardHeader>
-          <CardContent className="flex-1 flex flex-col gap-4 overflow-y-auto p-4 pt-0">
+          <CardContent className="flex-1 flex flex-col gap-4 overflow-y-auto p-4">
             <TaskForm onAddTask={handleAddTask} />
             <Separator />
             <div className="flex-1 min-h-0">
