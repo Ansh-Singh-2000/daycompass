@@ -106,7 +106,7 @@ export default function AdjustScheduleDialog({
           </p>
         </DialogHeader>
         
-        <div className="grid grid-rows-[3fr_2fr] md:grid-rows-1 grid-cols-1 md:grid-cols-2 gap-6 flex-1 min-h-0">
+        <div className="grid grid-rows-[2fr_1fr] md:grid-rows-1 grid-cols-1 md:grid-cols-2 gap-6 flex-1 min-h-0">
           {/* Left: Chat Panel */}
           <div className="flex flex-col gap-4 min-h-0">
              <h3 className="text-lg font-semibold">Chat with AI</h3>
@@ -160,7 +160,7 @@ export default function AdjustScheduleDialog({
           <div className="flex flex-col gap-4 min-h-0">
             <h3 className="text-lg font-semibold">Proposed Schedule</h3>
             <Card className="flex-1 bg-background/50 overflow-hidden">
-              <ScrollArea className="h-full">
+              <ScrollArea className="h-full" type="always">
                 <div className="space-y-2 p-4">
                 {proposedSchedule.map(task => (
                     <ProposedScheduleItem key={task.id} task={task} />
