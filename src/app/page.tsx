@@ -163,30 +163,37 @@ export default function Home() {
   };
 
   const handleToggleComplete = useCallback((id: string) => {
-    let isNowCompleting = false;
+    let isNowCompleting: boolean | undefined;
 
-    setSchedules(prevSchedules => {
-      const newSchedules = JSON.parse(JSON.stringify(prevSchedules)); // Deep copy
-      let itemFound = false;
-
-      for (const dateKey in newSchedules) {
-        const itemIndex = newSchedules[dateKey].findIndex(item => item.id === id);
-        if (itemIndex !== -1) {
-          if (!itemFound) { // Only determine this once
-            isNowCompleting = !newSchedules[dateKey][itemIndex].isCompleted;
-            itemFound = true;
-          }
-          newSchedules[dateKey][itemIndex].isCompleted = isNowCompleting;
+    // Determine the next state before updating, using a ref to get the latest state
+    for (const dateKey in schedulesRef.current) {
+        const item = schedulesRef.current[dateKey].find(i => i.id === id);
+        if (item) {
+            isNowCompleting = !item.isCompleted;
+            break;
         }
-      }
-      return newSchedules;
+    }
+
+    if (typeof isNowCompleting === 'undefined') return;
+
+    // Update schedules state
+    setSchedules(prevSchedules => {
+        const newSchedules = JSON.parse(JSON.stringify(prevSchedules));
+        for (const dateKey in newSchedules) {
+            const itemIndex = newSchedules[dateKey].findIndex(item => item.id === id);
+            if (itemIndex > -1) {
+                newSchedules[dateKey][itemIndex].isCompleted = isNowCompleting!;
+            }
+        }
+        return newSchedules;
     });
 
+    // Update points state
     if (isNowCompleting) {
-      runConfetti();
-      setPoints(p => ({ ...p, gains: p.gains + 1 }));
+        runConfetti();
+        setPoints(p => ({ ...p, gains: p.gains + 1 }));
     } else {
-      setPoints(p => ({ ...p, gains: Math.max(0, p.gains - 1) }));
+        setPoints(p => ({ ...p, gains: Math.max(0, p.gains - 1) }));
     }
   }, [setSchedules, setPoints]);
 
@@ -219,14 +226,14 @@ export default function Home() {
         );
 
         newlyOverdueTasks.forEach(({ task, dateKey }) => {
-            const toastInstance = toast({
+            toast({
                 variant: 'destructive',
                 title: 'Task Overdue!',
                 description: `"${task.title}" is past its scheduled time. Did you complete it?`,
                 duration: Infinity,
                 action: (
                     <ToastAction altText="Mark as done" onClick={() => {
-                        actionedToastIds.current.add(toastInstance.id);
+                        actionedToastIds.current.add(task.id);
                         handleToggleComplete(task.id);
                     }}>
                         Yes, I did!
@@ -234,8 +241,8 @@ export default function Home() {
                 ),
                 onOpenChange: (open) => {
                     if (!open) {
-                        if (actionedToastIds.current.has(toastInstance.id)) {
-                            actionedToastIds.current.delete(toastInstance.id);
+                        if (actionedToastIds.current.has(task.id)) {
+                            actionedToastIds.current.delete(task.id);
                             return;
                         }
                         
