@@ -162,12 +162,14 @@ export default function SettingsDialog({
                 </div>
               </div>
             </TabsContent>
-            <TabsContent value="blocked" className="flex-1 flex flex-col gap-6 py-4 min-h-0">
-                <div className="space-y-3 flex-1 flex flex-col min-h-0">
-                    <h3 className="font-semibold text-foreground px-1">Recurring Busy Times</h3>
-                    <p className="text-sm text-muted-foreground px-1 -mt-2">
-                        The AI will avoid scheduling tasks during these daily blocks.
-                    </p>
+            <TabsContent value="blocked" className="flex-1 flex flex-col gap-4 py-4 min-h-0">
+                <div className="flex-1 flex flex-col min-h-0 space-y-3">
+                    <div className="px-1 shrink-0">
+                        <h3 className="font-semibold text-foreground">Recurring Busy Times</h3>
+                        <p className="text-sm text-muted-foreground">
+                            The AI will avoid scheduling tasks during these daily blocks.
+                        </p>
+                    </div>
                     <ScrollArea className="flex-1 rounded-md border">
                       <div className="p-2 space-y-2">
                         {blockedTimes.length === 0 ? (
