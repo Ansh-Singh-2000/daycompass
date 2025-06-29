@@ -15,11 +15,13 @@ import SettingsDialog from '@/components/day-weaver/SettingsDialog';
 import AdjustScheduleDialog from '@/components/day-weaver/AdjustScheduleDialog';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
+import { CalendarDays, ChevronLeft, ChevronRight, Smartphone } from 'lucide-react';
 import { addDays, format, parseISO, isValid } from 'date-fns';
 import { v4 as uuidv4 } from 'uuid';
 import { ToastAction } from '@/components/ui/toast';
 import confetti from 'canvas-confetti';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const today = new Date();
 const initialTasks: Task[] = [
@@ -40,6 +42,7 @@ const initialBlockedTimes: BlockedTime[] = [
 export default function Home() {
   const { toast } = useToast();
   const actionedToastIds = useRef(new Set<string>());
+  const isMobile = useIsMobile();
 
   // --- STATE PERSISTENCE & HYDRATION ---
   const [tasks, setTasks] = useState<Task[]>(() => {
@@ -490,7 +493,7 @@ export default function Home() {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-background text-foreground">
+    <div className="h-screen flex flex-col bg-background text-foreground transition-colors duration-300">
       <SettingsDialog 
         isOpen={isSettingsOpen} 
         onClose={() => setIsSettingsOpen(false)} 
@@ -522,71 +525,82 @@ export default function Home() {
           <Header onSettingsClick={() => setIsSettingsOpen(true)} points={points} />
         </div>
       </header>
-      <main className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 px-4 py-4 lg:px-6 lg:py-4 overflow-hidden">
-        {/* Left Panel: Task Management */}
-        <Card className="lg:col-span-1 flex flex-col">
-          <CardHeader>
-            <CardTitle>Tasks & Scheduling</CardTitle>
-            <CardDescription>Add tasks and generate your AI-powered schedule.</CardDescription>
-          </CardHeader>
-          <CardContent className="flex-1 flex flex-col gap-4 p-4 pt-0">
-            <TaskForm onAddTask={handleAddTask} />
-            <div className="flex-1 relative">
-              <div className="absolute inset-0">
-                <TaskList tasks={tasks} onDeleteTask={handleDeleteTask} />
+      <main className="flex-1 flex flex-col gap-4 px-4 py-4 lg:px-6 lg:py-4 overflow-hidden">
+        {isMobile && (
+          <Alert className="shrink-0">
+            <Smartphone className="h-4 w-4" />
+            <AlertTitle>Optimized for Desktop</AlertTitle>
+            <AlertDescription>
+              For the best experience, please use Day Weaver on a larger screen.
+            </AlertDescription>
+          </Alert>
+        )}
+        <div className="flex-1 flex flex-col lg:flex-row gap-6 min-h-0">
+          {/* Left Panel: Task Management */}
+          <Card className="lg:w-[480px] lg:shrink-0 flex flex-col">
+            <CardHeader>
+              <CardTitle>Tasks & Scheduling</CardTitle>
+              <CardDescription>Add tasks and generate your AI-powered schedule.</CardDescription>
+            </CardHeader>
+            <CardContent className="flex-1 flex flex-col gap-4 p-4 pt-0">
+              <TaskForm onAddTask={handleAddTask} />
+              <div className="flex-1 relative">
+                <div className="absolute inset-0">
+                  <TaskList tasks={tasks} onDeleteTask={handleDeleteTask} />
+                </div>
               </div>
-            </div>
-          </CardContent>
-          <CardFooter className="p-4 border-t">
-            <ScheduleControls
-              onGenerate={handleGenerateSchedule}
-              onAdjust={handleOpenAdjustment}
-              isLoading={isGenerating}
-              isAdjustDisabled={isAdjustDisabled}
-            />
-          </CardFooter>
-        </Card>
-
-        {/* Right Panel: Schedule */}
-        <Card className="lg:col-span-2 flex flex-col overflow-hidden">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle>Daily Schedule</CardTitle>
-              <CardDescription>Your AI-generated plan for the day.</CardDescription>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="icon" onClick={handlePrevDay} disabled={isLoading}>
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <span className="font-semibold text-foreground whitespace-nowrap">{format(viewedDate, "PPP")}</span>
-              <Button variant="outline" size="icon" onClick={handleNextDay} disabled={isLoading}>
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="flex-1 flex flex-col gap-4 overflow-y-hidden p-4 pt-0">
-            <div className="flex-1 relative min-h-0">
-              {isGenerating && (
-                 <div className="absolute inset-0 flex items-center justify-center bg-card/50 backdrop-blur-sm z-10 rounded-lg">
-                    <div className="flex flex-col items-center gap-4">
-                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-                      <p className="text-muted-foreground">Weaving your perfect schedule...</p>
-                    </div>
-                  </div>
-              )}
-              <ScheduleCalendar
-                schedule={currentSchedule}
-                blockedTimes={blockedTimes}
-                onToggleComplete={handleToggleComplete}
-                startTime={wakeTime}
-                endTime={sleepTime}
-                viewedDate={viewedDate}
-                isLoading={isLoading}
-                hasTasks={hasTasks}
+            </CardContent>
+            <CardFooter className="p-4 border-t">
+              <ScheduleControls
+                onGenerate={handleGenerateSchedule}
+                onAdjust={handleOpenAdjustment}
+                isLoading={isGenerating}
+                isAdjustDisabled={isAdjustDisabled}
               />
-            </div>
-          </CardContent>
-        </Card>
+            </CardFooter>
+          </Card>
+
+          {/* Right Panel: Schedule */}
+          <Card className="flex-1 flex flex-col overflow-hidden">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Daily Schedule</CardTitle>
+                <CardDescription>Your AI-generated plan for the day.</CardDescription>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="icon" onClick={handlePrevDay} disabled={isLoading}>
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <span className="font-semibold text-foreground whitespace-nowrap">{format(viewedDate, "PPP")}</span>
+                <Button variant="outline" size="icon" onClick={handleNextDay} disabled={isLoading}>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="flex-1 flex flex-col gap-4 overflow-y-hidden p-4 pt-0">
+              <div className="flex-1 relative min-h-0">
+                {isGenerating && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-card/50 backdrop-blur-sm z-10 rounded-lg">
+                      <div className="flex flex-col items-center gap-4">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                        <p className="text-muted-foreground">Weaving your perfect schedule...</p>
+                      </div>
+                    </div>
+                )}
+                <ScheduleCalendar
+                  schedule={currentSchedule}
+                  blockedTimes={blockedTimes}
+                  onToggleComplete={handleToggleComplete}
+                  startTime={wakeTime}
+                  endTime={sleepTime}
+                  viewedDate={viewedDate}
+                  isLoading={isLoading}
+                  hasTasks={hasTasks}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </main>
     </div>
   );
