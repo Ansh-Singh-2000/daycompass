@@ -30,7 +30,7 @@ const GenerateFullScheduleInputSchema = z.object({
 export type GenerateFullScheduleInput = z.infer<typeof GenerateFullScheduleInputSchema>;
 
 const GenerateFullScheduleOutputSchema = z.record(
-  z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date key must be in YYYY-MM-DD format"),
+  z.string(), // Loosened validation to prevent crashes from minor AI formatting deviations.
   z.array(
       z.object({
           name: z.string().describe('The name of the task.'),
