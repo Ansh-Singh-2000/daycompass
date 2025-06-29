@@ -112,7 +112,7 @@ export default function SettingsDialog({
                     <p className="text-sm text-muted-foreground -mt-2">
                         Set your typical daily start and end times. The AI will only schedule tasks within this window.
                     </p>
-                    <div className="flex flex-col sm:flex-row items-end gap-4">
+                    <div className="flex items-end gap-4">
                         <div className="flex-1 w-full">
                             <Label htmlFor="start-time">Start Time</Label>
                             <Input
@@ -140,7 +140,7 @@ export default function SettingsDialog({
                     <p className="text-sm text-muted-foreground -mt-2">
                         Set your typical wake and sleep times to adjust the visible range on the calendar.
                     </p>
-                    <div className="flex flex-col sm:flex-row items-end gap-4">
+                    <div className="flex items-end gap-4">
                         <div className="flex-1 w-full">
                             <Label htmlFor="wake-time">Wake Time</Label>
                             <Input
@@ -215,7 +215,7 @@ export default function SettingsDialog({
                               </Button>
                           </div>
                       </div>
-                      <div className="flex flex-col sm:flex-row items-end gap-4">
+                      <div className="flex items-end gap-4">
                           <div className="w-full flex-1">
                               <Label htmlFor="block-start">Start Time</Label>
                               <Input
