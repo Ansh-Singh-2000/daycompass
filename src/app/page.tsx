@@ -419,7 +419,7 @@ export default function Home() {
   };
 
   const handleToggleComplete = (id: string) => {
-    let taskJustCompleted = false;
+    let isCompleting = false;
 
     setSchedules(prevSchedules => {
       const newSchedules = { ...prevSchedules }; // Shallow copy
@@ -432,7 +432,7 @@ export default function Home() {
           const itemToToggle = scheduleForDay[itemIndex];
           
           if (!itemToToggle.isCompleted) {
-            taskJustCompleted = true; // Will be marked as complete
+            isCompleting = true;
           }
 
           // Create a new array for the day to avoid mutation
@@ -451,11 +451,12 @@ export default function Home() {
       return newSchedules;
     });
 
-    // Side effects are now triggered after the state update is queued.
-    // The `taskJustCompleted` flag is captured in the closure and is safe to use.
-    if (taskJustCompleted) {
+    if (isCompleting) {
       setPoints(p => ({ ...p, gains: p.gains + 1 }));
       runConfetti();
+    } else {
+      // If we are un-ticking the box, subtract a point.
+      setPoints(p => ({ ...p, gains: Math.max(0, p.gains - 1) }));
     }
   };
 
@@ -566,5 +567,7 @@ export default function Home() {
       </main>
     </div>
   );
+
+    
 
     
