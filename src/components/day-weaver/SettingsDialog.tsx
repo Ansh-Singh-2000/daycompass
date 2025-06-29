@@ -32,11 +32,11 @@ interface SettingsDialogProps {
 }
 
 const aiModels = [
-    { value: 'llama3-8b-8192', label: 'Llama 3 8B' },
-    { value: 'llama3-70b-8192', label: 'Llama 3 70B' },
-    { value: 'mixtral-8x7b-32768', label: 'Mixtral 8x7B' },
-    { value: 'gemma2-9b-it', label: 'Gemma2 9B IT' },
-    { value: 'gemma-7b-it', label: 'Gemma 7B IT' },
+    { value: 'llama3-8b-8192', label: 'llama3-8b-8192' },
+    { value: 'llama3-70b-8192', label: 'llama3-70b-8192' },
+    { value: 'mixtral-8x7b-32768', label: 'mixtral-8x7b-32768' },
+    { value: 'gemma2-9b-it', label: 'gemma2-9b-it' },
+    { value: 'gemma-7b-it', label: 'gemma-7b-it' },
 ];
 
 export default function SettingsDialog({ 
