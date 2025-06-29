@@ -523,14 +523,14 @@ export default function Home() {
       </header>
       <main className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 px-4 py-4 lg:px-6 lg:py-4 overflow-hidden">
         {/* Left Panel: Task Management */}
-        <Card className="lg:col-span-1 flex flex-col overflow-hidden">
+        <Card className="lg:col-span-1 flex flex-col">
           <CardHeader>
             <CardTitle>Tasks & Scheduling</CardTitle>
             <CardDescription>Add tasks and generate your AI-powered schedule.</CardDescription>
           </CardHeader>
-          <CardContent className="flex-1 flex flex-col gap-4 p-4 pt-0 overflow-hidden">
+          <CardContent className="flex-1 flex flex-col gap-4 p-4 pt-0">
             <TaskForm onAddTask={handleAddTask} />
-            <div className="flex-1 min-h-0">
+            <div className="flex-1 min-h-0 overflow-hidden">
                <TaskList tasks={tasks} onDeleteTask={handleDeleteTask} />
             </div>
           </CardContent>
