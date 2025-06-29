@@ -3,7 +3,7 @@
 import { generateFullSchedule, type GenerateFullScheduleInput } from '@/ai/flows/generate-full-schedule';
 import { adjustSchedule, type AdjustScheduleInput } from '@/ai/flows/adjust-schedule-flow';
 import type { AIScheduledTask } from '@/ai/schemas';
-import { differenceInMinutes, isBefore, parseISO } from 'date-fns';
+import { differenceInMinutes, isBefore, parseISO, format } from 'date-fns';
 
 async function handleAIError(error: unknown) {
     let errorMessage = 'An unexpected error occurred with the AI. Please try again.';

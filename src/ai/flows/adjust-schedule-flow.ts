@@ -43,7 +43,7 @@ The user's timezone is: \`{{{timezone}}}\`. All dates and times are in this time
     - **Response:** In the \`reasoning\` field, provide a helpful, conversational response to the user's request. Answer their question or acknowledge their comment. If the request was unclear, ask for clarification (e.g., "I'm happy to help with that, could you be more specific about the change you'd like to make?").
 3.  **Is the user requesting a schedule change?** If the request is a clear instruction (e.g., "move physics to 7pm", "reschedule my test for tomorrow"):
     - **Action:** Generate a NEW, complete schedule that incorporates the change.
-    - **CRITICAL RULES FOR NEW SCHEDULE:**
+    - **CRITICAL RULES FOR NEW SCHEDULE (NON-NEGOTIABLE):**
         - **ACCURATE DURATION:** The duration for each task in the new schedule (the time between its \`startTime\` and \`endTime\`) **MUST** exactly match its \`estimatedTime\` from the original task list.
         - **NO OVERLAPPING TASKS:** Tasks **MUST NOT** overlap. If your change causes a time conflict with another task, you **MUST** reschedule the conflicting task to a new, suitable, non-overlapping time.
         - **ALL TASKS INCLUDED:** You **MUST** place every single task from the original list into the new schedule.
@@ -64,7 +64,7 @@ The user's timezone is: \`{{{timezone}}}\`. All dates and times are in this time
 
 **Daily Availability:** The user is available from \`{{{timeConstraints.startTime}}}\` to \`{{{timeConstraints.endTime}}}\` each day.
 
-Your response must be a single JSON object that strictly adheres to the provided schema. The \`startTime\` and \`endTime\` for each scheduled task must be in full ISO 8601 format, including the correct timezone offset for the user's timezone ({{{timezone}}}).`,
+Your response must be a single JSON object that strictly adheres to the provided schema. The \`startTime\` and \`endTime\` for each scheduled task must be in full ISO 8601 format, including the correct timezone offset for the user's timezone ({{{timezone}}}). Before you output the JSON, double-check your generated schedule against all the critical rules.`,
 });
 
 const adjustScheduleFlow = ai.defineFlow(
@@ -77,10 +77,6 @@ const adjustScheduleFlow = ai.defineFlow(
     const { output } = await prompt(input);
     if (!output) {
       throw new Error('AI failed to generate an adjusted schedule.');
-    }
-    // If the AI is just chatting, it might not return tasks. We'll return the original ones.
-    if (!output.scheduledTasks || output.scheduledTasks.length === 0) {
-        output.scheduledTasks = input.currentScheduledTasks.map(({id, title, startTime, endTime}) => ({id, title, startTime, endTime}));
     }
     return output;
   }

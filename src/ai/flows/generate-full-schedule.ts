@@ -53,10 +53,16 @@ const prompt = ai.definePrompt({
 - {{this.title}}: from {{this.startTime}} to {{this.endTime}}
 {{/each}}
 
-**Scheduling Guidelines:**
-- **Prioritization:** Prioritize tasks with earlier deadlines. For tasks with similar deadlines, schedule higher priority tasks first.
-- **Breaks:** Add a 5-10 minute gap between tasks for short breaks.
-- **Output:** Your response must be a single JSON object that strictly adheres to the provided schema. The \`startTime\` and \`endTime\` for each scheduled task must be in full ISO 8601 format, including the correct timezone offset for the user's timezone ({{{timezone}}}). In the \`reasoning\` field, explain your choices.`,
+**Your Task:**
+1.  Acknowledge all constraints: tasks, their durations, deadlines, priorities, blocked times, and daily availability.
+2.  Create a prioritized list of tasks, starting with those with the earliest deadlines. For tasks with the same deadline, prioritize higher priority tasks first.
+3.  Sequentially place each task onto the calendar, starting from the \`startDate\`.
+4.  For each task, find the earliest possible slot that respects its duration, does not overlap with blocked times or other already scheduled tasks, and adheres to the daily availability.
+5.  Ensure the scheduled task finishes before its deadline.
+6.  Add a small gap of 5-10 minutes between consecutive tasks for breaks.
+7.  After creating the full schedule, double-check your work against every critical rule to ensure 100% compliance.
+
+Your response must be a single JSON object that strictly adheres to the provided schema. The \`startTime\` and \`endTime\` for each scheduled task must be in full ISO 8601 format, including the correct timezone offset for the user's timezone ({{{timezone}}}). In the \`reasoning\` field, briefly explain your scheduling choices.`,
 });
 
 const generateFullScheduleFlow = ai.defineFlow(
