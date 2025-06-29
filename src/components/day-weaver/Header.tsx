@@ -12,7 +12,7 @@ export default function Header({ onSettingsClick, points }: HeaderProps) {
     <header className="flex items-center justify-between">
       <div className="flex items-center gap-2">
         <Sparkles className="h-6 w-6 text-primary" />
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">
+        <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
           Day Weaver
         </h1>
       </div>
