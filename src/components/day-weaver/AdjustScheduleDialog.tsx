@@ -31,6 +31,7 @@ interface ChatMessage {
     id: string;
     role: 'user' | 'assistant';
     content: string;
+    model?: string;
 }
 
 export default function AdjustScheduleDialog({
@@ -51,15 +52,15 @@ export default function AdjustScheduleDialog({
   useEffect(() => {
     if (isOpen) {
         if (reasoning && chatHistory.length === 0) {
-            setChatHistory([{ role: 'assistant', content: reasoning, id: 'initial-reasoning' }]);
+            setChatHistory([{ role: 'assistant', content: reasoning, id: 'initial-reasoning', model: modelUsed }]);
         } else if (reasoning && chatHistory.length > 0 && chatHistory[chatHistory.length - 1]?.content !== reasoning) {
-             setChatHistory(prev => [...prev, { role: 'assistant', content: reasoning, id: uuidv4() }]);
+             setChatHistory(prev => [...prev, { role: 'assistant', content: reasoning, id: uuidv4(), model: modelUsed }]);
         }
     } else {
         // Reset history when dialog is closed to be ready for next time
         setChatHistory([]);
     }
-  }, [reasoning, isOpen]);
+  }, [reasoning, isOpen, modelUsed]);
 
   useEffect(() => {
     // Auto-scroll to bottom of chat
@@ -107,18 +108,25 @@ export default function AdjustScheduleDialog({
             <Card className="flex-1 bg-background/50 flex flex-col overflow-hidden">
                <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
                   {chatHistory.map((message) => (
-                    <div key={message.id} className={cn(
-                        "flex items-start gap-3 text-sm",
-                        message.role === 'user' && "justify-end"
-                    )}>
-                        {message.role === 'assistant' && <Wand2 className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />}
+                    <div key={message.id}>
                         <div className={cn(
-                            "p-3 rounded-lg max-w-sm",
-                            message.role === 'assistant' ? 'bg-muted' : 'bg-primary/20 text-primary-foreground'
+                            "flex items-start gap-3 text-sm",
+                            message.role === 'user' && "justify-end"
                         )}>
-                           <p className="leading-relaxed">{message.content}</p>
+                            {message.role === 'assistant' && <Wand2 className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />}
+                            <div className={cn(
+                                "p-3 rounded-lg max-w-sm",
+                                message.role === 'assistant' ? 'bg-muted' : 'bg-primary/20 text-primary-foreground'
+                            )}>
+                                <p className="leading-relaxed">{message.content}</p>
+                            </div>
+                            {message.role === 'user' && <User className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />}
                         </div>
-                         {message.role === 'user' && <User className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />}
+                        {message.role === 'assistant' && message.model && (
+                            <div className="text-xs text-muted-foreground text-left ml-8 mt-1">
+                                Generated with: <code className="font-mono bg-background/50 px-1 py-0.5 rounded text-xs">{message.model}</code>
+                            </div>
+                        )}
                     </div>
                   ))}
                   {isAdjusting && chatHistory[chatHistory.length - 1]?.role === 'user' && (
@@ -150,12 +158,7 @@ export default function AdjustScheduleDialog({
 
           {/* Right: Proposed Schedule */}
           <div className="flex flex-col gap-4 min-h-0">
-            <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold">Proposed Schedule</h3>
-                <div className="text-xs text-muted-foreground">
-                    Model: <code className="font-mono bg-background/50 px-1 py-0.5 rounded text-xs">{modelUsed}</code>
-                </div>
-            </div>
+            <h3 className="text-lg font-semibold">Proposed Schedule</h3>
             <Card className="flex-1 bg-background/50 overflow-y-auto">
                 <div className="space-y-2 p-4">
                 {proposedSchedule.map(task => (
