@@ -106,29 +106,22 @@ export default function Home() {
     
     if (result.success && result.data) {
         const newSchedules: Record<string, ScheduleItem[]> = {};
+        
+        console.log("--- DEBUG: Raw AI schedule data received by client ---", result.data);
 
-        for (const scheduledTask of result.data.scheduledTasks) {
-            const startDate = parseISO(scheduledTask.startTime);
-            const dateKey = format(startDate, 'yyyy-MM-dd');
-
-            if (!newSchedules[dateKey]) {
-                newSchedules[dateKey] = [];
-            }
-            
-            newSchedules[dateKey].push({
-                id: scheduledTask.id,
-                name: scheduledTask.title,
-                startTime: format(startDate, 'HH:mm'),
-                endTime: format(parseISO(scheduledTask.endTime), 'HH:mm'),
+        for (const dailySchedule of result.data.schedules) {
+            const dateKey = dailySchedule.date;
+            console.log(`--- DEBUG: Processing schedule for date key: "${dateKey}" ---`);
+            newSchedules[dateKey] = dailySchedule.tasks.map(task => ({
+                id: task.id,
+                name: task.title,
+                startTime: format(parseISO(task.startTime), 'HH:mm'),
+                endTime: format(parseISO(task.endTime), 'HH:mm'),
                 isCompleted: false,
-            });
+            }));
         }
         
-        // Sort tasks within each day by start time
-        for(const date in newSchedules) {
-            newSchedules[date].sort((a,b) => a.startTime.localeCompare(b.startTime));
-        }
-
+        console.log("--- DEBUG: Processed schedules object to be set in state ---", newSchedules);
         setSchedules(newSchedules);
         setReasoning(result.data.reasoning);
 
@@ -182,7 +175,7 @@ export default function Home() {
             <CardTitle>Tasks & Scheduling</CardTitle>
             <CardDescription>Add tasks, set availability, and generate your schedule.</CardDescription>
           </CardHeader>
-          <CardContent className="flex-1 flex flex-col gap-4 overflow-y-auto p-4 pt-2">
+          <CardContent className="flex-1 flex flex-col gap-4 p-4 pt-2">
             <div className="pt-2">
               <TaskForm onAddTask={handleAddTask} />
             </div>
