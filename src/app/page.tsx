@@ -286,15 +286,6 @@ export default function Home() {
     setIsGenerating(true);
     setReasoning(null);
 
-    const currentScheduledTasks = tasks
-      .filter(t => !t.isCompleted && t.startTime && t.endTime)
-      .map(t => ({
-        id: t.id,
-        title: t.title,
-        startTime: t.startTime!,
-        endTime: t.endTime!,
-    }));
-
     const input = {
       model,
       tasks: tasksToSchedule.map(t => ({
@@ -309,7 +300,6 @@ export default function Home() {
       currentDateTime: format(new Date(), "yyyy-MM-dd'T'HH:mm:ss.SSSXXX"),
       startDate: format(new Date(), 'yyyy-MM-dd'),
       timezone,
-      currentScheduledTasks,
     };
 
     const result = await createSchedule(input);
