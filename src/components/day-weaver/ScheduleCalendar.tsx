@@ -202,7 +202,7 @@ export default function ScheduleCalendar({
                 key={item.id}
                 className={cn(
                   'absolute w-full p-2 text-xs rounded-lg overflow-hidden flex items-center justify-center',
-                  'bg-gray-100 dark:bg-gray-800/70 border-y border-dashed border-gray-200 dark:border-gray-700/80'
+                  'bg-slate-100 dark:bg-slate-900/80 border-y border-dashed border-slate-200 dark:border-slate-700/60'
                 )}
                 style={{
                   top: `${top}rem`,
@@ -210,7 +210,7 @@ export default function ScheduleCalendar({
                   zIndex: 0,
                 }}
               >
-                <span className="font-semibold text-gray-500 dark:text-gray-300">{item.title}</span>
+                <span className="font-semibold text-slate-500 dark:text-slate-400">{item.title}</span>
               </div>
             );
           })}
@@ -242,7 +242,7 @@ export default function ScheduleCalendar({
                 transition={{ delay: index * 0.05 }}
                 className={cn(
                   'absolute p-3 text-sm rounded-lg shadow-lg transition-all duration-300 overflow-hidden',
-                  item.isCompleted ? 'bg-green-100/80 dark:bg-green-800/30 border border-green-200 dark:border-green-700/50' : 'bg-card dark:bg-secondary',
+                  item.isCompleted ? 'bg-green-100/80 dark:bg-green-800/30 border border-green-200 dark:border-green-700/50' : 'bg-card dark:bg-slate-800',
                 )}
                 style={{
                   top: `${top}rem`,
