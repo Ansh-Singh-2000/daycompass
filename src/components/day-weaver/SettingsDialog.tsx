@@ -90,7 +90,7 @@ export default function SettingsDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl flex flex-col h-[90vh] md:h-[80vh]">
+      <DialogContent className="sm:max-w-2xl flex flex-col h-[90vh] md:h-[80vh] bg-card text-card-foreground">
         <DialogHeader>
           <DialogTitle>Settings</DialogTitle>
           <DialogDescription>
@@ -105,7 +105,7 @@ export default function SettingsDialog({
                 <TabsTrigger value="ai">AI</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="general" className="mt-2 rounded-md border bg-black/5 dark:bg-white/5 p-4 overflow-y-auto">
+            <TabsContent value="general" className="mt-2 rounded-md border bg-background/50 p-4 overflow-y-auto">
               <div className="space-y-6">
                 <div className="space-y-4 rounded-md border p-4 bg-background">
                     <h3 className="font-semibold text-foreground">Working Hours</h3>
@@ -165,7 +165,7 @@ export default function SettingsDialog({
                 </div>
               </div>
             </TabsContent>
-            <TabsContent value="blocked" className="mt-2 flex-1 flex flex-col min-h-0 rounded-md border bg-black/5 dark:bg-white/5 p-4">
+            <TabsContent value="blocked" className="mt-2 flex-1 flex flex-col min-h-0 rounded-md border bg-background/50 p-4">
               <div className="flex-1 flex flex-col md:grid md:grid-cols-2 gap-8 min-h-0">
                 <div className="flex flex-col gap-3 min-h-0 flex-1">
                     <div className="shrink-0">
@@ -215,8 +215,8 @@ export default function SettingsDialog({
                               </Button>
                           </div>
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
-                          <div>
+                      <div className="flex flex-col sm:flex-row items-end gap-4">
+                          <div className="w-full flex-1">
                               <Label htmlFor="block-start">Start Time</Label>
                               <Input
                               id="block-start"
@@ -226,7 +226,7 @@ export default function SettingsDialog({
                               required
                               />
                           </div>
-                          <div>
+                          <div className="w-full flex-1">
                               <Label htmlFor="block-end">End Time</Label>
                               <Input
                               id="block-end"
@@ -241,7 +241,7 @@ export default function SettingsDialog({
                 </div>
               </div>
             </TabsContent>
-            <TabsContent value="ai" className="mt-2 rounded-md border bg-black/5 dark:bg-white/5 p-4 overflow-y-auto">
+            <TabsContent value="ai" className="mt-2 rounded-md border bg-background/50 p-4 overflow-y-auto">
               <div className="space-y-2 rounded-md border p-4 bg-background">
                   <div>
                       <Label htmlFor="ai-model">AI Model</Label>
