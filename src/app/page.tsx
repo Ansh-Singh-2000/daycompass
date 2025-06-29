@@ -169,9 +169,9 @@ export default function Home() {
                 }
                 
                 try {
-                    const [endHours, endMinutes] = item.endTime.split(':').map(Number);
-                    const itemEndDate = parseISO(dateKey);
-                    itemEndDate.setHours(endHours, endMinutes, 0, 0);
+                    // Previous logic was prone to timezone errors.
+                    // Constructing a full ISO-like string and parsing it is more robust.
+                    const itemEndDate = parseISO(`${dateKey}T${item.endTime}:00`);
 
                     if (now > itemEndDate) {
                         toast({
@@ -186,6 +186,7 @@ export default function Home() {
                             ),
                             onOpenChange: (open) => {
                                 if (!open) {
+                                    // Use a ref to get the latest schedule state inside this callback
                                     const currentSchedules = schedulesRef.current;
                                     const currentItem = currentSchedules[dateKey]?.find((i: ScheduleItem) => i.id === item.id);
                                     
@@ -193,6 +194,7 @@ export default function Home() {
                                         setPoints(p => ({...p, losses: p.losses + 1}));
                                     }
 
+                                    // The main overdueNotified flag is set here when the toast is closed.
                                     setTasks(prevTasks => prevTasks.map(t =>
                                         t.id === item.id ? { ...t, overdueNotified: true } : t
                                     ));
@@ -200,6 +202,8 @@ export default function Home() {
                             }
                         });
                         
+                        // Mark as notified immediately in the state to prevent the interval
+                        // from re-triggering the toast for the same task.
                         setTasks(prevTasks => prevTasks.map(t =>
                             t.id === item.id ? { ...t, overdueNotified: true } : t
                         ));
