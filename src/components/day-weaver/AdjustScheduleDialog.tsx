@@ -62,7 +62,10 @@ export default function AdjustScheduleDialog({
   useEffect(() => {
     // Auto-scroll to bottom of chat
     if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTo({ top: scrollAreaRef.current.scrollHeight, behavior: 'smooth' });
+      const scrollViewport = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
+      if (scrollViewport) {
+          scrollViewport.scrollTo({ top: scrollViewport.scrollHeight, behavior: 'smooth' });
+      }
     }
   }, [chatHistory]);
 
@@ -140,7 +143,7 @@ export default function AdjustScheduleDialog({
           {/* Right: Proposed Schedule */}
           <div className="flex flex-col gap-4 min-h-0">
             <h3 className="text-lg font-semibold">Proposed Schedule</h3>
-            <Card className="flex-1 flex flex-col relative bg-background/50">
+            <Card className="flex-1 bg-background/50 overflow-y-auto relative">
                 {isAdjusting && (
                      <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-10 rounded-lg">
                         <div className="flex flex-col items-center gap-4">
@@ -149,13 +152,11 @@ export default function AdjustScheduleDialog({
                         </div>
                       </div>
                 )}
-                <ScrollArea className="flex-1 min-h-0">
-                    <div className="space-y-2 p-4">
-                    {proposedSchedule.map(task => (
-                        <ProposedScheduleItem key={task.id} task={task} />
-                    ))}
-                    </div>
-                </ScrollArea>
+                <div className="space-y-2 p-4">
+                {proposedSchedule.map(task => (
+                    <ProposedScheduleItem key={task.id} task={task} />
+                ))}
+                </div>
             </Card>
           </div>
         </div>
