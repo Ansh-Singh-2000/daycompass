@@ -8,8 +8,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Card } from "@/components/ui/card";
 import type { ProposedTask } from "@/lib/types";
 import { Loader2, Send, Wand2, User } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
@@ -44,7 +43,7 @@ export default function AdjustScheduleDialog({
 }: AdjustScheduleDialogProps) {
   const [chatInput, setChatInput] = useState("");
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -61,11 +60,8 @@ export default function AdjustScheduleDialog({
 
   useEffect(() => {
     // Auto-scroll to bottom of chat
-    if (scrollAreaRef.current) {
-      const scrollViewport = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
-      if (scrollViewport) {
-          scrollViewport.scrollTo({ top: scrollViewport.scrollHeight, behavior: 'smooth' });
-      }
+    if (chatContainerRef.current) {
+        chatContainerRef.current.scrollTo({ top: chatContainerRef.current.scrollHeight, behavior: 'smooth' });
     }
   }, [chatHistory]);
 
@@ -95,9 +91,8 @@ export default function AdjustScheduleDialog({
           {/* Left: Chat Panel */}
           <div className="flex flex-col gap-4 min-h-0">
              <h3 className="text-lg font-semibold">Chat with AI</h3>
-            <Card className="flex-1 bg-background/50 flex flex-col">
-              <ScrollArea className="flex-1 min-h-0" ref={scrollAreaRef}>
-                <CardContent className="p-4 space-y-4">
+            <Card className="flex-1 bg-background/50 flex flex-col overflow-hidden">
+               <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
                   {chatHistory.map((message) => (
                     <div key={message.id} className={cn(
                         "flex items-start gap-3 text-sm",
@@ -121,8 +116,7 @@ export default function AdjustScheduleDialog({
                          </p>
                      </div>
                   )}
-                </CardContent>
-              </ScrollArea>
+              </div>
               <div className="p-4 border-t">
                 <form onSubmit={handleChatSubmit} className="flex items-center gap-2">
                     <Input
