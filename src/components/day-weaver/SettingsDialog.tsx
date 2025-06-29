@@ -112,8 +112,8 @@ export default function SettingsDialog({
                     <p className="text-sm text-muted-foreground -mt-2">
                         Set your typical daily start and end times. The AI will only schedule tasks within this window.
                     </p>
-                    <div className="flex flex-row items-end gap-4">
-                        <div className="flex-1">
+                    <div className="flex flex-col sm:flex-row items-end gap-4">
+                        <div className="flex-1 w-full">
                             <Label htmlFor="start-time">Start Time</Label>
                             <Input
                                 id="start-time"
@@ -123,7 +123,7 @@ export default function SettingsDialog({
                                 required
                             />
                         </div>
-                        <div className="flex-1">
+                        <div className="flex-1 w-full">
                             <Label htmlFor="end-time">End Time</Label>
                             <Input
                                 id="end-time"
@@ -140,8 +140,8 @@ export default function SettingsDialog({
                     <p className="text-sm text-muted-foreground -mt-2">
                         Set your typical wake and sleep times to adjust the visible range on the calendar.
                     </p>
-                    <div className="flex flex-row items-end gap-4">
-                        <div className="flex-1">
+                    <div className="flex flex-col sm:flex-row items-end gap-4">
+                        <div className="flex-1 w-full">
                             <Label htmlFor="wake-time">Wake Time</Label>
                             <Input
                                 id="wake-time"
@@ -151,7 +151,7 @@ export default function SettingsDialog({
                                 required
                             />
                         </div>
-                        <div className="flex-1">
+                        <div className="flex-1 w-full">
                             <Label htmlFor="sleep-time">Sleep Time</Label>
                             <Input
                                 id="sleep-time"
@@ -204,15 +204,21 @@ export default function SettingsDialog({
                   <form onSubmit={handleAddBlockedTime} className="space-y-4 rounded-md border p-4">
                       <div>
                           <Label htmlFor="block-title">Title</Label>
-                          <Input
-                              id="block-title"
-                              value={newBlockTitle}
-                              onChange={(e) => setNewBlockTitle(e.target.value)}
-                              placeholder="e.g. Lunch"
-                              required
-                          />
+                          <div className="flex items-center gap-2">
+                              <Input
+                                  id="block-title"
+                                  value={newBlockTitle}
+                                  onChange={(e) => setNewBlockTitle(e.target.value)}
+                                  placeholder="e.g. Lunch"
+                                  required
+                                  className="flex-1"
+                              />
+                              <Button type="submit" size="icon" aria-label="Add Blocked Time" className="shrink-0">
+                                  <Plus className="h-4 w-4" />
+                              </Button>
+                          </div>
                       </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-2 gap-4">
                           <div>
                               <Label htmlFor="block-start">Start Time</Label>
                               <Input
@@ -234,9 +240,6 @@ export default function SettingsDialog({
                               />
                           </div>
                       </div>
-                      <Button type="submit" aria-label="Add Blocked Time" className="w-full">
-                        <Plus className="h-4 w-4 mr-2" /> Add
-                      </Button>
                   </form>
                 </div>
               </div>
