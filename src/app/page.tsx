@@ -1,9 +1,9 @@
 
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { getCookie, setCookie } from '@/lib/cookies';
-import type { Task, ScheduleItem, BlockedTime, ProposedTask, TaskPriority } from '@/lib/types';
+import type { Task, BlockedTime, ProposedTask, TaskPriority } from '@/lib/types';
 import { createSchedule, refineSchedule } from './actions';
 import { useToast } from "@/hooks/use-toast";
 import Header from '@/components/day-weaver/Header';
@@ -54,15 +54,6 @@ export default function Home() {
     return initialTasks;
   });
 
-  const [schedules, setSchedules] = useState<Record<string, ScheduleItem[]>>(() => {
-    if (typeof window === 'undefined') return {};
-    try {
-        const saved = getCookie('day-weaver-schedules');
-        return saved ? JSON.parse(saved) : {};
-    } catch (e) { console.error("Failed to load schedules from cookies", e); }
-    return {};
-  });
-
   const [startTime, setStartTime] = useState<string>(() => {
     if (typeof window === 'undefined') return '09:00';
     return getCookie('day-weaver-startTime') || '09:00';
@@ -110,7 +101,6 @@ export default function Home() {
 
   // Save state to cookies whenever it changes
   useEffect(() => { setCookie('day-weaver-tasks', JSON.stringify(tasks), 365); }, [tasks]);
-  useEffect(() => { setCookie('day-weaver-schedules', JSON.stringify(schedules), 365); }, [schedules]);
   useEffect(() => { setCookie('day-weaver-startTime', startTime, 365); }, [startTime]);
   useEffect(() => { setCookie('day-weaver-endTime', endTime, 365); }, [endTime]);
   useEffect(() => { setCookie('day-weaver-blockedTimes', JSON.stringify(blockedTimes), 365); }, [blockedTimes]);
@@ -123,21 +113,18 @@ export default function Home() {
     const lastVisit = getCookie('day-weaver-last-visit');
 
     if (lastVisit && lastVisit < todayStr) {
-        const tasksToRemove = new Set<string>();
-
-        Object.keys(schedules).forEach(dateKey => {
-            if (dateKey < todayStr) {
-                schedules[dateKey].forEach(item => tasksToRemove.add(item.id));
+        setTasks(prevTasks => {
+          let hasChanged = false;
+          const newTasks = prevTasks.map(task => {
+            if (task.startTime && format(parseISO(task.startTime), 'yyyy-MM-dd') < todayStr) {
+                // This task is in the past. We don't remove it from the master list,
+                // but this is where you could add logic to "archive" or handle past tasks.
+                // For now, we'll just let them remain.
             }
+            return task;
+          });
+          return hasChanged ? newTasks : prevTasks;
         });
-
-        if (tasksToRemove.size > 0) {
-            setTasks(prevTasks => prevTasks.filter(task => !tasksToRemove.has(task.id)));
-            toast({
-                title: "A New Day!",
-                description: `Removed ${tasksToRemove.size} past tasks from your inbox. Your schedule history is preserved on the calendar.`,
-            });
-        }
     }
 
     setCookie('day-weaver-last-visit', todayStr, 365);
@@ -148,6 +135,34 @@ export default function Home() {
     setTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
   }, []);
 
+  // --- DERIVED STATE ---
+  const scheduledTasksByDate = useMemo(() => {
+    const byDate: Record<string, (Task & { name: string })[]> = {};
+    tasks.forEach(task => {
+        if (task.startTime && task.endTime) {
+            try {
+                const startDate = parseISO(task.startTime);
+                if (!isValid(startDate)) return;
+
+                const dateKey = format(startDate, 'yyyy-MM-dd');
+                if (!byDate[dateKey]) {
+                    byDate[dateKey] = [];
+                }
+                byDate[dateKey].push({ ...task, name: task.title });
+            } catch (e) {
+                console.error("Error parsing task start time:", task.title, e);
+            }
+        }
+    });
+    // Sort each day's schedule
+    Object.values(byDate).forEach(day => day.sort((a,b) => a.startTime!.localeCompare(b.startTime!)));
+    return byDate;
+  }, [tasks]);
+
+  const dateKey = format(viewedDate, 'yyyy-MM-dd');
+  const currentSchedule = scheduledTasksByDate[dateKey] || [];
+  const isLoading = isGenerating || isAdjusting;
+  
   // --- TASK & SCHEDULE LOGIC ---
   const runConfetti = () => {
     confetti({
@@ -158,86 +173,56 @@ export default function Home() {
   };
 
   const handleToggleComplete = useCallback((id: string) => {
-    let wasJustCompleted = false;
-
-    setSchedules(prevSchedules => {
-      const newSchedules = JSON.parse(JSON.stringify(prevSchedules));
-      let itemFound = false;
-
-      for (const dateKey in newSchedules) {
-        const itemIndex = newSchedules[dateKey].findIndex((item: ScheduleItem) => item.id === id);
-        if (itemIndex > -1) {
-          const isCurrentlyCompleted = newSchedules[dateKey][itemIndex].isCompleted;
-          if (!isCurrentlyCompleted) {
-             newSchedules[dateKey][itemIndex].isCompleted = true;
-             wasJustCompleted = true;
+    setTasks(prevTasks => {
+      let wasJustCompleted = false;
+      const newTasks = prevTasks.map(task => {
+        if (task.id === id) {
+          if (!task.isCompleted) {
+            wasJustCompleted = true;
           }
-          itemFound = true;
-          break;
+          return { ...task, isCompleted: true };
         }
-      }
+        return task;
+      });
       
-      if (itemFound) {
-        return newSchedules;
-      }
-      return prevSchedules;
-    });
-
-    if (wasJustCompleted) {
+      if (wasJustCompleted) {
         runConfetti();
         setPoints(p => ({ ...p, gains: p.gains + 1 }));
-    }
-  }, [setSchedules, setPoints]);
+      }
+      return newTasks;
+    });
+  }, [setTasks, setPoints]);
   
   const handleToastDismiss = useCallback((taskId: string) => {
       if (actionedToastIds.current.has(taskId)) {
         actionedToastIds.current.delete(taskId);
         return;
       }
+      setPoints(p => ({ ...p, losses: p.losses + 1 }));
+  }, [setPoints]);
 
-      let wasIncomplete = false;
-      for (const dateKey in schedules) {
-          const item = schedules[dateKey].find(i => i.id === taskId);
-          if (item && !item.isCompleted) {
-              wasIncomplete = true;
-              break;
-          }
-      }
-
-      if (wasIncomplete) {
-          setPoints(p => ({ ...p, losses: p.losses + 1 }));
-      }
-  }, [schedules, setPoints]);
-
-  const checkOverdueTasks = useCallback((schedulesToCheck: Record<string, ScheduleItem[]>) => {
+  const checkOverdueTasks = useCallback(() => {
     const now = new Date();
-    const newlyOverdueTasks: { task: Task; dateKey: string }[] = [];
-    const taskIdsToMarkAsNotified = new Set<string>();
-
-    for (const [dateKey, scheduleItems] of Object.entries(schedulesToCheck)) {
-      for (const item of scheduleItems) {
-        const masterTask = tasks.find(t => t.id === item.id);
-
-        if (!masterTask || item.isCompleted || masterTask.overdueNotified) {
-          continue;
-        }
-
-        const itemEndDate = parseISO(item.endTime);
-        if (isValid(itemEndDate) && now > itemEndDate) {
-          newlyOverdueTasks.push({ task: masterTask, dateKey });
-          taskIdsToMarkAsNotified.add(masterTask.id);
+    const newlyOverdueTasks: Task[] = [];
+    
+    tasks.forEach(task => {
+      if (task.endTime && !task.isCompleted && !task.overdueNotified) {
+        const itemEndTime = parseISO(task.endTime);
+        if (isValid(itemEndTime) && now > itemEndTime) {
+          newlyOverdueTasks.push(task);
         }
       }
-    }
+    });
 
-    if (taskIdsToMarkAsNotified.size > 0) {
-      setTasks(prevTasks =>
-        prevTasks.map(t =>
-          taskIdsToMarkAsNotified.has(t.id) ? { ...t, overdueNotified: true } : t
+    if (newlyOverdueTasks.length > 0) {
+      const taskIdsToMark = new Set(newlyOverdueTasks.map(t => t.id));
+      setTasks(currentTasks => 
+        currentTasks.map(t => 
+          taskIdsToMark.has(t.id) ? { ...t, overdueNotified: true } : t
         )
       );
 
-      newlyOverdueTasks.forEach(({ task }) => {
+      newlyOverdueTasks.forEach((task) => {
         toast({
           variant: 'destructive',
           title: 'Task Overdue!',
@@ -259,7 +244,7 @@ export default function Home() {
         });
       });
     }
-  }, [tasks, toast, setTasks, handleToggleComplete, handleToastDismiss]);
+  }, [tasks, setTasks, toast, handleToggleComplete, handleToastDismiss]);
 
   const checkOverdueTasksRef = useRef(checkOverdueTasks);
   useEffect(() => {
@@ -267,7 +252,7 @@ export default function Home() {
   });
 
   useEffect(() => {
-    const check = () => checkOverdueTasksRef.current(schedules);
+    const check = () => checkOverdueTasksRef.current();
     const initialCheckTimeout = setTimeout(check, 1000);
     const intervalId = setInterval(check, 60000);
 
@@ -275,39 +260,26 @@ export default function Home() {
       clearTimeout(initialCheckTimeout);
       clearInterval(intervalId);
     };
-  }, [schedules]);
+  }, []);
 
-
-  const dateKey = format(viewedDate, 'yyyy-MM-dd');
-  const currentSchedule = schedules[dateKey] || [];
-  const isLoading = isGenerating || isAdjusting;
 
   const handleAddTask = (task: Omit<Task, 'id'>) => {
-    setTasks(prev => [...prev, { ...task, id: uuidv4() }]);
-    setSchedules({}); 
+    const newTask = { ...task, id: uuidv4() };
+    setTasks(prev => [...prev, newTask]);
+    // Reset schedule for this task if it existed
+    setTasks(prev => prev.map(t => t.id === newTask.id ? { ...t, startTime: undefined, endTime: undefined, isCompleted: undefined, overdueNotified: undefined } : t));
     setReasoning(null);
   };
 
   const handleDeleteTask = (id: string) => {
     setTasks(prev => prev.filter(task => task.id !== id));
-    
-    setSchedules(prevSchedules => {
-      const newSchedules = { ...prevSchedules };
-      for (const dateKey in newSchedules) {
-        newSchedules[dateKey] = newSchedules[dateKey].filter(item => item.id !== id);
-        if (newSchedules[dateKey].length === 0) {
-          delete newSchedules[dateKey];
-        }
-      }
-      return newSchedules;
-    });
-
     setReasoning(null);
   };
 
   const handleReorderTasks = (newTasks: Task[]) => {
     setTasks(newTasks);
-    setSchedules({});
+    // Unschedule all tasks when reordering inbox
+    setTasks(currentTasks => currentTasks.map(t => ({...t, startTime: undefined, endTime: undefined, isCompleted: false, overdueNotified: false})));
     setReasoning(null);
   };
   
@@ -320,11 +292,12 @@ export default function Home() {
   };
 
   const handleGenerateSchedule = async () => {
-    if (tasks.length === 0) {
+    const tasksToSchedule = tasks.filter(t => !t.isCompleted);
+    if (tasksToSchedule.length === 0) {
       toast({
         variant: "destructive",
         title: "No tasks to schedule",
-        description: "Please add at least one task before generating a schedule.",
+        description: "Add some tasks or un-complete existing ones.",
       });
       return;
     }
@@ -334,9 +307,11 @@ export default function Home() {
 
     const input = {
       model,
-      tasks: tasks.map(t => ({
-          ...t,
+      tasks: tasksToSchedule.map(t => ({
+          id: t.id,
+          title: t.title,
           estimatedTime: t.estimatedTime,
+          priority: t.priority,
           deadline: t.deadline ? format(t.deadline, "yyyy-MM-dd'T'HH:mm:ss.SSSXXX") : undefined
       })),
       blockedTimes: blockedTimes.map(({ id, ...rest }) => rest),
@@ -370,53 +345,41 @@ export default function Home() {
   };
 
   const handleApplySchedule = (finalSchedule: ProposedTask[]) => {
-    const newSchedules: Record<string, ScheduleItem[]> = {};
     const invalidTasks: string[] = [];
-        
-    for (const scheduledTask of finalSchedule) {
-      try {
-        const startDate = parseISO(scheduledTask.startTime);
-        const endDate = parseISO(scheduledTask.endTime);
-
-        if (!isValid(startDate) || !isValid(endDate)) {
-          throw new Error('Invalid date format');
+    const scheduledMap = new Map<string, ProposedTask>();
+    finalSchedule.forEach(task => {
+        if (!isValid(parseISO(task.startTime)) || !isValid(parseISO(task.endTime))) {
+            invalidTasks.push(task.title);
+        } else {
+            scheduledMap.set(task.id, task);
         }
+    });
 
-        const dateKey = format(startDate, 'yyyy-MM-dd');
-
-        if (!newSchedules[dateKey]) {
-            newSchedules[dateKey] = [];
-        }
-
-        newSchedules[dateKey].push({
-            id: scheduledTask.id,
-            name: scheduledTask.title,
-            startTime: scheduledTask.startTime,
-            endTime: scheduledTask.endTime,
-            isCompleted: false,
-            priority: scheduledTask.priority,
-        });
-      } catch (error) {
-        console.error(`Skipping task with invalid date: "${scheduledTask.title}"`, error);
-        invalidTasks.push(scheduledTask.title);
-      }
-    }
+    setTasks(currentTasks => 
+        currentTasks.map(task => {
+            if (scheduledMap.has(task.id)) {
+                const scheduledInfo = scheduledMap.get(task.id)!;
+                return {
+                    ...task,
+                    startTime: scheduledInfo.startTime,
+                    endTime: scheduledInfo.endTime,
+                    isCompleted: false,
+                    overdueNotified: false,
+                };
+            }
+            // Unschedule tasks that were not in the final schedule from AI
+            return { ...task, startTime: undefined, endTime: undefined };
+        })
+    );
     
-    Object.values(newSchedules).forEach(day => day.sort((a,b) => a.startTime.localeCompare(b.startTime)));
-
-    setSchedules(newSchedules);
     setReasoning(null);
+    setIsAdjustDialogOpen(false);
+    setProposedSchedule([]);
 
-    // Immediately check for overdue tasks in the newly applied schedule
-    checkOverdueTasks(newSchedules);
-
-    const firstDateStr = Object.keys(newSchedules).sort()[0];
+    const firstDateStr = finalSchedule[0]?.startTime;
     if (firstDateStr) {
         setViewedDate(parseISO(firstDateStr));
     }
-
-    setIsAdjustDialogOpen(false);
-    setProposedSchedule([]);
 
     if (invalidTasks.length > 0) {
       toast({
@@ -430,16 +393,23 @@ export default function Home() {
           description: "Your new schedule is ready.",
       });
     }
+
+    // Run check immediately after applying schedule
+    setTimeout(() => checkOverdueTasksRef.current(), 100);
   }
 
   const handleAdjustSchedule = async (userRequest: string) => {
     setIsAdjusting(true);
 
+    const tasksToSchedule = tasks.filter(t => !t.isCompleted);
+
     const input = {
       model,
-      tasks: tasks.map(t => ({
-          ...t,
+      tasks: tasksToSchedule.map(t => ({
+          id: t.id,
+          title: t.title,
           estimatedTime: t.estimatedTime,
+          priority: t.priority,
           deadline: t.deadline ? format(t.deadline, "yyyy-MM-dd'T'HH:mm:ss.SSSXXX") : undefined
       })),
       blockedTimes: blockedTimes.map(({ id, ...rest }) => rest),
@@ -564,10 +534,10 @@ export default function Home() {
                       <div className="text-center text-muted-foreground">
                         <CalendarDays className="mx-auto h-12 w-12" />
                         <p className="mt-4">
-                            {Object.keys(schedules).length > 0 ? "Nothing scheduled for this day." : "Your schedule will appear here."}
+                            {Object.keys(scheduledTasksByDate).length > 0 ? "Nothing scheduled for this day." : "Your schedule will appear here."}
                         </p>
                          <p className="text-sm">
-                            {Object.keys(schedules).length > 0 ? "The AI kept this day clear." : "Add some tasks and click Generate."}
+                            {Object.keys(scheduledTasksByDate).length > 0 ? "The AI kept this day clear." : "Add some tasks and click Generate."}
                         </p>
                       </div>
                     </div>

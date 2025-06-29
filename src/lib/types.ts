@@ -6,6 +6,11 @@ export interface Task {
   estimatedTime: number; // in minutes
   priority: TaskPriority;
   deadline?: Date;
+  
+  // Schedule-related properties are now optional on the main task object
+  startTime?: string; // Full ISO 8601 date string
+  endTime?: string; // Full ISO 8601 date string
+  isCompleted?: boolean;
   overdueNotified?: boolean;
 }
 
@@ -14,15 +19,6 @@ export interface BlockedTime {
   title: string;
   startTime: string; // HH:mm
   endTime: string; // HH:mm
-}
-
-export interface ScheduleItem {
-  id: string;
-  name: string;
-  startTime: string; // Full ISO 8601 date string
-  endTime: string; // Full ISO 8601 date string
-  isCompleted: boolean;
-  priority: TaskPriority;
 }
 
 export interface ProposedTask {

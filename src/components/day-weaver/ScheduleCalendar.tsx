@@ -1,6 +1,6 @@
 'use client';
 
-import type { ScheduleItem } from '@/lib/types';
+import type { Task } from '@/lib/types';
 import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
@@ -22,8 +22,9 @@ const priorityStyles = {
   low: 'bg-green-200 text-green-900 border-green-300 dark:bg-green-900/50 dark:text-green-300 dark:border-green-800/50',
 };
 
+// The component now accepts a list of Task objects that have been scheduled for a specific day
 type ScheduleCalendarProps = {
-  schedule: ScheduleItem[];
+  schedule: (Task & { name: string })[]; 
   onToggleComplete: (id: string) => void;
   startTime: string;
   endTime: string;
@@ -87,6 +88,8 @@ export default function ScheduleCalendar({
 
           {/* Schedule Items */}
           {schedule.map((item, index) => {
+            if (!item.startTime || !item.endTime) return null;
+
             const startDate = parseISO(item.startTime);
             const endDate = parseISO(item.endTime);
             
