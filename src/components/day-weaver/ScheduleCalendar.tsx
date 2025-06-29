@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Task } from '@/lib/types';
@@ -140,7 +141,8 @@ export default function ScheduleCalendar({
                   <Checkbox
                     checked={item.isCompleted}
                     onCheckedChange={() => onToggleComplete(item.id)}
-                    aria-label={`Mark "${item.name}" as ${item.isCompleted ? 'incomplete' : 'complete'}`}
+                    disabled={item.isCompleted}
+                    aria-label={item.isCompleted ? `Task "${item.name}" is complete` : `Mark "${item.name}" as complete`}
                   />
                 </div>
               </FramerCard>
