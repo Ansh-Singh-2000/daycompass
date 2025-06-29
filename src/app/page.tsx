@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
-import type { Task, ScheduleItem, BlockedTime, ProposedTask } from '@/lib/types';
+import { useState, useEffect, useRef } from 'react';
+import type { Task, ScheduleItem, BlockedTime, ProposedTask, TaskPriority } from '@/lib/types';
 import { createSchedule, refineSchedule } from './actions';
 import { useToast } from "@/hooks/use-toast";
 import Header from '@/components/day-weaver/Header';
@@ -17,7 +17,8 @@ import { Button } from '@/components/ui/button';
 import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
 import { addDays, format, parseISO, isValid } from 'date-fns';
 import { v4 as uuidv4 } from 'uuid';
-
+import { ToastAction } from '@/components/ui/toast';
+import confetti from 'canvas-confetti';
 
 const today = new Date();
 const initialTasks: Task[] = [
@@ -84,6 +85,15 @@ export default function Home() {
     return window.localStorage.getItem('day-weaver-model') || 'llama3-8b-8192';
   });
 
+  const [points, setPoints] = useState<{gains: number, losses: number}>(() => {
+    if (typeof window === 'undefined') return { gains: 0, losses: 0 };
+    try {
+        const saved = window.localStorage.getItem('day-weaver-points');
+        return saved ? JSON.parse(saved) : { gains: 0, losses: 0 };
+    } catch (e) { console.error("Failed to load points", e); }
+    return { gains: 0, losses: 0 };
+  });
+
   // Transient state (not persisted)
   const [isGenerating, setIsGenerating] = useState(false);
   const [isAdjusting, setIsAdjusting] = useState(false);
@@ -93,6 +103,8 @@ export default function Home() {
   const [proposedSchedule, setProposedSchedule] = useState<ProposedTask[]>([]);
   const [reasoning, setReasoning] = useState<string | null>(null);
   const [timezone, setTimezone] = useState('UTC');
+  
+  const schedulesRef = useRef(schedules);
 
   // --- EFFECTS ---
 
@@ -103,6 +115,12 @@ export default function Home() {
   useEffect(() => { localStorage.setItem('day-weaver-endTime', endTime); }, [endTime]);
   useEffect(() => { localStorage.setItem('day-weaver-blockedTimes', JSON.stringify(blockedTimes)); }, [blockedTimes]);
   useEffect(() => { localStorage.setItem('day-weaver-model', model); }, [model]);
+  useEffect(() => { localStorage.setItem('day-weaver-points', JSON.stringify(points)); }, [points]);
+  
+  // Keep a ref to the latest schedules for callbacks
+  useEffect(() => {
+    schedulesRef.current = schedules;
+  }, [schedules]);
 
   // Handle day change logic on initial app load
   useEffect(() => {
@@ -130,13 +148,86 @@ export default function Home() {
     localStorage.setItem('day-weaver-last-visit', todayStr);
   }, []); // Runs once on mount, client-side only
 
+  // Set timezone on mount
   useEffect(() => {
     setTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
   }, []);
 
+  // Check for overdue tasks
+  useEffect(() => {
+    const checkOverdueTasks = () => {
+        const now = new Date();
+        const todayKey = format(now, 'yyyy-MM-dd');
+
+        Object.entries(schedules).forEach(([dateKey, scheduleItems]) => {
+            if (dateKey > todayKey) return;
+
+            scheduleItems.forEach(item => {
+                const originalTask = tasks.find(t => t.id === item.id);
+                if (!originalTask || originalTask.overdueNotified || item.isCompleted) {
+                    return;
+                }
+                
+                try {
+                    const [endHours, endMinutes] = item.endTime.split(':').map(Number);
+                    const itemEndDate = parseISO(dateKey);
+                    itemEndDate.setHours(endHours, endMinutes, 0, 0);
+
+                    if (now > itemEndDate) {
+                        toast({
+                            variant: "destructive",
+                            title: "Task Overdue!",
+                            description: `"${item.name}" is past its scheduled time. Did you complete it?`,
+                            duration: Infinity,
+                            action: (
+                                <ToastAction altText="Mark as done" onClick={() => handleToggleComplete(item.id)}>
+                                    Yes, I did!
+                                </ToastAction>
+                            ),
+                            onOpenChange: (open) => {
+                                if (!open) {
+                                    const currentSchedules = schedulesRef.current;
+                                    const currentItem = currentSchedules[dateKey]?.find((i: ScheduleItem) => i.id === item.id);
+                                    
+                                    if (currentItem && !currentItem.isCompleted) {
+                                        setPoints(p => ({...p, losses: p.losses + 1}));
+                                    }
+
+                                    setTasks(prevTasks => prevTasks.map(t =>
+                                        t.id === item.id ? { ...t, overdueNotified: true } : t
+                                    ));
+                                }
+                            }
+                        });
+                        
+                        setTasks(prevTasks => prevTasks.map(t =>
+                            t.id === item.id ? { ...t, overdueNotified: true } : t
+                        ));
+                    }
+                } catch(e) {
+                    console.error("Error checking overdue task, likely malformed time", item);
+                }
+            });
+        });
+    };
+
+    const intervalId = setInterval(checkOverdueTasks, 60000);
+    checkOverdueTasks(); // Run on mount as well
+
+    return () => clearInterval(intervalId);
+  }, [schedules, tasks, toast]);
+
   const dateKey = format(viewedDate, 'yyyy-MM-dd');
   const currentSchedule = schedules[dateKey] || [];
   const isLoading = isGenerating || isAdjusting;
+
+  const runConfetti = () => {
+    confetti({
+        particleCount: 150,
+        spread: 90,
+        origin: { y: 0.6 }
+    });
+  };
 
   const handleAddTask = (task: Omit<Task, 'id'>) => {
     setTasks(prev => [...prev, { ...task, id: uuidv4() }]);
@@ -327,16 +418,36 @@ export default function Home() {
   };
 
   const handleToggleComplete = (id: string) => {
+    let wasIncomplete = false;
+    let originalTaskPriority: TaskPriority | undefined = undefined;
+
     setSchedules(prev => {
-      const daySchedule = prev[dateKey];
-      if (!daySchedule) return prev;
-      return {
-        ...prev,
-        [dateKey]: daySchedule.map(item =>
-          item.id === id ? { ...item, isCompleted: !item.isCompleted } : item
-        ),
-      };
+        const newSchedules = { ...prev };
+        
+        for (const dateKey in newSchedules) {
+            const itemIndex = newSchedules[dateKey].findIndex(item => item.id === id);
+            if (itemIndex > -1) {
+                const item = newSchedules[dateKey][itemIndex];
+                if (!item.isCompleted) {
+                    wasIncomplete = true;
+                    const originalTask = tasks.find(t => t.id === id);
+                    if (originalTask) {
+                        originalTaskPriority = originalTask.priority;
+                    }
+                }
+                newSchedules[dateKey][itemIndex] = { ...item, isCompleted: !item.isCompleted };
+                break;
+            }
+        }
+        return newSchedules;
     });
+
+    if (wasIncomplete) {
+        setPoints(p => ({ ...p, gains: p.gains + 1 }));
+        if (originalTaskPriority === 'high') {
+            runConfetti();
+        }
+    }
   };
 
   return (
@@ -365,7 +476,7 @@ export default function Home() {
       />
       <header className="shrink-0 border-b">
         <div className="px-4 lg:px-6 py-3">
-          <Header onSettingsClick={() => setIsSettingsOpen(true)} />
+          <Header onSettingsClick={() => setIsSettingsOpen(true)} points={points} />
         </div>
       </header>
       <main className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 px-4 py-4 lg:px-6 lg:py-4 overflow-hidden">
@@ -446,5 +557,3 @@ export default function Home() {
     </div>
   );
 }
-
-    

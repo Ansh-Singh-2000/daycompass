@@ -6,6 +6,7 @@ export interface Task {
   estimatedTime: number; // in minutes
   priority: TaskPriority;
   deadline?: Date;
+  overdueNotified?: boolean;
 }
 
 export interface BlockedTime {
