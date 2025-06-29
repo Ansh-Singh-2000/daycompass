@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import type { Task, ScheduleItem, BlockedTime, ProposedTask, TaskPriority } from '@/lib/types';
 import { createSchedule, refineSchedule } from './actions';
 import { useToast } from "@/hooks/use-toast";
@@ -151,90 +151,7 @@ export default function Home() {
     schedulesRef.current = schedules;
   }, [schedules]);
 
-  // Check for overdue tasks.
-  useEffect(() => {
-    const checkOverdueTasks = () => {
-      const now = new Date();
-      const tasksToNotify: { task: Task; dateKey: string }[] = [];
-
-      // 1. Find all tasks that are overdue and need a notification.
-      for (const task of tasks) {
-        let scheduleDetails: { item: ScheduleItem; dateKey: string } | undefined;
-        
-        for (const [dateKey, scheduleItems] of Object.entries(schedules)) {
-          const item = scheduleItems.find(i => i.id === task.id);
-          if (item) {
-            scheduleDetails = { item, dateKey };
-            break;
-          }
-        }
-
-        if (!scheduleDetails) continue;
-
-        const { item, dateKey } = scheduleDetails;
-        const isOverdue = !item.isCompleted && !task.overdueNotified;
-
-        if (!isOverdue) continue;
-        
-        try {
-          const itemEndDate = parseISO(item.endTime);
-          if (isValid(itemEndDate) && now > itemEndDate) {
-            tasksToNotify.push({ task, dateKey });
-          }
-        } catch (e) {
-          console.error(`Error checking overdue task "${task.title}":`, e);
-        }
-      }
-
-      // 2. If we found any, update their state and show toasts.
-      if (tasksToNotify.length > 0) {
-        const notifiedTaskIds = new Set(tasksToNotify.map(item => item.task.id));
-
-        // Update state once for all newly notified tasks.
-        setTasks(prevTasks =>
-          prevTasks.map(t =>
-            notifiedTaskIds.has(t.id) ? { ...t, overdueNotified: true } : t
-          )
-        );
-
-        // 3. Create a toast for each.
-        tasksToNotify.forEach(({ task, dateKey }) => {
-          toast({
-            variant: 'destructive',
-            title: 'Task Overdue!',
-            description: `"${task.title}" is past its scheduled time. Did you complete it?`,
-            duration: Infinity,
-            action: (
-              <ToastAction altText="Mark as done" onClick={() => handleToggleComplete(task.id)}>
-                Yes, I did!
-              </ToastAction>
-            ),
-            onOpenChange: (open) => {
-              if (!open) {
-                const latestSchedules = schedulesRef.current;
-                const latestItem = latestSchedules[dateKey]?.find((i: ScheduleItem) => i.id === task.id);
-                
-                if (latestItem && !latestItem.isCompleted) {
-                  setPoints(p => ({ ...p, losses: p.losses + 1 }));
-                }
-              }
-            },
-          });
-        });
-      }
-    };
-
-    const intervalId = setInterval(checkOverdueTasks, 60000);
-    checkOverdueTasks();
-
-    return () => clearInterval(intervalId);
-  }, [schedules, tasks, toast]);
-
-
-  const dateKey = format(viewedDate, 'yyyy-MM-dd');
-  const currentSchedule = schedules[dateKey] || [];
-  const isLoading = isGenerating || isAdjusting;
-
+  // --- TASK & SCHEDULE LOGIC ---
   const runConfetti = () => {
     confetti({
         particleCount: 150,
@@ -242,6 +159,107 @@ export default function Home() {
         origin: { y: 0.6 }
     });
   };
+
+  const handleToggleComplete = useCallback((id: string) => {
+    const allItems = Object.values(schedules).flat();
+    const currentItem = allItems.find(item => item.id === id);
+    if (!currentItem) return;
+
+    const isNowCompleting = !currentItem.isCompleted;
+
+    setSchedules(prevSchedules => {
+        const newSchedules = { ...prevSchedules };
+        for (const dateKey in newSchedules) {
+            const itemIndex = newSchedules[dateKey].findIndex(item => item.id === id);
+            if (itemIndex !== -1) {
+                const newDaySchedule = [...newSchedules[dateKey]];
+                newDaySchedule[itemIndex] = { ...newDaySchedule[itemIndex], isCompleted: isNowCompleting };
+                newSchedules[dateKey] = newDaySchedule;
+                break;
+            }
+        }
+        return newSchedules;
+    });
+
+    if (isNowCompleting) {
+        runConfetti();
+        setPoints(p => ({ ...p, gains: p.gains + 1 }));
+    } else {
+        setPoints(p => ({ ...p, gains: Math.max(0, p.gains - 1) }));
+    }
+  }, [schedules, setSchedules, setPoints]);
+
+  const checkOverdueTasks = useCallback(() => {
+    const now = new Date();
+    const tasksToNotify: { task: Task; dateKey: string }[] = [];
+
+    for (const task of tasks) {
+        let scheduleDetails: { item: ScheduleItem; dateKey: string } | undefined;
+        for (const [dateKey, scheduleItems] of Object.entries(schedules)) {
+            const item = scheduleItems.find((i) => i.id === task.id);
+            if (item) {
+                scheduleDetails = { item, dateKey };
+                break;
+            }
+        }
+
+        if (!scheduleDetails) continue;
+
+        const { item, dateKey } = scheduleDetails;
+        if (item.isCompleted || task.overdueNotified) {
+            continue;
+        }
+
+        try {
+            const itemEndDate = parseISO(item.endTime);
+            if (isValid(itemEndDate) && now > itemEndDate) {
+                tasksToNotify.push({ task, dateKey });
+            }
+        } catch (e) {
+            console.error(`Error checking overdue task "${task.title}":`, e);
+        }
+    }
+
+    if (tasksToNotify.length > 0) {
+        const notifiedTaskIds = new Set(tasksToNotify.map(({ task }) => task.id));
+        setTasks((prevTasks) =>
+            prevTasks.map((t) => (notifiedTaskIds.has(t.id) ? { ...t, overdueNotified: true } : t))
+        );
+
+        tasksToNotify.forEach(({ task, dateKey }) => {
+            toast({
+                variant: 'destructive',
+                title: 'Task Overdue!',
+                description: `"${task.title}" is past its scheduled time. Did you complete it?`,
+                duration: Infinity,
+                action: (
+                    <ToastAction altText="Mark as done" onClick={() => handleToggleComplete(task.id)}>
+                        Yes, I did!
+                    </ToastAction>
+                ),
+                onOpenChange: (open) => {
+                    if (!open) {
+                        const latestSchedules = schedulesRef.current;
+                        const latestItem = latestSchedules[dateKey]?.find((i) => i.id === task.id);
+                        if (latestItem && !latestItem.isCompleted) {
+                            setPoints((p) => ({ ...p, losses: p.losses + 1 }));
+                        }
+                    }
+                },
+            });
+        });
+    }
+  }, [tasks, schedules, toast, handleToggleComplete, setPoints, setTasks, schedulesRef]);
+
+  useEffect(() => {
+    const intervalId = setInterval(checkOverdueTasks, 60000);
+    checkOverdueTasks();
+    return () => clearInterval(intervalId);
+  }, [checkOverdueTasks]);
+
+  const dateKey = format(viewedDate, 'yyyy-MM-dd');
+  const currentSchedule = schedules[dateKey] || [];
+  const isLoading = isGenerating || isAdjusting;
 
   const handleAddTask = (task: Omit<Task, 'id'>) => {
     setTasks(prev => [...prev, { ...task, id: uuidv4() }]);
@@ -432,49 +450,6 @@ export default function Home() {
     setIsAdjusting(false);
   };
 
-  const handleToggleComplete = (id: string) => {
-    let isCompleting = false;
-
-    setSchedules(prevSchedules => {
-      const newSchedules = { ...prevSchedules }; // Shallow copy
-
-      for (const dateKey in newSchedules) {
-        const scheduleForDay = newSchedules[dateKey];
-        const itemIndex = scheduleForDay.findIndex(item => item.id === id);
-
-        if (itemIndex !== -1) {
-          const itemToToggle = scheduleForDay[itemIndex];
-          
-          if (!itemToToggle.isCompleted) {
-            isCompleting = true;
-          }
-
-          // Create a new array for the day to avoid mutation
-          const updatedDaySchedule = [...scheduleForDay];
-          // Create a new, updated item
-          updatedDaySchedule[itemIndex] = {
-            ...itemToToggle,
-            isCompleted: !itemToToggle.isCompleted,
-          };
-
-          // Assign the new array back to the new schedules object
-          newSchedules[dateKey] = updatedDaySchedule;
-          break; // Exit loop once task is found and updated
-        }
-      }
-      return newSchedules;
-    });
-
-    if (isCompleting) {
-      setPoints(p => ({ ...p, gains: p.gains + 1 }));
-      runConfetti();
-    } else {
-      // If we are un-ticking the box, subtract a point.
-      setPoints(p => ({ ...p, gains: Math.max(0, p.gains - 1) }));
-    }
-  };
-
-
   return (
     <div className="h-screen flex flex-col bg-background text-foreground">
       <SettingsDialog 
@@ -581,3 +556,5 @@ export default function Home() {
       </main>
     </div>
   );
+
+    
