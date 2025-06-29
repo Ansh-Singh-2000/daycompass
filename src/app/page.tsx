@@ -68,7 +68,22 @@ export default function Home() {
 
   const handleDeleteTask = (id: string) => {
     setTasks(prev => prev.filter(task => task.id !== id));
-    setSchedules({});
+    
+    // Remove the corresponding task from the schedule without resetting everything
+    setSchedules(prevSchedules => {
+      const newSchedules = { ...prevSchedules };
+      for (const dateKey in newSchedules) {
+        // Filter out the deleted task from each day's schedule
+        newSchedules[dateKey] = newSchedules[dateKey].filter(item => item.id !== id);
+        
+        // If a day becomes empty after deletion, remove the date key
+        if (newSchedules[dateKey].length === 0) {
+          delete newSchedules[dateKey];
+        }
+      }
+      return newSchedules;
+    });
+
     setReasoning(null);
   };
 
