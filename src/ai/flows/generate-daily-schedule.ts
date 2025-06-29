@@ -4,7 +4,7 @@
  * @fileOverview AI-powered daily schedule generator.
  *
  * - generateDailySchedule - A function that generates an optimized daily schedule.
- * - GenerateDailyScheduleInput - The input type for the generateDailySchedule function.
+ * - GenerateDailyScheduleInput - The input type for the generateDailyschedule function.
  * - GenerateDailyScheduleOutput - The return type for the generateDailySchedule function.
  */
 
@@ -12,16 +12,11 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const GenerateDailyScheduleInputSchema = z.object({
-  tasks: z
-    .array(
-      z.object({
-        name: z.string().describe('The name of the task.'),
-        priority: z.enum(['high', 'medium', 'low']).describe('The priority of the task.'),
-        duration: z.number().describe('The estimated duration of the task in minutes.'),
-        deadline: z.string().optional().describe('The deadline for the task in ISO 8601 format (e.g., "2024-08-15T23:59:59.000Z").'),
-      })
-    )
-    .describe('A list of all available tasks to choose from.'),
+  tasksAsJson: z
+    .string()
+    .describe(
+      'A JSON string representing an array of all available tasks to choose from. Each task object has name, priority, duration (in minutes), and an optional deadline (ISO 8601 format).'
+    ),
   timeConstraints: z
     .object({
       startTime: z.string().describe('The preferred start time for the schedule in HH:mm format.'),
@@ -58,25 +53,23 @@ const prompt = ai.definePrompt({
   name: 'generateDailySchedulePrompt',
   input: {schema: GenerateDailyScheduleInputSchema},
   output: {schema: GenerateDailyScheduleOutputSchema},
-  prompt: `You are a world-class productivity and study coach. Your single most important mission is to design a daily study schedule that is smart, sustainable, and actively prevents student burnout.
+  prompt: `You are a world-class productivity and study coach. Your single most important mission is to design a daily study schedule for a single, specific day that is smart, sustainable, and actively prevents student burnout.
 
 **CONTEXT:**
-- You are creating a schedule for one specific day: **{{scheduleDate}}**.
-- The current date and time is: {{currentDateTime}}. Use this to understand the urgency of tasks.
+- You are creating a schedule ONLY for this specific day: **{{scheduleDate}}**.
+- The current date and time is: {{currentDateTime}}. Use this to understand the urgency of tasks relative to their deadlines.
 - The available time window for scheduling is from {{timeConstraints.startTime}} to {{timeConstraints.endTime}}.
 
-**TASK SELECTION:**
-You have been given a complete list of all available tasks. Your first job is to **SELECT ONLY THE MOST RELEVANT TASKS** to schedule for **{{scheduleDate}}**. Do not try to schedule everything.
+**YOUR TASK: SELECT & SCHEDULE**
+You will be given a complete list of ALL available tasks in JSON format. Your goal is NOT to schedule all of them. Your goal is to select ONLY the most critical and relevant tasks for THIS specific day.
 
-Here is the full list of available tasks:
-{{#each tasks}}
-- Name: {{name}}, Priority: {{priority}}, Duration: {{duration}} minutes{{#if deadline}}, Deadline: {{deadline}}{{/if}}
-{{/each}}
+**Here is the JSON list of all available tasks:**
+{{{tasksAsJson}}}
 
-**CRITICAL TASK SELECTION LOGIC:**
-1.  **DEADLINE IS KING:** Your primary filter is the task deadline. You **MUST** prioritize tasks with deadlines that are on or soon after **{{scheduleDate}}**.
-2.  **URGENCY CALCULATION:** A 'low' priority task due tomorrow is more urgent to schedule today than a 'high' priority task due next month. Use a combination of deadline and priority to determine true urgency.
-3.  **CAPACITY AWARENESS:** Do not overfill the day. It is better to schedule fewer tasks and complete them well than to create an impossible, cramped schedule.
+**CRITICAL TASK SELECTION LOGIC (IN ORDER OF IMPORTANCE):**
+1.  **DEADLINE IS KING:** Your primary filter is the task deadline. Only select tasks whose deadlines are on or very near **{{scheduleDate}}**. Tasks with far-off deadlines (e.g., more than a few days away) should almost always be IGNORED for today's schedule, unless the day is completely empty. It is better to leave a future task unscheduled than to cram it into today.
+2.  **URGENCY & PRIORITY:** A 'low' priority task due tomorrow is more urgent to schedule today than a 'high' priority task due next month. Use a combination of deadline and priority to determine true urgency.
+3.  **CAPACITY AWARENESS:** Do not overfill the day. A perfect schedule has breathing room. It is better to schedule fewer tasks and complete them well than to create an impossible, cramped schedule.
 4.  **DO NOT SCHEDULE PAST-DUE TASKS:** If a task's deadline has already passed (relative to \`currentDateTime\`), do not include it in today's schedule.
 
 **MANDATORY, NON-NEGOTIABLE SCHEDULING DIRECTIVES:**

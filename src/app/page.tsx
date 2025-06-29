@@ -81,10 +81,12 @@ export default function Home() {
     setIsLoading(true);
 
     const input = {
-      tasks: tasks.map(({ id, deadline, ...rest }) => ({ 
-        ...rest,
-        deadline: deadline?.toISOString()
-      })),
+      tasksAsJson: JSON.stringify(
+        tasks.map(({ id, ...rest }) => ({ 
+          ...rest,
+          deadline: rest.deadline?.toISOString()
+        }))
+      ),
       timeConstraints: { startTime, endTime },
       currentDateTime: new Date().toISOString(),
       scheduleDate: viewedDate.toISOString().split('T')[0],
@@ -135,7 +137,9 @@ export default function Home() {
             <CardDescription>Add tasks, set availability, and generate your schedule.</CardDescription>
           </CardHeader>
           <CardContent className="flex-1 flex flex-col gap-4 overflow-y-auto p-4 pt-2">
-            <TaskForm onAddTask={handleAddTask} />
+            <div className="pt-2">
+              <TaskForm onAddTask={handleAddTask} />
+            </div>
             <Separator />
             <div className="flex-1 min-h-0">
               <TaskList tasks={tasks} onDeleteTask={handleDeleteTask} onReorderTasks={handleReorderTasks} />
