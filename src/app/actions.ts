@@ -6,8 +6,8 @@ import { adjustSchedule, type AdjustScheduleInput } from '@/ai/flows/adjust-sche
 async function handleAIError(error: unknown) {
     let errorMessage = 'An unexpected error occurred with the AI. Please try again.';
     if (error instanceof Error) {
-        if (error.message.includes('GEMINI_API_KEY')) {
-            errorMessage = 'The Gemini API key is not configured. Please set it in your environment variables.';
+        if (error.message.includes('GROQ_API_KEY')) {
+            errorMessage = 'The Groq API key is not configured. Please set it in your environment variables.';
         } else {
             errorMessage = `An AI error occurred: ${error.message}`;
         }

@@ -8,7 +8,7 @@
  * - AdjustScheduleOutput - The return type for the adjustSchedule function (same as GenerateFullScheduleOutput).
  */
 
-import { geminiModel } from '@/ai/genkit';
+import { groq } from '@/ai/genkit';
 import { AdjustScheduleInputSchema, GenerateFullScheduleOutputSchema } from '@/ai/schemas';
 import { z } from 'zod';
 
@@ -81,14 +81,17 @@ export async function adjustSchedule(
 ): Promise<AdjustScheduleOutput> {
   const prompt = buildPrompt(input);
   
-  const result = await geminiModel.generateContent({
-      contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      generationConfig: {
-          responseMimeType: 'application/json',
-      }
+  const completion = await groq.chat.completions.create({
+    messages: [{ role: 'user', content: prompt }],
+    model: 'llama3-8b-8192',
+    response_format: { type: 'json_object' }
   });
 
-  const responseText = result.response.text();
+  const responseText = completion.choices[0]?.message?.content;
+  if (!responseText) {
+    throw new Error('AI returned an empty response.');
+  }
+
   try {
       const parsedJson = JSON.parse(responseText);
       return parsedJson;

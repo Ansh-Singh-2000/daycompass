@@ -8,7 +8,7 @@
  * - GenerateFullScheduleOutput - The return type for the generateFullSchedule function.
  */
 
-import { geminiModel } from '@/ai/genkit';
+import { groq } from '@/ai/genkit';
 import { z } from 'zod';
 import { GenerateFullScheduleInputSchema, GenerateFullScheduleOutputSchema } from '@/ai/schemas';
 
@@ -71,14 +71,17 @@ export async function generateFullSchedule(
 ): Promise<GenerateFullScheduleOutput> {
   const prompt = buildPrompt(input);
   
-  const result = await geminiModel.generateContent({
-      contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      generationConfig: {
-          responseMimeType: 'application/json',
-      }
+  const completion = await groq.chat.completions.create({
+      messages: [{ role: 'user', content: prompt }],
+      model: 'llama3-8b-8192',
+      response_format: { type: 'json_object' }
   });
 
-  const responseText = result.response.text();
+  const responseText = completion.choices[0]?.message?.content;
+  if (!responseText) {
+    throw new Error('AI returned an empty response.');
+  }
+
   const parsedJson = JSON.parse(responseText);
   
   return parsedJson;
