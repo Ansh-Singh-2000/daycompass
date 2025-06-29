@@ -53,12 +53,9 @@ export default function ScheduleCalendar({
   const [rawEndHour, rawEndMinutes] = endTime.split(':').map(Number);
   let endHour = rawEndHour;
 
-  // If the sleep time has any minutes, extend the view to the next hour.
   if (rawEndMinutes > 0) {
     endHour = rawEndHour + 1;
   }
-
-  // If the sleep time is exactly midnight, it should be treated as the 24th hour, not the 0th.
   if (rawEndHour === 0 && rawEndMinutes === 0) {
     endHour = 24;
   }
@@ -150,7 +147,8 @@ export default function ScheduleCalendar({
     );
   }
 
-  const hourSegments = Array.from({ length: endHour - startHour }, (_, i) => startHour + i);
+  const totalHours = endHour - startHour;
+  const hourSegments = Array.from({ length: totalHours }, (_, i) => startHour + i);
   const HOUR_HEIGHT_REM = 6; // h-24
 
   if (!isLoading && schedule.length === 0 && !hasTasks) {
@@ -169,10 +167,10 @@ export default function ScheduleCalendar({
     <div className="h-full overflow-y-auto rounded-lg border bg-secondary/20">
       <div
         className="relative grid grid-cols-[3.5rem,1fr]"
-        style={{ height: `${hourSegments.length * HOUR_HEIGHT_REM}rem` }}
+        style={{ height: `${totalHours * HOUR_HEIGHT_REM}rem` }}
       >
         {/* Time Column */}
-        <div>
+        <div className="relative border-b-2 border-slate-200 dark:border-slate-700">
           {hourSegments.map((hour, index) => (
             <div
               key={hour}
@@ -185,10 +183,16 @@ export default function ScheduleCalendar({
               </span>
             </div>
           ))}
+          <div className="absolute bottom-0 right-0 w-full text-right pr-2 translate-y-1/2">
+             <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                {endHour % 12 === 0 ? 12 : endHour % 12}{' '}
+                <span className="text-xs">{endHour < 12 || endHour === 24 ? 'AM' : 'PM'}</span>
+            </span>
+          </div>
         </div>
 
         {/* Schedule Column */}
-        <div className="relative">
+        <div className="relative border-b-2 border-slate-200 dark:border-slate-700">
           {/* Hour lines */}
           {hourSegments.map((hour, index) => (
             <div
