@@ -530,7 +530,7 @@ export default function Home() {
           </CardHeader>
           <CardContent className="flex-1 flex flex-col gap-4 p-4 pt-0">
             <TaskForm onAddTask={handleAddTask} />
-            <div className="flex-1 min-h-0 overflow-hidden">
+            <div className="flex-1 min-h-0">
                <TaskList tasks={tasks} onDeleteTask={handleDeleteTask} />
             </div>
           </CardContent>
