@@ -31,7 +31,6 @@ interface ChatMessage {
     id: string;
     role: 'user' | 'assistant';
     content: string;
-    modelUsed?: string;
 }
 
 export default function AdjustScheduleDialog({
@@ -52,15 +51,15 @@ export default function AdjustScheduleDialog({
   useEffect(() => {
     if (isOpen) {
         if (reasoning && chatHistory.length === 0) {
-            setChatHistory([{ role: 'assistant', content: reasoning, id: 'initial-reasoning', modelUsed: modelUsed }]);
+            setChatHistory([{ role: 'assistant', content: reasoning, id: 'initial-reasoning' }]);
         } else if (reasoning && chatHistory.length > 0 && chatHistory[chatHistory.length - 1]?.content !== reasoning) {
-             setChatHistory(prev => [...prev, { role: 'assistant', content: reasoning, id: uuidv4(), modelUsed: modelUsed }]);
+             setChatHistory(prev => [...prev, { role: 'assistant', content: reasoning, id: uuidv4() }]);
         }
     } else {
         // Reset history when dialog is closed to be ready for next time
         setChatHistory([]);
     }
-  }, [reasoning, isOpen, modelUsed]);
+  }, [reasoning, isOpen]);
 
   useEffect(() => {
     // Auto-scroll to bottom of chat
@@ -118,11 +117,6 @@ export default function AdjustScheduleDialog({
                             message.role === 'assistant' ? 'bg-muted' : 'bg-primary/20 text-primary-foreground'
                         )}>
                            <p className="leading-relaxed">{message.content}</p>
-                           {message.role === 'assistant' && message.modelUsed && (
-                              <div className="text-xs text-muted-foreground/80 mt-2 pt-2 border-t border-muted-foreground/20">
-                                  Model: <code className="font-mono bg-background/50 px-1 py-0.5 rounded text-xs">{message.modelUsed}</code>
-                              </div>
-                           )}
                         </div>
                          {message.role === 'user' && <User className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />}
                     </div>
@@ -156,7 +150,12 @@ export default function AdjustScheduleDialog({
 
           {/* Right: Proposed Schedule */}
           <div className="flex flex-col gap-4 min-h-0">
-            <h3 className="text-lg font-semibold">Proposed Schedule</h3>
+            <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold">Proposed Schedule</h3>
+                <div className="text-xs text-muted-foreground">
+                    Model: <code className="font-mono bg-background/50 px-1 py-0.5 rounded text-xs">{modelUsed}</code>
+                </div>
+            </div>
             <Card className="flex-1 bg-background/50 overflow-y-auto">
                 <div className="space-y-2 p-4">
                 {proposedSchedule.map(task => (
