@@ -110,6 +110,17 @@ export default function Home() {
       });
       console.log('--- DEBUG: Processed schedules object to be set in state ---', newSchedulesWithIds);
       setSchedules(newSchedulesWithIds);
+
+      // Jump to the first day of the generated schedule
+      if (result.data.schedules.length > 0) {
+        // Sort to be safe, although AI should return in order
+        const sortedSchedules = [...result.data.schedules].sort((a, b) => a.date.localeCompare(b.date));
+        const firstDateStr = sortedSchedules[0].date;
+        // Handle potential timezone issues by parsing manually
+        const [year, month, day] = firstDateStr.split('-').map(Number);
+        setViewedDate(new Date(year, month - 1, day));
+      }
+
       toast({
         title: "Schedule Generated!",
         description: "Your tasks have been scheduled. Navigate the calendar to see the full plan.",
