@@ -91,9 +91,15 @@ const generateFullScheduleFlow = ai.defineFlow(
     console.log('---------------------');
     
     try {
-      // Sometimes the AI wraps the JSON in markdown backticks.
-      const cleanedOutput = rawOutput.replace(/```json/g, '').replace(/```/g, '').trim();
-      const parsedJson = JSON.parse(cleanedOutput);
+      // Find the JSON block within the raw output, even if there's text around it.
+      const jsonMatch = rawOutput.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        console.error('No JSON object found in the AI response.');
+        throw new Error('AI returned invalid JSON format.');
+      }
+      
+      const jsonString = jsonMatch[0];
+      const parsedJson = JSON.parse(jsonString);
       const validatedOutput = GenerateFullScheduleOutputSchema.parse(parsedJson);
       return validatedOutput;
     } catch (e) {
