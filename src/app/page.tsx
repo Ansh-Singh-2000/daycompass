@@ -239,6 +239,10 @@ export default function Home() {
         setBlockedTimes={setBlockedTimes}
         model={model}
         setModel={setModel}
+        startTime={startTime}
+        onStartTimeChange={setStartTime}
+        endTime={endTime}
+        onEndTimeChange={setEndTime}
       />
       <AdjustScheduleDialog
         isOpen={isAdjustDialogOpen}
@@ -259,7 +263,7 @@ export default function Home() {
         <Card className="lg:col-span-1 flex flex-col overflow-hidden">
           <CardHeader>
             <CardTitle>Tasks & Scheduling</CardTitle>
-            <CardDescription>Add tasks, set availability, and generate your schedule.</CardDescription>
+            <CardDescription>Add tasks and generate your AI-powered schedule.</CardDescription>
           </CardHeader>
           <CardContent className="flex-1 flex flex-col gap-4 p-4 pt-0 overflow-hidden">
             <TaskForm onAddTask={handleAddTask} />
@@ -271,10 +275,6 @@ export default function Home() {
             <ScheduleControls
               onGenerate={handleGenerateSchedule}
               isLoading={isGenerating}
-              startTime={startTime}
-              endTime={endTime}
-              onStartTimeChange={setStartTime}
-              onEndTimeChange={setEndTime}
             />
           </CardFooter>
         </Card>

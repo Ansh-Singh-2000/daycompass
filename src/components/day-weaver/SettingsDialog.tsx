@@ -9,7 +9,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Combobox } from "@/components/ui/combobox";
 import type { BlockedTime } from "@/lib/types";
 import { Trash2, Plus } from "lucide-react";
 import { useState } from "react";
@@ -24,7 +25,20 @@ interface SettingsDialogProps {
   setBlockedTimes: React.Dispatch<React.SetStateAction<BlockedTime[]>>;
   model: string;
   setModel: (model: string) => void;
+  startTime: string;
+  onStartTimeChange: (value: string) => void;
+  endTime: string;
+  onEndTimeChange: (value: string) => void;
 }
+
+const aiModels = [
+    { value: 'llama3-8b-8192', label: 'Llama 3 8B' },
+    { value: 'llama3-70b-8192', label: 'Llama 3 70B' },
+    { value: 'mixtral-8x7b-32768', label: 'Mixtral 8x7B' },
+    { value: 'gemma-7b-it', label: 'Gemma 7B' },
+    { value: 'gemma2-9b-it', label: 'Gemma 2 9B' },
+    { value: 'deepseek-r1-distill-llama-70b', label: 'Deepseek R1 Distill' },
+];
 
 export default function SettingsDialog({ 
   isOpen, 
@@ -32,27 +46,31 @@ export default function SettingsDialog({
   blockedTimes, 
   setBlockedTimes,
   model,
-  setModel
+  setModel,
+  startTime,
+  onStartTimeChange,
+  endTime,
+  onEndTimeChange,
 }: SettingsDialogProps) {
-  const [title, setTitle] = useState('');
-  const [startTime, setStartTime] = useState('');
-  const [endTime, setEndTime] = useState('');
+  const [newBlockTitle, setNewBlockTitle] = useState('');
+  const [newBlockStartTime, setNewBlockStartTime] = useState('');
+  const [newBlockEndTime, setNewBlockEndTime] = useState('');
 
   const handleAddBlockedTime = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !startTime || !endTime) {
+    if (!newBlockTitle || !newBlockStartTime || !newBlockEndTime) {
       return;
     }
     const newBlockedTime: BlockedTime = {
       id: mockUuid(),
-      title,
-      startTime,
-      endTime,
+      title: newBlockTitle,
+      startTime: newBlockStartTime,
+      endTime: newBlockEndTime,
     };
     setBlockedTimes(prev => [...prev, newBlockedTime].sort((a,b) => a.startTime.localeCompare(b.startTime)));
-    setTitle('');
-    setStartTime('');
-    setEndTime('');
+    setNewBlockTitle('');
+    setNewBlockStartTime('');
+    setNewBlockEndTime('');
   };
 
   const handleDeleteBlockedTime = (id: string) => {
@@ -65,99 +83,129 @@ export default function SettingsDialog({
         <DialogHeader>
           <DialogTitle>Settings</DialogTitle>
           <DialogDescription>
-            Manage AI settings and recurring busy times for scheduling.
+            Manage your daily schedule and AI preferences for better suggestions.
           </DialogDescription>
         </DialogHeader>
         
-        <div className="grid gap-6 py-4">
-          
-           <div className="space-y-3">
-            <Label>AI Settings</Label>
-            <div className="space-y-2 rounded-md border p-4">
-              <div>
-                <Label htmlFor="ai-model">AI Model</Label>
-                <Select value={model} onValueChange={setModel}>
-                  <SelectTrigger id="ai-model">
-                    <SelectValue placeholder="Select a model" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="llama3-8b-8192">Llama 3 8B</SelectItem>
-                    <SelectItem value="llama3-70b-8192">Llama 3 70B</SelectItem>
-                    <SelectItem value="mixtral-8x7b-32768">Mixtral 8x7B</SelectItem>
-                    <SelectItem value="gemma-7b-it">Gemma 7B</SelectItem>
-                  </SelectContent>
-                </Select>
-                 <p className="text-sm text-muted-foreground pt-1">
-                    Different models have different capabilities and speeds.
-                </p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="space-y-3">
-            <Label>Recurring Busy Times</Label>
-             <p className="text-sm text-muted-foreground -mt-2">
-                The AI will avoid scheduling tasks during these daily blocks.
-            </p>
-            <div className="space-y-2 max-h-48 overflow-y-auto rounded-md border p-2">
-              {blockedTimes.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">No blocked times added.</p>
-              ) : (
-                blockedTimes.map((bt) => (
-                  <div key={bt.id} className="flex items-center justify-between p-2 bg-secondary rounded-md text-sm">
-                    <div>
-                      <p className="font-semibold">{bt.title}</p>
-                      <p className="text-muted-foreground">{bt.startTime} - {bt.endTime}</p>
+        <Tabs defaultValue="general" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="general">General</TabsTrigger>
+                <TabsTrigger value="blocked">Blocked Times</TabsTrigger>
+                <TabsTrigger value="ai">AI</TabsTrigger>
+            </TabsList>
+            <TabsContent value="general" className="py-4">
+                <div className="space-y-4 rounded-md border p-4">
+                    <h3 className="font-semibold text-foreground">Your Day</h3>
+                    <p className="text-sm text-muted-foreground -mt-2">
+                        Set your typical daily start and end times for scheduling.
+                    </p>
+                    <div className="flex items-end gap-4">
+                        <div className="flex-1">
+                            <Label htmlFor="start-time">Daily Start Time</Label>
+                            <Input
+                                id="start-time"
+                                type="time"
+                                value={startTime}
+                                onChange={(e) => onStartTimeChange(e.target.value)}
+                                required
+                            />
+                        </div>
+                        <div className="flex-1">
+                            <Label htmlFor="end-time">Daily End Time</Label>
+                            <Input
+                                id="end-time"
+                                type="time"
+                                value={endTime}
+                                onChange={(e) => onEndTimeChange(e.target.value)}
+                                required
+                            />
+                        </div>
                     </div>
-                    <Button variant="ghost" size="icon" onClick={() => handleDeleteBlockedTime(bt.id)} aria-label={`Delete ${bt.title}`}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
+                </div>
+            </TabsContent>
+            <TabsContent value="blocked" className="py-4">
+                 <div className="space-y-3">
+                    <Label>Recurring Busy Times</Label>
+                    <p className="text-sm text-muted-foreground -mt-2">
+                        The AI will avoid scheduling tasks during these daily blocks.
+                    </p>
+                    <div className="space-y-2 max-h-48 overflow-y-auto rounded-md border p-2">
+                    {blockedTimes.length === 0 ? (
+                        <p className="text-sm text-muted-foreground text-center py-4">No blocked times added.</p>
+                    ) : (
+                        blockedTimes.map((bt) => (
+                        <div key={bt.id} className="flex items-center justify-between p-2 bg-secondary rounded-md text-sm">
+                            <div>
+                            <p className="font-semibold">{bt.title}</p>
+                            <p className="text-muted-foreground">{bt.startTime} - {bt.endTime}</p>
+                            </div>
+                            <Button variant="ghost" size="icon" onClick={() => handleDeleteBlockedTime(bt.id)} aria-label={`Delete ${bt.title}`}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                        </div>
+                        ))
+                    )}
+                    </div>
+                </div>
+
+                <form onSubmit={handleAddBlockedTime} className="space-y-3 pt-4">
+                    <Label>Add New Block</Label>
+                    <div className="flex items-end gap-2">
+                    <div className="flex-grow">
+                        <Label htmlFor="block-title" className="sr-only">Title</Label>
+                        <Input
+                        id="block-title"
+                        value={newBlockTitle}
+                        onChange={(e) => setNewBlockTitle(e.target.value)}
+                        placeholder="e.g. Lunch"
+                        required
+                        />
+                    </div>
+                    <div className="w-[130px]">
+                        <Label htmlFor="block-start" className="sr-only">Start Time</Label>
+                        <Input
+                        id="block-start"
+                        type="time"
+                        value={newBlockStartTime}
+                        onChange={(e) => setNewBlockStartTime(e.target.value)}
+                        required
+                        />
+                    </div>
+                    <div className="w-[130px]">
+                        <Label htmlFor="block-end" className="sr-only">End Time</Label>
+                        <Input
+                        id="block-end"
+                        type="time"
+                        value={newBlockEndTime}
+                        onChange={(e) => setNewBlockEndTime(e.target.value)}
+                        required
+                        />
+                    </div>
+                    <Button type="submit" aria-label="Add Blocked Time" className="px-3">
+                        <Plus className="h-4 w-4 mr-1" /> Add
                     </Button>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-
-          <form onSubmit={handleAddBlockedTime} className="space-y-3">
-             <Label>Add New Block</Label>
-            <div className="flex items-end gap-2">
-              <div className="flex-grow">
-                <Label htmlFor="block-title" className="sr-only">Title</Label>
-                <Input
-                  id="block-title"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g. Lunch"
-                  required
-                />
-              </div>
-              <div className="w-[130px]">
-                <Label htmlFor="block-start" className="sr-only">Start Time</Label>
-                <Input
-                  id="block-start"
-                  type="time"
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="w-[130px]">
-                <Label htmlFor="block-end" className="sr-only">End Time</Label>
-                <Input
-                  id="block-end"
-                  type="time"
-                  value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                  required
-                />
-              </div>
-              <Button type="submit" aria-label="Add Blocked Time" className="px-3">
-                <Plus className="h-4 w-4 mr-1" /> Add
-              </Button>
-            </div>
-          </form>
-
-        </div>
+                    </div>
+                </form>
+            </TabsContent>
+            <TabsContent value="ai" className="py-4">
+                <div className="space-y-2 rounded-md border p-4">
+                    <div>
+                        <Label htmlFor="ai-model">AI Model</Label>
+                         <Combobox
+                            options={aiModels}
+                            value={model}
+                            onChange={setModel}
+                            placeholder="Select a model..."
+                            notFoundMessage="No model found."
+                            inputPlaceholder="Search or enter model..."
+                        />
+                        <p className="text-sm text-muted-foreground pt-1">
+                            Choose a preset or type a custom model name from Groq.
+                        </p>
+                    </div>
+                </div>
+            </TabsContent>
+        </Tabs>
 
         <DialogFooter>
           <Button onClick={onClose}>Done</Button>
