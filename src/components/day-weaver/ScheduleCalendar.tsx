@@ -163,10 +163,7 @@ export default function ScheduleCalendar({
           {hourSegments.map((hour, index) => (
             <div
               key={hour}
-              className={cn(
-                "text-right pr-2",
-                "border-t-2 border-slate-200 dark:border-slate-700"
-              )}
+              className="text-right pr-2 border-t-2 border-slate-200 dark:border-slate-700"
               style={{ height: `${HOUR_HEIGHT_REM}rem` }}
             >
               <span className="text-xs font-medium text-gray-500 dark:text-gray-400 -translate-y-1/2 relative top-0">
