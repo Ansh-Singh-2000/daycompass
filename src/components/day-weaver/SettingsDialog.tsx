@@ -109,7 +109,7 @@ export default function SettingsDialog({ isOpen, onClose, blockedTimes, setBlock
                 className="w-[120px]"
                 required
               />
-              <Button type="submit" size="icon" aria-label="Add Blocked Time">
+              <Button type="submit" aria-label="Add Blocked Time">
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
