@@ -95,9 +95,11 @@ export default function Home() {
     const result = await createSchedule(input);
     
     if (result.success && result.data && result.data.schedules) {
+      console.log('--- DEBUG: Raw AI schedule data received by client ---', result.data);
       const newSchedulesWithIds: Record<string, ScheduleItem[]> = {};
       result.data.schedules.forEach(dailySchedule => {
         const dateKey = dailySchedule.date;
+        console.log(`--- DEBUG: Processing schedule for date key: "${dateKey}" ---`);
         if (dateKey) { // Ensure dateKey is present
             newSchedulesWithIds[dateKey] = dailySchedule.tasks.map(item => ({
                 ...item,
@@ -106,6 +108,7 @@ export default function Home() {
             }));
         }
       });
+      console.log('--- DEBUG: Processed schedules object to be set in state ---', newSchedulesWithIds);
       setSchedules(newSchedulesWithIds);
       toast({
         title: "Schedule Generated!",

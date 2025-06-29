@@ -65,7 +65,8 @@ Rules:
 5.  **Daily Hours:** Schedule tasks only within the user's provided \`timeConstraints.startTime\` and \`timeConstraints.endTime\`.
 6.  **Include Breaks:** Ensure there's a significant lunch break around noon (e.g., 60 minutes). Do not create a "Lunch" task; simply leave a gap in the schedule.
 7.  **Schedule All Tasks:** You MUST schedule every single task provided in \`tasksAsJson\`. Do not omit any tasks. The final schedule must account for all of them.
-8.  **Output Format:** Your final output must be a single JSON object that strictly adheres to the provided schema, with a top-level "schedules" property containing an array of daily schedules.`,
+8.  **Date Format:** Dates in the output must be a string in the exact 'YYYY-MM-DD' format.
+9.  **Output Format:** Your final output must be a single JSON object that strictly adheres to the provided schema, with a top-level "schedules" property containing an array of daily schedules.`,
 });
 
 const generateFullScheduleFlow = ai.defineFlow(
