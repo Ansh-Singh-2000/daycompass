@@ -153,7 +153,7 @@ export default function ScheduleCalendar({
   return (
     <div className="h-full overflow-y-auto rounded-lg border bg-secondary/20">
       <div
-        className="relative grid grid-cols-[4rem,1fr]"
+        className="relative grid grid-cols-[3.5rem,1fr]"
         style={{ height: `${hourSegments.length * HOUR_HEIGHT_REM}rem` }}
       >
         {/* Time Column */}
@@ -164,7 +164,7 @@ export default function ScheduleCalendar({
               className="text-right pr-2 pt-1 border-b"
               style={{ height: `${HOUR_HEIGHT_REM}rem` }}
             >
-              <span className="text-sm font-medium text-gray-500 dark:text-gray-400 -translate-y-1/2 relative top-0">
+              <span className="text-xs font-medium text-gray-500 dark:text-gray-400 -translate-y-1/2 relative top-0">
                 {hour % 12 === 0 ? 12 : hour % 12}{' '}
                 <span className="text-xs">{hour < 12 || hour === 24 ? 'AM' : 'PM'}</span>
               </span>
@@ -202,7 +202,7 @@ export default function ScheduleCalendar({
                 key={item.id}
                 className={cn(
                   'absolute w-full p-2 text-xs rounded-lg overflow-hidden flex items-center justify-center',
-                  'bg-primary/5 dark:bg-primary/10 border-y border-dashed border-primary/20 dark:border-primary/40'
+                  'bg-primary/10 dark:bg-primary/20 border-y border-dashed border-primary/20 dark:border-primary/40'
                 )}
                 style={{
                   top: `${top}rem`,

@@ -493,7 +493,7 @@ export default function Home() {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-background text-foreground transition-colors duration-300">
+    <div className="min-h-screen flex flex-col bg-background text-foreground transition-colors duration-300">
       <SettingsDialog 
         isOpen={isSettingsOpen} 
         onClose={() => setIsSettingsOpen(false)} 
@@ -525,7 +525,7 @@ export default function Home() {
           <Header onSettingsClick={() => setIsSettingsOpen(true)} points={points} />
         </div>
       </header>
-      <main className="flex-1 flex flex-col gap-4 px-4 py-4 lg:px-6 lg:py-4 overflow-hidden">
+      <main className="flex-1 flex flex-col gap-4 px-4 py-4 lg:px-6 lg:py-4 lg:overflow-hidden">
         {isMobile && (
           <Alert className="shrink-0">
             <Smartphone className="h-4 w-4" />
@@ -535,17 +535,17 @@ export default function Home() {
             </AlertDescription>
           </Alert>
         )}
-        <div className="flex-1 flex flex-col lg:flex-row gap-6 min-h-0">
+        <div className="lg:flex-1 flex flex-col lg:flex-row gap-6 lg:min-h-0">
           {/* Left Panel: Task Management */}
           <Card className="lg:w-[400px] lg:shrink-0 xl:w-[480px] flex flex-col">
             <CardHeader>
               <CardTitle>Tasks & Scheduling</CardTitle>
               <CardDescription>Add tasks and generate your AI-powered schedule.</CardDescription>
             </CardHeader>
-            <CardContent className="flex-1 flex flex-col gap-4 p-4 pt-0">
+            <CardContent className="lg:flex-1 flex flex-col gap-4 p-4 pt-0">
               <TaskForm onAddTask={handleAddTask} />
-              <div className="flex-1 relative">
-                <div className="absolute inset-0">
+              <div className="lg:flex-1 lg:relative">
+                <div className="lg:absolute lg:inset-0">
                   <TaskList tasks={tasks} onDeleteTask={handleDeleteTask} />
                 </div>
               </div>
@@ -561,7 +561,7 @@ export default function Home() {
           </Card>
 
           {/* Right Panel: Schedule */}
-          <Card className="flex-1 flex flex-col overflow-hidden">
+          <Card className="lg:flex-1 flex flex-col lg:overflow-hidden">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle>Daily Schedule</CardTitle>
@@ -571,14 +571,14 @@ export default function Home() {
                 <Button variant="outline" size="icon" onClick={handlePrevDay} disabled={isLoading}>
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
-                <span className="font-semibold text-foreground whitespace-nowrap">{format(viewedDate, "PPP")}</span>
+                <span className="font-semibold text-foreground whitespace-nowrap">{format(viewedDate, isMobile ? "MMM d, yyyy" : "PPP")}</span>
                 <Button variant="outline" size="icon" onClick={handleNextDay} disabled={isLoading}>
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
             </CardHeader>
-            <CardContent className="flex-1 flex flex-col gap-4 overflow-y-hidden p-4 pt-0">
-              <div className="flex-1 relative min-h-0">
+            <CardContent className="lg:flex-1 flex flex-col gap-4 lg:overflow-y-hidden p-4 pt-0">
+              <div className="lg:flex-1 relative lg:min-h-0">
                 {isGenerating && (
                   <div className="absolute inset-0 flex items-center justify-center bg-card/50 backdrop-blur-sm z-10 rounded-lg">
                       <div className="flex flex-col items-center gap-4">
