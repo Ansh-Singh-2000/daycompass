@@ -18,10 +18,21 @@ const priorityStyles = {
 
 export default function TaskItem({ task, onDelete }: TaskItemProps) {
   return (
-    <div className="flex items-center gap-4 p-3 bg-secondary/50 rounded-lg border">
+    <div className={cn(
+        "flex items-center gap-4 p-3 rounded-lg border",
+        task.isCompleted ? "bg-green-100/60 dark:bg-green-900/30 border-green-200 dark:border-green-800/50" : "bg-secondary/50"
+    )}>
       <div className="flex-grow">
-        <p className="font-medium text-foreground">{task.title}</p>
-        <div className="flex items-center flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground mt-1">
+        <p className={cn(
+            "font-medium text-foreground",
+            task.isCompleted && "line-through text-muted-foreground"
+        )}>
+            {task.title}
+        </p>
+        <div className={cn(
+            "flex items-center flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground mt-1",
+            task.isCompleted && "text-muted-foreground/70"
+        )}>
           <div className="flex items-center gap-1.5">
             <Clock className="h-3.5 w-3.5" />
             <span>{task.estimatedTime} min</span>

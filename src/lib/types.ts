@@ -12,6 +12,7 @@ export interface Task {
   endTime?: string; // Full ISO 8601 date string
   isCompleted?: boolean;
   overdueNotified?: boolean;
+  archived?: boolean;
 }
 
 export interface BlockedTime {
