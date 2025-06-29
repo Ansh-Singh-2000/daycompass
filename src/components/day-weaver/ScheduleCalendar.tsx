@@ -48,7 +48,10 @@ export default function ScheduleCalendar({
   hasTasks,
 }: ScheduleCalendarProps) {
   const startHour = Math.floor(timeToMinutes(startTime) / 60);
-  const endHour = Math.ceil(timeToMinutes(endTime) / 60);
+
+  // New approach: explicitly check for minutes to determine if we need to show the next hour.
+  const [rawEndHour, rawEndMinutes] = endTime.split(':').map(Number);
+  const endHour = rawEndMinutes > 0 ? rawEndHour + 1 : rawEndHour;
 
   // Use the hour boundaries for all calendar calculations to ensure the view
   // aligns perfectly with the hourly grid, regardless of the minutes in wake/sleep times.
@@ -159,11 +162,11 @@ export default function ScheduleCalendar({
         style={{ height: `${hourSegments.length * HOUR_HEIGHT_REM}rem` }}
       >
         {/* Time Column */}
-        <div className="border-r-2 border-slate-200 dark:border-slate-700">
+        <div className="border-r-2 border-slate-700">
           {hourSegments.map((hour, index) => (
             <div
               key={hour}
-              className="text-right pr-2 border-t-2 border-slate-200 dark:border-slate-700"
+              className="text-right pr-2 border-t-2 border-slate-700"
               style={{ height: `${HOUR_HEIGHT_REM}rem` }}
             >
               <span className="text-xs font-medium text-gray-500 dark:text-gray-400 -translate-y-1/2 relative top-0">
