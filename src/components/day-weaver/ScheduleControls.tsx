@@ -1,27 +1,35 @@
 'use client';
 
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Sparkles, Loader2 } from 'lucide-react';
 
 type ScheduleControlsProps = {
-  onGenerate: (startTime: string, endTime: string) => void;
+  onGenerate: () => void;
   isLoading: boolean;
+  startTime: string;
+  endTime: string;
+  onStartTimeChange: (value: string) => void;
+  onEndTimeChange: (value: string) => void;
 };
 
-export default function ScheduleControls({ onGenerate, isLoading }: ScheduleControlsProps) {
-  const [startTime, setStartTime] = useState('09:00');
-  const [endTime, setEndTime] = useState('17:00');
-
+export default function ScheduleControls({ 
+  onGenerate, 
+  isLoading, 
+  startTime, 
+  endTime,
+  onStartTimeChange,
+  onEndTimeChange
+}: ScheduleControlsProps) {
+  
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onGenerate(startTime, endTime);
+    onGenerate();
   };
 
   return (
-    <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <Label htmlFor="start-time">Start Time</Label>
@@ -29,7 +37,7 @@ export default function ScheduleControls({ onGenerate, isLoading }: ScheduleCont
             id="start-time"
             type="time"
             value={startTime}
-            onChange={(e) => setStartTime(e.target.value)}
+            onChange={(e) => onStartTimeChange(e.target.value)}
             disabled={isLoading}
             required
           />
@@ -40,7 +48,7 @@ export default function ScheduleControls({ onGenerate, isLoading }: ScheduleCont
             id="end-time"
             type="time"
             value={endTime}
-            onChange={(e) => setEndTime(e.target.value)}
+            onChange={(e) => onEndTimeChange(e.target.value)}
             disabled={isLoading}
             required
           />

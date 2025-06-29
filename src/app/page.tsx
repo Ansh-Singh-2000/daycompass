@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import type { Task, ScheduleItem } from '@/lib/types';
 import { createSchedule } from './actions';
 import { useToast } from "@/hooks/use-toast";
@@ -9,12 +9,13 @@ import Header from '@/components/day-weaver/Header';
 import TaskForm from '@/components/day-weaver/TaskForm';
 import TaskList from '@/components/day-weaver/TaskList';
 import ScheduleControls from '@/components/day-weaver/ScheduleControls';
-import ScheduleView from '@/components/day-weaver/ScheduleView';
-import { Card, CardContent } from '@/components/ui/card';
+import ScheduleCalendar from '@/components/day-weaver/ScheduleCalendar';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { CalendarDays } from 'lucide-react';
 
-// Note: In a real app, you would use a more robust UUID solution.
-// For this example, we mock it to ensure consistent IDs for hydration.
+// Mocking UUID for consistent IDs during server/client render.
+// In a real app, a database-generated ID would be used.
 let idCounter = 0;
 const mockUuid = () => `mock-uuid-${idCounter++}`;
 
@@ -31,25 +32,26 @@ export default function Home() {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [schedule, setSchedule] = useState<ScheduleItem[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [hasGenerated, setHasGenerated] = useState(false);
+  const [startTime, setStartTime] = useState('09:00');
+  const [endTime, setEndTime] = useState('18:00');
   const { toast } = useToast();
 
   const handleAddTask = (task: Omit<Task, 'id'>) => {
     setTasks(prev => [...prev, { ...task, id: mockUuid() }]);
-    setHasGenerated(false);
+    setSchedule(null); // Invalidate schedule on task change
   };
 
   const handleDeleteTask = (id: string) => {
     setTasks(prev => prev.filter(task => task.id !== id));
-    setHasGenerated(false);
+    setSchedule(null);
   };
 
   const handleReorderTasks = (newTasks: Task[]) => {
     setTasks(newTasks);
-    setHasGenerated(false);
+    setSchedule(null);
   };
 
-  const handleGenerateSchedule = async (startTime: string, endTime: string) => {
+  const handleGenerateSchedule = async () => {
     if (tasks.length === 0) {
       toast({
         variant: "destructive",
@@ -60,8 +62,10 @@ export default function Home() {
     }
     
     setIsLoading(true);
+    setSchedule(null);
+
     const input = {
-      tasks: tasks.map(({ id, ...rest }) => rest), // Remove client-side id before sending to AI
+      tasks: tasks.map(({ id, ...rest }) => rest),
       timeConstraints: { startTime, endTime },
     };
 
@@ -69,7 +73,6 @@ export default function Home() {
     
     if (result.success && result.data) {
       setSchedule(result.data.map(item => ({ ...item, id: mockUuid(), isCompleted: false })));
-      setHasGenerated(true);
     } else {
       toast({
         variant: "destructive",
@@ -90,55 +93,69 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col items-center min-h-screen bg-background p-4 sm:p-6 lg:p-8">
-      <div className="w-full max-w-2xl mx-auto">
-        <Header />
-        <main className="space-y-6">
-          <Card>
-            <CardContent className="p-6">
-              <div className="space-y-4">
-                <h2 className="text-xl font-semibold text-foreground">1. Add Your Tasks</h2>
-                <p className="text-muted-foreground">List everything you need to accomplish. Don't worry about the order yet.</p>
-                <TaskForm onAddTask={handleAddTask} />
-              </div>
-              <Separator className="my-6" />
+    <div className="h-screen flex flex-col bg-background text-foreground">
+      <Header />
+      <main className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 px-4 pb-4 lg:px-6 lg:pb-6 overflow-hidden">
+        {/* Left Panel: Task Management */}
+        <Card className="flex flex-col overflow-hidden">
+          <CardHeader>
+            <CardTitle>Task Management</CardTitle>
+            <CardDescription>Add, prioritize, and manage your tasks for the day.</CardDescription>
+          </CardHeader>
+          <CardContent className="flex-1 flex flex-col gap-4 overflow-y-auto p-4 pt-0">
+            <TaskForm onAddTask={handleAddTask} />
+            <Separator />
+            <div className="flex-1 min-h-0">
               <TaskList tasks={tasks} onDeleteTask={handleDeleteTask} onReorderTasks={handleReorderTasks} />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <h2 className="text-xl font-semibold text-foreground">2. Set Your Day's Boundaries</h2>
-              <p className="text-muted-foreground">Define your working hours, and let our AI find the best slots for your tasks.</p>
-              <ScheduleControls onGenerate={handleGenerateSchedule} isLoading={isLoading} />
-            </CardContent>
-          </Card>
-
-          {schedule && (
-            <Card>
-              <CardContent className="p-6">
-                 <h2 className="text-xl font-semibold text-foreground">3. Your Woven Day</h2>
-                 <p className="text-muted-foreground">Here is your optimized schedule. Check off tasks as you complete them.</p>
-                 {!hasGenerated && tasks.length > 0 && (
-                    <div className="mt-4 p-3 rounded-md bg-yellow-100 border border-yellow-300 text-yellow-800 text-sm">
-                      Your tasks have changed. We recommend regenerating your schedule for the best results.
-                    </div>
-                  )}
-                 <ScheduleView schedule={schedule} onToggleComplete={handleToggleComplete} />
-              </CardContent>
-            </Card>
-          )}
-
-          {isLoading && (
-            <div className="flex items-center justify-center p-8">
-              <div className="flex flex-col items-center gap-4">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-                <p className="text-muted-foreground">Weaving your perfect day...</p>
-              </div>
             </div>
-          )}
-        </main>
-      </div>
+          </CardContent>
+        </Card>
+
+        {/* Right Panel: Schedule */}
+        <Card className="flex flex-col overflow-hidden">
+          <CardHeader>
+            <CardTitle>AI-Powered Schedule</CardTitle>
+            <CardDescription>Set your availability and let the AI weave your perfect day.</CardDescription>
+          </CardHeader>
+          <CardContent className="flex-1 flex flex-col gap-4 overflow-y-hidden p-4 pt-0">
+            <ScheduleControls
+              onGenerate={handleGenerateSchedule}
+              isLoading={isLoading}
+              startTime={startTime}
+              endTime={endTime}
+              onStartTimeChange={setStartTime}
+              onEndTimeChange={setEndTime}
+            />
+            <div className="flex-1 relative min-h-0">
+              {isLoading && (
+                 <div className="absolute inset-0 flex items-center justify-center bg-card/50 backdrop-blur-sm z-10 rounded-lg">
+                    <div className="flex flex-col items-center gap-4">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                      <p className="text-muted-foreground">Weaving your perfect day...</p>
+                    </div>
+                  </div>
+              )}
+              {schedule ? (
+                <ScheduleCalendar
+                  schedule={schedule}
+                  onToggleComplete={handleToggleComplete}
+                  startTime={startTime}
+                  endTime={endTime}
+                />
+              ) : (
+                !isLoading && (
+                  <div className="flex items-center justify-center h-full border-2 border-dashed rounded-lg">
+                    <div className="text-center text-muted-foreground">
+                      <CalendarDays className="mx-auto h-12 w-12" />
+                      <p className="mt-4">Your schedule will appear here once generated.</p>
+                    </div>
+                  </div>
+                )
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </main>
     </div>
   );
 }
