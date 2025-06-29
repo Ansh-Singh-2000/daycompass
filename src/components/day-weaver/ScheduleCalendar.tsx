@@ -47,11 +47,13 @@ export default function ScheduleCalendar({
   isLoading,
   hasTasks,
 }: ScheduleCalendarProps) {
-  const startMinutes = timeToMinutes(startTime);
-  const endMinutes = timeToMinutes(endTime);
+  const startHour = Math.floor(timeToMinutes(startTime) / 60);
+  const endHour = Math.ceil(timeToMinutes(endTime) / 60);
 
-  const startHour = Math.floor(startMinutes / 60);
-  const endHour = Math.ceil(endMinutes / 60);
+  // Use the hour boundaries for all calendar calculations to ensure the view
+  // aligns perfectly with the hourly grid, regardless of the minutes in wake/sleep times.
+  const startMinutes = startHour * 60;
+  const endMinutes = endHour * 60;
 
   const laidOutSchedule = useMemo(() => {
     if (!schedule) return [];
