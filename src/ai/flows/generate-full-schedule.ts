@@ -11,6 +11,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
+// Schemas are kept to ensure type safety with the calling action.
 const GenerateFullScheduleInputSchema = z.object({
   tasksAsJson: z
     .string()
@@ -26,7 +27,6 @@ const GenerateFullScheduleInputSchema = z.object({
   currentDateTime: z.string().describe('The current date and time in ISO 8601 format, to provide context for deadlines.'),
   startDate: z.string().describe('The first date to start scheduling on, in YYYY-MM-DD format.'),
 });
-
 export type GenerateFullScheduleInput = z.infer<typeof GenerateFullScheduleInputSchema>;
 
 const GenerateFullScheduleOutputSchema = z.record(
@@ -39,16 +39,37 @@ const GenerateFullScheduleOutputSchema = z.record(
       })
   )
 ).describe("An object where keys are dates in 'YYYY-MM-DD' format and values are the schedule arrays for that day. This is the top-level object in the JSON response.");
-
-
 export type GenerateFullScheduleOutput = z.infer<typeof GenerateFullScheduleOutputSchema>;
 
+
+// DEBUGGING: This function now bypasses the AI and returns hardcoded data.
 export async function generateFullSchedule(
   input: GenerateFullScheduleInput
 ): Promise<GenerateFullScheduleOutput> {
-  return generateFullScheduleFlow(input);
+  console.log('--- DEBUG: INSIDE `generateFullSchedule` ---');
+
+  const today = new Date();
+  const todayKey = today.toISOString().split('T')[0];
+  const tomorrow = new Date();
+  tomorrow.setDate(today.getDate() + 1);
+  const tomorrowKey = tomorrow.toISOString().split('T')[0];
+
+  const debugSchedule: GenerateFullScheduleOutput = {
+    [todayKey]: [
+      { name: 'DEBUG: First Day Task', startTime: '09:00', endTime: '10:00' }
+    ],
+    [tomorrowKey]: [
+      { name: 'DEBUG: Second Day Task', startTime: '11:00', endTime: '12:00' }
+    ]
+  };
+  
+  console.log('--- DEBUG: Returning hardcoded schedule. ---');
+  return Promise.resolve(debugSchedule);
 }
 
+
+// The original AI flow is commented out for debugging purposes.
+/*
 const prompt = ai.definePrompt({
   name: 'generateFullSchedulePrompt',
   input: {schema: GenerateFullScheduleInputSchema},
@@ -104,3 +125,4 @@ const generateFullScheduleFlow = ai.defineFlow(
     }
   }
 );
+*/
