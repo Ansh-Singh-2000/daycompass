@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { getCookie, setCookie } from '@/lib/cookies';
 import type { Task, ScheduleItem, BlockedTime, ProposedTask, TaskPriority } from '@/lib/types';
 import { createSchedule, refineSchedule } from './actions';
 import { useToast } from "@/hooks/use-toast";
@@ -43,54 +44,54 @@ export default function Home() {
   const [tasks, setTasks] = useState<Task[]>(() => {
     if (typeof window === 'undefined') return initialTasks;
     try {
-        const saved = window.localStorage.getItem('day-weaver-tasks');
+        const saved = getCookie('day-weaver-tasks');
         if (saved) {
             const parsed = JSON.parse(saved);
             return parsed.map((t: Task & { deadline: string | undefined }) => ({ ...t, deadline: t.deadline ? parseISO(t.deadline) : undefined }));
         }
-    } catch (e) { console.error("Failed to load tasks from localStorage", e); }
+    } catch (e) { console.error("Failed to load tasks from cookies", e); }
     return initialTasks;
   });
 
   const [schedules, setSchedules] = useState<Record<string, ScheduleItem[]>>(() => {
     if (typeof window === 'undefined') return {};
     try {
-        const saved = window.localStorage.getItem('day-weaver-schedules');
+        const saved = getCookie('day-weaver-schedules');
         return saved ? JSON.parse(saved) : {};
-    } catch (e) { console.error("Failed to load schedules from localStorage", e); }
+    } catch (e) { console.error("Failed to load schedules from cookies", e); }
     return {};
   });
 
   const [startTime, setStartTime] = useState<string>(() => {
     if (typeof window === 'undefined') return '09:00';
-    return window.localStorage.getItem('day-weaver-startTime') || '09:00';
+    return getCookie('day-weaver-startTime') || '09:00';
   });
 
   const [endTime, setEndTime] = useState<string>(() => {
     if (typeof window === 'undefined') return '21:00';
-    return window.localStorage.getItem('day-weaver-endTime') || '21:00';
+    return getCookie('day-weaver-endTime') || '21:00';
   });
 
   const [blockedTimes, setBlockedTimes] = useState<BlockedTime[]>(() => {
     if (typeof window === 'undefined') return initialBlockedTimes;
     try {
-        const saved = window.localStorage.getItem('day-weaver-blockedTimes');
+        const saved = getCookie('day-weaver-blockedTimes');
         return saved ? JSON.parse(saved) : initialBlockedTimes;
-    } catch (e) { console.error("Failed to load blocked times from localStorage", e); }
+    } catch (e) { console.error("Failed to load blocked times from cookies", e); }
     return initialBlockedTimes;
   });
 
   const [model, setModel] = useState<string>(() => {
     if (typeof window === 'undefined') return 'llama3-8b-8192';
-    return window.localStorage.getItem('day-weaver-model') || 'llama3-8b-8192';
+    return getCookie('day-weaver-model') || 'llama3-8b-8192';
   });
 
   const [points, setPoints] = useState<{gains: number, losses: number}>(() => {
     if (typeof window === 'undefined') return { gains: 0, losses: 0 };
     try {
-        const saved = window.localStorage.getItem('day-weaver-points');
+        const saved = getCookie('day-weaver-points');
         return saved ? JSON.parse(saved) : { gains: 0, losses: 0 };
-    } catch (e) { console.error("Failed to load points", e); }
+    } catch (e) { console.error("Failed to load points from cookies", e); }
     return { gains: 0, losses: 0 };
   });
 
@@ -106,19 +107,19 @@ export default function Home() {
   
   // --- EFFECTS ---
 
-  // Save state to localStorage whenever it changes
-  useEffect(() => { localStorage.setItem('day-weaver-tasks', JSON.stringify(tasks)); }, [tasks]);
-  useEffect(() => { localStorage.setItem('day-weaver-schedules', JSON.stringify(schedules)); }, [schedules]);
-  useEffect(() => { localStorage.setItem('day-weaver-startTime', startTime); }, [startTime]);
-  useEffect(() => { localStorage.setItem('day-weaver-endTime', endTime); }, [endTime]);
-  useEffect(() => { localStorage.setItem('day-weaver-blockedTimes', JSON.stringify(blockedTimes)); }, [blockedTimes]);
-  useEffect(() => { localStorage.setItem('day-weaver-model', model); }, [model]);
-  useEffect(() => { localStorage.setItem('day-weaver-points', JSON.stringify(points)); }, [points]);
+  // Save state to cookies whenever it changes
+  useEffect(() => { setCookie('day-weaver-tasks', JSON.stringify(tasks), 365); }, [tasks]);
+  useEffect(() => { setCookie('day-weaver-schedules', JSON.stringify(schedules), 365); }, [schedules]);
+  useEffect(() => { setCookie('day-weaver-startTime', startTime, 365); }, [startTime]);
+  useEffect(() => { setCookie('day-weaver-endTime', endTime, 365); }, [endTime]);
+  useEffect(() => { setCookie('day-weaver-blockedTimes', JSON.stringify(blockedTimes), 365); }, [blockedTimes]);
+  useEffect(() => { setCookie('day-weaver-model', model, 365); }, [model]);
+  useEffect(() => { setCookie('day-weaver-points', JSON.stringify(points), 365); }, [points]);
   
   // Handle day change logic on initial app load
   useEffect(() => {
     const todayStr = format(new Date(), 'yyyy-MM-dd');
-    const lastVisit = localStorage.getItem('day-weaver-last-visit');
+    const lastVisit = getCookie('day-weaver-last-visit');
 
     if (lastVisit && lastVisit < todayStr) {
         const tasksToRemove = new Set<string>();
@@ -138,7 +139,7 @@ export default function Home() {
         }
     }
 
-    localStorage.setItem('day-weaver-last-visit', todayStr);
+    setCookie('day-weaver-last-visit', todayStr, 365);
   }, []); // Runs once on mount, client-side only
 
   // Set timezone on mount
