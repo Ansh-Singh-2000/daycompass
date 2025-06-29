@@ -41,16 +41,16 @@ export default function TaskList({ tasks, onDeleteTask, onReorderTasks }: TaskLi
     <div className="flex h-full flex-col">
       <h3 className="mb-2 shrink-0 text-lg font-medium">Your Tasks</h3>
       <ScrollArea className="flex-1">
-        {tasks.length === 0 ? (
-          <div className="flex h-full items-center justify-center rounded-lg border-2 border-dashed text-center">
-            <div>
-                <p className="text-muted-foreground">Your task list is empty.</p>
-                <p className="text-sm text-muted-foreground/80">Add a task above to get started.</p>
-            </div>
-          </div>
-        ) : (
-          <ul className="space-y-2 pr-4">
-            {tasks.map((task, index) => (
+        <ul className="space-y-2 pr-4 h-full">
+          {tasks.length === 0 ? (
+            <li className="flex h-full items-center justify-center rounded-lg border-2 border-dashed text-center">
+              <div>
+                  <p className="text-muted-foreground">Your task list is empty.</p>
+                  <p className="text-sm text-muted-foreground/80">Add a task above to get started.</p>
+              </div>
+            </li>
+          ) : (
+            tasks.map((task, index) => (
               <li 
                 key={task.id}
                 draggable
@@ -61,9 +61,9 @@ export default function TaskList({ tasks, onDeleteTask, onReorderTasks }: TaskLi
               >
                 <TaskItem task={task} onDelete={() => onDeleteTask(task.id)} />
               </li>
-            ))}
-          </ul>
-        )}
+            ))
+          )}
+        </ul>
       </ScrollArea>
     </div>
   );

@@ -52,7 +52,7 @@ export default function SettingsDialog({ isOpen, onClose, blockedTimes, setBlock
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Recurring Busy Times</DialogTitle>
           <DialogDescription>
