@@ -64,6 +64,16 @@ export default function Home() {
     return getCookie('day-weaver-endTime') || '21:00';
   });
 
+  const [wakeTime, setWakeTime] = useState<string>(() => {
+    if (typeof window === 'undefined') return '07:00';
+    return getCookie('day-weaver-wakeTime') || '07:00';
+  });
+
+  const [sleepTime, setSleepTime] = useState<string>(() => {
+    if (typeof window === 'undefined') return '23:00';
+    return getCookie('day-weaver-sleepTime') || '23:00';
+  });
+
   const [blockedTimes, setBlockedTimes] = useState<BlockedTime[]>(() => {
     if (typeof window === 'undefined') return initialBlockedTimes;
     try {
@@ -103,6 +113,8 @@ export default function Home() {
   useEffect(() => { setCookie('day-weaver-tasks', JSON.stringify(tasks), 365); }, [tasks]);
   useEffect(() => { setCookie('day-weaver-startTime', startTime, 365); }, [startTime]);
   useEffect(() => { setCookie('day-weaver-endTime', endTime, 365); }, [endTime]);
+  useEffect(() => { setCookie('day-weaver-wakeTime', wakeTime, 365); }, [wakeTime]);
+  useEffect(() => { setCookie('day-weaver-sleepTime', sleepTime, 365); }, [sleepTime]);
   useEffect(() => { setCookie('day-weaver-blockedTimes', JSON.stringify(blockedTimes), 365); }, [blockedTimes]);
   useEffect(() => { setCookie('day-weaver-model', model, 365); }, [model]);
   useEffect(() => { setCookie('day-weaver-points', JSON.stringify(points), 365); }, [points]);
@@ -489,6 +501,10 @@ export default function Home() {
         onStartTimeChange={setStartTime}
         endTime={endTime}
         onEndTimeChange={setEndTime}
+        wakeTime={wakeTime}
+        onWakeTimeChange={setWakeTime}
+        sleepTime={sleepTime}
+        onSleepTimeChange={setSleepTime}
       />
       <AdjustScheduleDialog
         isOpen={isAdjustDialogOpen}
@@ -559,8 +575,8 @@ export default function Home() {
                   <ScheduleCalendar
                     schedule={currentSchedule}
                     onToggleComplete={handleToggleComplete}
-                    startTime={startTime}
-                    endTime={endTime}
+                    startTime={wakeTime}
+                    endTime={sleepTime}
                   />
                  ) : (
                   !isLoading && (
