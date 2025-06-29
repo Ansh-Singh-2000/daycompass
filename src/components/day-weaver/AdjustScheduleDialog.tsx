@@ -99,6 +99,9 @@ export default function AdjustScheduleDialog({
           <DialogDescription>
             Use natural language to make changes to your proposed schedule.
           </DialogDescription>
+          <p className="text-sm text-muted-foreground pt-1">
+            Generated with: <code className="font-mono bg-background/50 px-1 py-0.5 rounded text-xs">{modelUsed}</code>
+          </p>
         </DialogHeader>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1 min-h-0">
@@ -122,11 +125,6 @@ export default function AdjustScheduleDialog({
                             </div>
                             {message.role === 'user' && <User className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />}
                         </div>
-                        {message.role === 'assistant' && message.model && (
-                            <div className="text-xs text-muted-foreground text-left ml-8 mt-1">
-                                Generated with: <code className="font-mono bg-background/50 px-1 py-0.5 rounded text-xs">{message.model}</code>
-                            </div>
-                        )}
                     </div>
                   ))}
                   {isAdjusting && chatHistory[chatHistory.length - 1]?.role === 'user' && (
