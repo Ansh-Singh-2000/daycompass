@@ -177,7 +177,7 @@ export default function Home() {
         if (!isOverdue) continue;
 
         try {
-          const itemEndDate = parseISO(`${dateKey}T${item.endTime}:00`);
+          const itemEndDate = parseISO(item.endTime);
           if (isValid(itemEndDate) && now > itemEndDate) {
             // This task is officially overdue. Notify the user.
             
@@ -226,7 +226,7 @@ export default function Home() {
     checkOverdueTasks();
 
     return () => clearInterval(intervalId);
-  }, [schedules, tasks]);
+  }, [schedules, tasks, toast]);
 
 
   const dateKey = format(viewedDate, 'yyyy-MM-dd');
@@ -350,8 +350,8 @@ export default function Home() {
         newSchedules[dateKey].push({
             id: scheduledTask.id,
             name: scheduledTask.title,
-            startTime: format(startDate, 'HH:mm'),
-            endTime: format(endDate, 'HH:mm'),
+            startTime: scheduledTask.startTime,
+            endTime: scheduledTask.endTime,
             isCompleted: false,
             priority: scheduledTask.priority,
         });
@@ -579,8 +579,3 @@ export default function Home() {
       </main>
     </div>
   );
-
-    
-
-    
-

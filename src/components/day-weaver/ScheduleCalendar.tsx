@@ -6,6 +6,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
+import { format, parseISO } from 'date-fns';
 
 const FramerCard = motion(Card);
 
@@ -86,8 +87,11 @@ export default function ScheduleCalendar({
 
           {/* Schedule Items */}
           {schedule.map((item, index) => {
-            const itemStartMinutes = timeToMinutes(item.startTime);
-            const itemEndMinutes = timeToMinutes(item.endTime);
+            const startDate = parseISO(item.startTime);
+            const endDate = parseISO(item.endTime);
+            
+            const itemStartMinutes = startDate.getHours() * 60 + startDate.getMinutes();
+            const itemEndMinutes = endDate.getHours() * 60 + endDate.getMinutes();
             const itemDuration = itemEndMinutes - itemStartMinutes;
 
             const top = ((itemStartMinutes - startMinutes) / 60) * HOUR_HEIGHT_REM;
@@ -118,7 +122,7 @@ export default function ScheduleCalendar({
                         {item.name}
                       </p>
                       <p className={cn('text-xs text-muted-foreground', item.isCompleted && 'line-through')}>
-                        {item.startTime} - {item.endTime}
+                        {format(startDate, 'HH:mm')} - {format(endDate, 'HH:mm')}
                       </p>
                     </div>
                      <Badge variant="outline" className={cn("capitalize w-fit text-xs mt-1", priorityStyles[item.priority])}>

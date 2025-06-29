@@ -16,14 +16,11 @@ export interface BlockedTime {
   endTime: string; // HH:mm
 }
 
-export interface Schedule {
-  name: string;
-  startTime: string;
-  endTime: string;
-}
-
-export interface ScheduleItem extends Schedule {
+export interface ScheduleItem {
   id: string;
+  name: string;
+  startTime: string; // Full ISO 8601 date string
+  endTime: string; // Full ISO 8601 date string
   isCompleted: boolean;
   priority: TaskPriority;
 }
