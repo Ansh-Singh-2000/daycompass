@@ -23,7 +23,6 @@ const initialTasks: Task[] = [
   { id: mockUuid(), name: 'Physics - Kinematics Problem Set', duration: 120, priority: 'high' },
   { id: mockUuid(), name: 'Chemistry - Chemical Bonding Revision', duration: 90, priority: 'medium' },
   { id: mockUuid(), name: 'Maths - Integral Calculus Practice', duration: 120, priority: 'high' },
-  { id: mockUuid(), name: 'Short break & snack', duration: 20, priority: 'low' },
   { id: mockUuid(), name: 'JEE Mock Test - Paper 1', duration: 180, priority: 'high' },
   { id: mockUuid(), name: 'Mock Test Analysis', duration: 60, priority: 'medium' },
 ];
@@ -33,7 +32,7 @@ export default function Home() {
   const [schedule, setSchedule] = useState<ScheduleItem[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [startTime, setStartTime] = useState('09:00');
-  const [endTime, setEndTime] = useState('18:00');
+  const [endTime, setEndTime] = useState('21:00');
   const { toast } = useToast();
 
   const handleAddTask = (task: Omit<Task, 'id'>) => {

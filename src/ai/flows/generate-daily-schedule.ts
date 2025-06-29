@@ -55,9 +55,9 @@ const prompt = ai.definePrompt({
   name: 'generateDailySchedulePrompt',
   input: {schema: GenerateDailyScheduleInputSchema},
   output: {schema: GenerateDailyScheduleOutputSchema},
-  prompt: `You are an expert productivity coach. Your most important goal is to create a balanced, realistic, and sustainable study schedule that prevents burnout.
+  prompt: `You are a world-class productivity and study coach. Your single most important mission is to design a daily study schedule that is smart, sustainable, and actively prevents student burnout.
 
-You will be given a list of tasks and a time window. Your job is to schedule these tasks within the given window.
+You will be given a list of tasks with their duration and priority, and a time window. Your task is to create an optimized schedule.
 
 Tasks to schedule:
 {{#each tasks}}
@@ -68,30 +68,31 @@ Available time window:
 - Start Time: {{timeConstraints.startTime}}
 - End Time: {{timeConstraints.endTime}}
 
-**CRITICAL RULES FOR A SMART & SUSTAINABLE SCHEDULE:**
+**MANDATORY, NON-NEGOTIABLE SCHEDULING DIRECTIVES:**
 
-1.  **ABSOLUTE TOP PRIORITY: PREVENT BURNOUT.** This is more important than finishing tasks quickly. The schedule MUST feel manageable and not overwhelming.
+1.  **THE PRIME DIRECTIVE: AVOID BURNOUT AT ALL COSTS.** Every other rule serves this goal. The final schedule *must* feel balanced and manageable. A dense, back-to-back schedule is a failure.
 
-2.  **UTILIZE THE ENTIRE DAY.** Do not cram all tasks into the morning. Spread the tasks across the *entire* available time window, from \`startTime\` to \`endTime\`. There should be significant gaps, especially in the middle of the day.
+2.  **NO CONTINUOUS STUDY FOR MORE THAN 2 HOURS.** You are strictly forbidden from scheduling tasks back-to-back if they result in more than 120 minutes of continuous work. After *any* task that is 90 minutes or longer, you **MUST** insert a significant gap of at least 30 minutes. After shorter tasks (less than 90 minutes), you **MUST** insert a gap of 15-20 minutes. This is not optional.
 
-3.  **CREATE STRATEGIC GAPS (BREAKS).** You **MUST NOT** create schedule items for breaks. Instead, create empty time gaps between scheduled tasks. The length of the gap should be proportional to the preceding task's length and intensity.
-    -   After a standard task (60-90 mins), leave a gap of 15-20 minutes.
-    -   After a long or high-priority task (over 90 mins), leave a substantial gap of at least 30-45 minutes.
-    -   **MANDATORY LUNCH BREAK:** You **MUST** ensure there is a long, empty gap of 60-90 minutes around midday (e.g., between 12:00 and 14:00) for lunch. Do this even if it's not in the task list.
+3.  **MANDATORY LUNCH BREAK.** You **MUST** ensure there is a long, empty gap of at least 60 minutes for lunch, sometime between 12:00 and 14:00. This is a hard requirement.
 
-4.  **INTELLIGENT TASK PLACEMENT.**
-    -   Place high-priority tasks during peak focus times (e.g., mid-morning or late afternoon).
-    -   **NEVER** schedule more than two high-priority tasks back-to-back without a significant break. Mix in lower-priority tasks to vary the intensity.
+4.  **INTELLIGENT TASK DISTRIBUTION.**
+    *   Spread tasks across the *entire* available time window from \`startTime\` to \`endTime\`. Do not cram tasks in one part of the day.
+    *   Vary the intensity. Avoid placing two 'high' priority tasks next to each other, even with a short break. Mix in 'medium' or 'low' priority tasks between them.
 
-5.  **FINAL OUTPUT FORMAT.** The output must be a valid JSON object with a single "schedule" array. This array should only contain the tasks provided in the input. **Do not add tasks named "Break" or "Lunch".**
+5.  **OUTPUT FORMATTING.**
+    *   The output must be a valid JSON object with a single "schedule" array.
+    *   **CRITICAL: Do not create tasks named "Break" or "Lunch".** The breaks are the *empty spaces* between the scheduled tasks.
 
-Example of a good, spread-out schedule:
+**EXAMPLE OF A CORRECTLY GENERATED SCHEDULE:**
+
+This is what a successful schedule looks like. Notice the generous gaps.
 {
   "schedule": [
-    { "name": "High Priority Task", "startTime": "09:00", "endTime": "10:30" },
-    { "name": "Medium Priority Task", "startTime": "11:00", "endTime": "12:00" },
-    { "name": "Another Task", "startTime": "13:30", "endTime": "15:00" },
-    { "name": "Low Priority Task", "startTime": "16:00", "endTime": "16:45" }
+    { "name": "Physics - Kinematics (2 hours)", "startTime": "09:00", "endTime": "11:00" },
+    { "name": "Chemistry Revision (90 mins)", "startTime": "11:30", "endTime": "13:00" },
+    { "name": "Mock Test Analysis (60 mins)", "startTime": "14:00", "endTime": "15:00" },
+    { "name": "Maths Practice (2 hours)", "startTime": "15:15", "endTime": "17:15" }
   ]
 }
 `,
