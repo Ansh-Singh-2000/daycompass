@@ -22,6 +22,7 @@ import { ToastAction } from '@/components/ui/toast';
 import confetti from 'canvas-confetti';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import Footer from '@/components/day-weaver/Footer';
 
 const today = new Date();
 const initialTasks: Task[] = [
@@ -602,6 +603,7 @@ export default function Home() {
           </Card>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }
