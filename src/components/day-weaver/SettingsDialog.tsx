@@ -162,10 +162,10 @@ export default function SettingsDialog({
                 </div>
               </div>
             </TabsContent>
-            <TabsContent value="blocked" className="flex-1 flex flex-col gap-4 py-4 min-h-0">
+            <TabsContent value="blocked" className="flex-1 flex flex-col gap-6 py-4 min-h-0">
                 <div className="space-y-3 flex-1 flex flex-col min-h-0">
-                    <Label>Recurring Busy Times</Label>
-                    <p className="text-sm text-muted-foreground -mt-2">
+                    <h3 className="font-semibold text-foreground px-1">Recurring Busy Times</h3>
+                    <p className="text-sm text-muted-foreground px-1 -mt-2">
                         The AI will avoid scheduling tasks during these daily blocks.
                     </p>
                     <ScrollArea className="flex-1 rounded-md border">
@@ -189,46 +189,46 @@ export default function SettingsDialog({
                     </ScrollArea>
                 </div>
 
-                <form onSubmit={handleAddBlockedTime} className="space-y-3 shrink-0">
-                    <Label>Add New Block</Label>
-                    <div className="space-y-2">
-                      <div>
-                          <Label htmlFor="block-title" className="sr-only">Title</Label>
-                          <Input
-                          id="block-title"
-                          value={newBlockTitle}
-                          onChange={(e) => setNewBlockTitle(e.target.value)}
-                          placeholder="e.g. Lunch"
-                          required
-                          />
-                      </div>
-                      <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-2">
-                          <div className="flex-1">
-                              <Label htmlFor="block-start">Start Time</Label>
-                              <Input
-                              id="block-start"
-                              type="time"
-                              value={newBlockStartTime}
-                              onChange={(e) => setNewBlockStartTime(e.target.value)}
-                              required
-                              />
-                          </div>
-                          <div className="flex-1">
-                              <Label htmlFor="block-end">End Time</Label>
-                              <Input
-                              id="block-end"
-                              type="time"
-                              value={newBlockEndTime}
-                              onChange={(e) => setNewBlockEndTime(e.target.value)}
-                              required
-                              />
-                          </div>
-                          <Button type="submit" aria-label="Add Blocked Time" className="px-3">
-                              <Plus className="h-4 w-4 mr-1" /> Add
-                          </Button>
-                      </div>
-                    </div>
-                </form>
+                <div className="space-y-4 rounded-md border p-4 shrink-0">
+                    <h3 className="font-semibold text-foreground -mt-1">Add New Block</h3>
+                    <form onSubmit={handleAddBlockedTime} className="space-y-3">
+                        <div>
+                            <Label htmlFor="block-title">Title</Label>
+                            <Input
+                                id="block-title"
+                                value={newBlockTitle}
+                                onChange={(e) => setNewBlockTitle(e.target.value)}
+                                placeholder="e.g. Lunch"
+                                required
+                            />
+                        </div>
+                        <div className="flex flex-col sm:flex-row items-end gap-2">
+                            <div className="flex-1 w-full">
+                                <Label htmlFor="block-start">Start Time</Label>
+                                <Input
+                                id="block-start"
+                                type="time"
+                                value={newBlockStartTime}
+                                onChange={(e) => setNewBlockStartTime(e.target.value)}
+                                required
+                                />
+                            </div>
+                            <div className="flex-1 w-full">
+                                <Label htmlFor="block-end">End Time</Label>
+                                <Input
+                                id="block-end"
+                                type="time"
+                                value={newBlockEndTime}
+                                onChange={(e) => setNewBlockEndTime(e.target.value)}
+                                required
+                                />
+                            </div>
+                            <Button type="submit" aria-label="Add Blocked Time" className="shrink-0 w-full sm:w-auto">
+                                <Plus className="h-4 w-4 mr-2" /> Add
+                            </Button>
+                        </div>
+                    </form>
+                </div>
             </TabsContent>
             <TabsContent value="ai" className="py-4 overflow-y-auto">
               <div className="space-y-2 rounded-md border p-4">
