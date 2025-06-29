@@ -110,6 +110,14 @@ export default function AdjustScheduleDialog({
                          {message.role === 'user' && <User className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />}
                     </div>
                   ))}
+                  {isAdjusting && chatHistory[chatHistory.length - 1]?.role === 'user' && (
+                     <div className="flex items-start gap-3 text-sm">
+                        <Wand2 className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                         <p className="p-3 rounded-lg max-w-sm bg-muted">
+                           <Loader2 className="animate-spin h-4 w-4" />
+                         </p>
+                     </div>
+                  )}
                 </CardContent>
               </ScrollArea>
               <div className="p-4 border-t">
@@ -132,23 +140,23 @@ export default function AdjustScheduleDialog({
           {/* Right: Proposed Schedule */}
           <div className="flex flex-col gap-4 min-h-0">
             <h3 className="text-lg font-semibold">Proposed Schedule</h3>
-            <div className="relative flex-1">
+            <Card className="flex-1 flex flex-col relative bg-background/50">
                 {isAdjusting && (
-                     <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm z-10 rounded-lg">
+                     <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-10 rounded-lg">
                         <div className="flex flex-col items-center gap-4">
                           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
                           <p className="text-muted-foreground">Adjusting schedule...</p>
                         </div>
                       </div>
                 )}
-                <ScrollArea className="absolute inset-0">
+                <ScrollArea className="flex-1 min-h-0">
                     <div className="space-y-2 p-4">
                     {proposedSchedule.map(task => (
                         <ProposedScheduleItem key={task.id} task={task} />
                     ))}
                     </div>
                 </ScrollArea>
-            </div>
+            </Card>
           </div>
         </div>
 
