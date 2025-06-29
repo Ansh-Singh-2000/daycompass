@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { Task, ScheduleItem, BlockedTime, ProposedTask } from '@/lib/types';
 import { createSchedule, refineSchedule } from './actions';
 import { useToast } from "@/hooks/use-toast";
@@ -48,6 +48,12 @@ export default function Home() {
   const [proposedSchedule, setProposedSchedule] = useState<ProposedTask[]>([]);
   const [reasoning, setReasoning] = useState<string | null>(null);
   const { toast } = useToast();
+  const [timezone, setTimezone] = useState('UTC');
+
+  useEffect(() => {
+    // Set the timezone from the browser once the component mounts
+    setTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
+  }, []);
 
   const dateKey = format(viewedDate, 'yyyy-MM-dd');
   const currentSchedule = schedules[dateKey] || [];
@@ -96,12 +102,13 @@ export default function Home() {
       tasks: tasks.map(t => ({
           ...t,
           estimatedTime: t.estimatedTime,
-          deadline: t.deadline?.toISOString()
+          deadline: t.deadline ? format(t.deadline, "yyyy-MM-dd'T'HH:mm:ss.SSSXXX") : undefined
       })),
       blockedTimes: blockedTimes.map(({ id, ...rest }) => rest),
       timeConstraints: { startTime, endTime },
-      currentDateTime: new Date().toISOString(),
+      currentDateTime: format(new Date(), "yyyy-MM-dd'T'HH:mm:ss.SSSXXX"),
       startDate: format(new Date(), 'yyyy-MM-dd'),
+      timezone,
     };
 
     const result = await createSchedule(input);
@@ -173,14 +180,15 @@ export default function Home() {
       tasks: tasks.map(t => ({
           ...t,
           estimatedTime: t.estimatedTime,
-          deadline: t.deadline?.toISOString()
+          deadline: t.deadline ? format(t.deadline, "yyyy-MM-dd'T'HH:mm:ss.SSSXXX") : undefined
       })),
       blockedTimes: blockedTimes.map(({ id, ...rest }) => rest),
       timeConstraints: { startTime, endTime },
-      currentDateTime: new Date().toISOString(),
+      currentDateTime: format(new Date(), "yyyy-MM-dd'T'HH:mm:ss.SSSXXX"),
       startDate: format(new Date(), 'yyyy-MM-dd'),
       currentScheduledTasks: proposedSchedule.map(({priority, ...rest}) => rest),
-      userRequest: userRequest
+      userRequest: userRequest,
+      timezone,
     };
 
     const result = await refineSchedule(input);

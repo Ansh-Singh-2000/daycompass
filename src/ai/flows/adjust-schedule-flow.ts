@@ -26,6 +26,7 @@ const prompt = ai.definePrompt({
   input: {schema: AdjustScheduleInputSchema},
   output: {schema: GenerateFullScheduleOutputSchema},
   prompt: `You are an expert scheduling AI. A user wants to discuss or make a change to a schedule you previously proposed.
+The user's timezone is: \`{{{timezone}}}\`. All dates and times are in this timezone. Your output must also be in this timezone.
 
 **User's Request:**
 "{{{userRequest}}}"
@@ -40,7 +41,7 @@ const prompt = ai.definePrompt({
 2.  **If the request is a clear instruction to change the schedule** (e.g., "move physics to 7pm", "reschedule my test for tomorrow"):
     - Generate a NEW, complete schedule that incorporates the change.
     - You **MUST** place every single task from the original list into the new schedule.
-    - Respect all deadlines, priorities, and blocked times from the original context.
+    - Respect all deadlines, priorities, and blocked times from the original context. Adhere to the user's timezone ({{{timezone}}}).
     - In the \`reasoning\` field, explain the changes you made and why.
 3.  **If the request is NOT a clear instruction to change the schedule** (e.g., it's a question like "why is this scheduled then?", a general comment like "that looks good", or ambiguous like "hi"):
     - Do **NOT** change the schedule. Return the \`currentScheduledTasks\` exactly as they were given to you.
@@ -61,7 +62,7 @@ const prompt = ai.definePrompt({
 
 **Daily Availability:** The user is available from \`{{{timeConstraints.startTime}}}\` to \`{{{timeConstraints.endTime}}}\` each day.
 
-Your response must be a single JSON object that strictly adheres to the provided schema.`,
+Your response must be a single JSON object that strictly adheres to the provided schema. The \`startTime\` and \`endTime\` for each scheduled task must be in full ISO 8601 format, including the correct timezone offset for the user's timezone ({{{timezone}}}).`,
 });
 
 const adjustScheduleFlow = ai.defineFlow(

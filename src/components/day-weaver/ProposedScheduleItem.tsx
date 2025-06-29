@@ -17,14 +17,14 @@ const priorityStyles = {
 export default function ProposedScheduleItem({ task }: ProposedScheduleItemProps) {
   return (
     <Card className="p-3 bg-secondary/30">
-        <div className="flex items-center justify-between gap-4">
-            <div>
-                <p className="font-semibold text-card-foreground">{task.title}</p>
+        <div className="flex items-start justify-between gap-4">
+            <div className="flex-1 min-w-0">
+                <p className="font-semibold text-card-foreground truncate">{task.title}</p>
                 <p className="text-sm text-muted-foreground">
                     {format(parseISO(task.startTime), "E, MMM d, h:mm a")}
                 </p>
             </div>
-            <Badge variant="outline" className={cn("capitalize", priorityStyles[task.priority])}>
+            <Badge variant="outline" className={cn("capitalize flex-shrink-0", priorityStyles[task.priority])}>
                 {task.priority}
             </Badge>
         </div>

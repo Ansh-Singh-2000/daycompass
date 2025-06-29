@@ -7,8 +7,8 @@ import {z} from 'zod';
 export const AIScheduledTaskSchema = z.object({
     id: z.string().describe("The original ID of the task."),
     title: z.string().describe("The original title of the task."),
-    startTime: z.string().describe("The suggested start time in ISO 8601 format."),
-    endTime: z.string().describe("The suggested end time in ISO 8601 format."),
+    startTime: z.string().describe("The suggested start time in ISO 8601 format, in the user's local timezone."),
+    endTime: z.string().describe("The suggested end time in ISO 8601 format, in the user's local timezone."),
 });
 
 // Input for the main schedule generation flow
@@ -18,7 +18,7 @@ export const GenerateFullScheduleInputSchema = z.object({
     title: z.string().describe('The name of the task.'),
     priority: z.enum(['low', 'medium', 'high']),
     estimatedTime: z.number().describe('The estimated time needed for the task in minutes.'),
-    deadline: z.string().optional().describe('The deadline for the task in ISO 8601 format.'),
+    deadline: z.string().optional().describe("The deadline for the task in ISO 8601 format, in the user's local timezone."),
   })).describe('An array of all available tasks to schedule.'),
   blockedTimes: z.array(z.object({
     title: z.string().describe('The name of the event (e.g., "Lunch Break").'),
@@ -29,8 +29,9 @@ export const GenerateFullScheduleInputSchema = z.object({
     startTime: z.string().describe('The preferred start time for each day in HH:mm format.'),
     endTime: z.string().describe('The preferred end time for each day in HH:mm format.'),
   }).describe('The daily time constraints for scheduling.'),
-  currentDateTime: z.string().describe('The current date and time in ISO 8601 format, to provide context.'),
+  currentDateTime: z.string().describe("The current date and time in ISO 8601 format with timezone offset, to provide context."),
   startDate: z.string().describe('The first date to start scheduling on, in YYYY-MM-DD format.'),
+  timezone: z.string().describe("The user's IANA timezone identifier (e.g., 'America/New_York', 'Asia/Kolkata')."),
 });
 
 // Output for both the generation and adjustment flows

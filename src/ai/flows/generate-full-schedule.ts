@@ -29,6 +29,7 @@ const prompt = ai.definePrompt({
 
 **Context:**
 - The current date and time is: \`{{{currentDateTime}}}\`
+- The user's timezone is: \`{{{timezone}}}\`. All inputs are in this timezone, and all output times must also be in this timezone.
 - The schedule must start on or after this date: \`{{{startDate}}}\`
 - The user's daily availability is from \`{{{timeConstraints.startTime}}}\` to \`{{{timeConstraints.endTime}}}\`.
 
@@ -53,7 +54,7 @@ const prompt = ai.definePrompt({
 **Scheduling Guidelines:**
 - **Prioritization:** Prioritize tasks with earlier deadlines. For tasks with similar deadlines, schedule higher priority tasks first.
 - **Breaks:** Add a 5-10 minute gap between tasks for short breaks.
-- **Output:** Your response must be a single JSON object that strictly adheres to the provided schema. The \`startTime\` and \`endTime\` for each scheduled task must be in full ISO 8601 format. In the \`reasoning\` field, explain your choices.`,
+- **Output:** Your response must be a single JSON object that strictly adheres to the provided schema. The \`startTime\` and \`endTime\` for each scheduled task must be in full ISO 8601 format, including the correct timezone offset for the user's timezone ({{{timezone}}}). In the \`reasoning\` field, explain your choices.`,
 });
 
 const generateFullScheduleFlow = ai.defineFlow(
