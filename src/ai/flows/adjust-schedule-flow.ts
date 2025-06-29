@@ -27,18 +27,25 @@ function buildPrompt(input: AdjustScheduleInput): string {
         `- ${bt.title}: ${bt.startTime} - ${bt.endTime}`
     ).join('\n');
 
-    const currentScheduleDetails = currentScheduledTasks.map(task => 
-        `- **Task:** "${task.title}" (ID: ${task.id}) starts at ${task.startTime} and ends at ${task.endTime}`
-    ).join('\n');
+    const currentScheduleJSON = JSON.stringify(currentScheduledTasks, null, 2);
 
-    return `You are an expert scheduling AI. A user wants to discuss or make a change to a schedule you previously proposed.
-Your primary goal is to be a helpful assistant. First, you must determine the user's intent. Your response must be a JSON object that strictly follows this Zod schema:
+    return `You are an expert scheduling AI. A user wants to make a change to a schedule you previously proposed.
+
+Your goal is to process the user's request and ALWAYS return a JSON object that strictly follows this Zod schema:
 \`\`\`json
 ${JSON.stringify(GenerateFullScheduleOutputSchema.jsonSchema, null, 2)}
 \`\`\`
 
-CRITICAL RULES FOR SCHEDULE MODIFICATION (NON-NEGOTIABLE):
-If you decide to modify the schedule, the new schedule you generate MUST follow these rules:
+If the user provides a clear instruction to change the schedule (e.g., "move physics to 7pm"):
+1. Generate a NEW, complete schedule that incorporates the change.
+2. The new schedule MUST follow all the CRITICAL RULES listed below.
+3. In the \`reasoning\` field, explain the changes you made.
+
+If the user asks a question, makes a comment, or the request is unclear (e.g., "why is this scheduled then?", "that looks good", "hi"):
+1. DO NOT CHANGE THE SCHEDULE. Return the \`currentScheduledTasks\` list *exactly as it was given to you* in the \`scheduledTasks\` field of your JSON output.
+2. In the \`reasoning\` field, provide a helpful, conversational response. Answer their question or acknowledge their comment.
+
+CRITICAL RULES FOR SCHEDULE MODIFICATION (apply ONLY if you change the schedule):
 1.  SCHEDULE ALL TASKS: You MUST place every single task from the original \`tasks\` list into the new schedule.
 2.  MAP ALL FIELDS: For each scheduled task, you MUST include its original \`id\` and \`title\` in the corresponding fields of the JSON output.
 3.  ACCURATE DURATION: The duration for each scheduled task (\`endTime\` - \`startTime\`) MUST exactly match its \`estimatedTime\` from the original task list.
@@ -47,32 +54,26 @@ If you decide to modify the schedule, the new schedule you generate MUST follow 
 6.  RESOLVE CONFLICTS: If a user's requested change causes a time conflict with another task, you MUST reschedule the conflicting task to a new, suitable, non-overlapping time.
 7.  RESPECT DEADLINES: All tasks must still meet their original deadlines.
 
+---
+CONTEXT:
+
 User's Request:
 "${userRequest}"
 
-Current Proposed Schedule (to be modified):
-${currentScheduleDetails}
+Current Proposed Schedule (JSON to be modified if necessary):
+\`\`\`json
+${currentScheduleJSON}
+\`\`\`
 
-Your Task (Two-Step Process):
-1.  Analyze Intent: Read the user's request. Is it a clear instruction to change the schedule (e.g., "move physics to 7pm", "reschedule my test for tomorrow")? Or is it just a question, a comment, or a vague statement (e.g., "why is this scheduled then?", "that looks good", "hi")?
+Original Task List (for reference):
+${taskDetails}
 
-2.  Act on Intent:
-    - If the user is NOT requesting a change:
-        - Action: DO NOT CHANGE THE SCHEDULE. In your JSON output, return the \`currentScheduledTasks\` list *exactly as it was given to you*.
-        - Response: In the \`reasoning\` field, provide a helpful, conversational response. Answer their question or acknowledge their comment. If the request was unclear, ask for clarification (e.g., "I'm happy to help with that, could you be more specific about the change you'd like to make?").
-
-    - If the user IS requesting a change:
-        - Action: Generate a NEW, complete schedule that incorporates the change. This new schedule must follow all the CRITICAL RULES listed at the top.
-        - Response: In the \`reasoning\` field, explain the changes you made and why. If you had to move other tasks to resolve a conflict, clearly state which tasks were moved and what their new times are.
-        - Final Check: Before outputting the JSON, verify your new schedule against all the critical rules.
-
-Reference Data:
-- Original Task List:
-  ${taskDetails}
-- Daily Availability: \`${timeConstraints.startTime}\` - \`${timeConstraints.endTime}\` (Applies to every day)
-- Recurring Daily Blocked Times:
-  ${blockedTimeDetails}
-- Timezone: \`${timezone}\` (All output times must be in this timezone in ISO 8601 format).`;
+Constraints (apply to every day):
+- Daily Availability: \`${timeConstraints.startTime}\` - \`${timeConstraints.endTime}\`
+- Recurring Blocked Times:
+${blockedTimeDetails}
+- Timezone: \`${timezone}\`
+---`;
 }
 
 export async function adjustSchedule(
@@ -88,7 +89,11 @@ export async function adjustSchedule(
   });
 
   const responseText = result.response.text();
-  const parsedJson = JSON.parse(responseText);
-  
-  return parsedJson;
+  try {
+      const parsedJson = JSON.parse(responseText);
+      return parsedJson;
+  } catch (e) {
+      console.error("Failed to parse AI JSON response in adjustSchedule:", responseText);
+      throw new Error(`The AI returned an invalid response. The raw response was: "${responseText}"`);
+  }
 }
