@@ -39,6 +39,7 @@ const initialBlockedTimes: BlockedTime[] = [
 
 export default function Home() {
   const { toast } = useToast();
+  const actionedToastIds = useRef(new Set<string>());
 
   // --- STATE PERSISTENCE & HYDRATION ---
   const [tasks, setTasks] = useState<Task[]>(() => {
@@ -218,18 +219,26 @@ export default function Home() {
         );
 
         newlyOverdueTasks.forEach(({ task, dateKey }) => {
-            toast({
+            const toastInstance = toast({
                 variant: 'destructive',
                 title: 'Task Overdue!',
                 description: `"${task.title}" is past its scheduled time. Did you complete it?`,
                 duration: Infinity,
                 action: (
-                    <ToastAction altText="Mark as done" onClick={() => handleToggleComplete(task.id)}>
+                    <ToastAction altText="Mark as done" onClick={() => {
+                        actionedToastIds.current.add(toastInstance.id);
+                        handleToggleComplete(task.id);
+                    }}>
                         Yes, I did!
                     </ToastAction>
                 ),
                 onOpenChange: (open) => {
                     if (!open) {
+                        if (actionedToastIds.current.has(toastInstance.id)) {
+                            actionedToastIds.current.delete(toastInstance.id);
+                            return;
+                        }
+                        
                         const latestSchedules = schedulesRef.current;
                         const latestItem = latestSchedules[dateKey]?.find(i => i.id === task.id);
                         if (latestItem && !latestItem.isCompleted) {
