@@ -55,9 +55,9 @@ const prompt = ai.definePrompt({
   name: 'generateDailySchedulePrompt',
   input: {schema: GenerateDailyScheduleInputSchema},
   output: {schema: GenerateDailyScheduleOutputSchema},
-  prompt: `You are an AI assistant specialized in generating optimized daily schedules.
+  prompt: `You are an AI assistant specialized in generating optimized and realistic daily schedules.
 
-  Given the following tasks, their priorities, and time constraints, generate an efficient daily schedule.
+  Given the following tasks, their priorities, and time constraints, generate an efficient daily schedule. It is crucial to include breaks between tasks to make the schedule humanly possible.
 
   Tasks:
   {{#each tasks}}
@@ -68,17 +68,21 @@ const prompt = ai.definePrompt({
   - Start Time: {{timeConstraints.startTime}}
   - End Time: {{timeConstraints.endTime}}
 
-  Ensure that higher priority tasks are scheduled earlier in the day.
-  Consider the duration of each task when allocating time slots.
-  The output should be a JSON array of tasks with their scheduled start and end times in HH:mm format.
-  Each task should be scheduled within the provided time constraints.
+  Instructions:
+  - Ensure that higher priority tasks are scheduled earlier in the day.
+  - Consider the duration of each task when allocating time slots.
+  - **Crucially, insert short breaks of 5-10 minutes between tasks.** Do not schedule tasks back-to-back. These breaks are essential for a sustainable study plan. Title these breaks "Short Break" or similar.
+  - The output should be a JSON object containing a "schedule" array. Each item in the array is an object with "name", "startTime", and "endTime".
+  - Each task and break should be scheduled within the provided time constraints.
 
-  Output format: 
-  [{
-    "name": "Task Name",
-    "startTime": "HH:mm",
-    "endTime": "HH:mm"
-  }]
+  Example Output JSON:
+  {
+    "schedule": [
+      { "name": "Task 1", "startTime": "09:00", "endTime": "10:00" },
+      { "name": "Short Break", "startTime": "10:00", "endTime": "10:10" },
+      { "name": "Task 2", "startTime": "10:10", "endTime": "11:00" }
+    ]
+  }
   `,
 });
 

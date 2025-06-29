@@ -94,10 +94,12 @@ export default function Home() {
 
   return (
     <div className="h-screen flex flex-col bg-background text-foreground">
-      <Header />
-      <main className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 px-4 pb-4 lg:px-6 lg:pb-6 overflow-hidden">
+      <div className="px-4 pt-4 lg:px-6 lg:pt-6">
+        <Header />
+      </div>
+      <main className="flex-1 grid grid-cols-1 lg:grid-cols-5 gap-6 px-4 pb-4 lg:px-6 lg:pb-6 overflow-hidden">
         {/* Left Panel: Task Management */}
-        <Card className="flex flex-col overflow-hidden">
+        <Card className="lg:col-span-2 flex flex-col overflow-hidden">
           <CardHeader>
             <CardTitle>Task Management</CardTitle>
             <CardDescription>Add, prioritize, and manage your tasks for the day.</CardDescription>
@@ -112,7 +114,7 @@ export default function Home() {
         </Card>
 
         {/* Right Panel: Schedule */}
-        <Card className="flex flex-col overflow-hidden">
+        <Card className="lg:col-span-3 flex flex-col overflow-hidden">
           <CardHeader>
             <CardTitle>AI-Powered Schedule</CardTitle>
             <CardDescription>Set your availability and let the AI weave your perfect day.</CardDescription>
