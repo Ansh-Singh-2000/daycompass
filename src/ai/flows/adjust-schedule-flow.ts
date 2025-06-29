@@ -43,10 +43,10 @@ The user's timezone is: \`{{{timezone}}}\`. All dates and times are in this time
     - **Response:** In the \`reasoning\` field, provide a helpful, conversational response to the user's request. Answer their question or acknowledge their comment. If the request was unclear, ask for clarification (e.g., "I'm happy to help with that, could you be more specific about the change you'd like to make?").
 3.  **Is the user requesting a schedule change?** If the request is a clear instruction (e.g., "move physics to 7pm", "reschedule my test for tomorrow"):
     - **Action:** Generate a NEW, complete schedule that incorporates the change.
-    - You **MUST** place every single task from the original list into the new schedule, and tasks **MUST NOT** overlap.
-    - **Accurate Duration:** The duration for each task in the new schedule (the time between its \`startTime\` and \`endTime\`) **MUST** exactly match its \`estimatedTime\` from the original task list.
-    - **Conflict Resolution:** If your change causes a time conflict with another task, you **MUST** reschedule the conflicting task to a new, suitable time. Do not simply remove it or place it on top of another task.
-    - Respect all deadlines, priorities, and blocked times from the original context. Adhere to the user's timezone ({{{timezone}}}).
+    - **CRITICAL RULES FOR NEW SCHEDULE:**
+        - **ACCURATE DURATION:** The duration for each task in the new schedule (the time between its \`startTime\` and \`endTime\`) **MUST** exactly match its \`estimatedTime\` from the original task list.
+        - **NO OVERLAPPING TASKS:** Tasks **MUST NOT** overlap. If your change causes a time conflict with another task, you **MUST** reschedule the conflicting task to a new, suitable, non-overlapping time.
+        - **ALL TASKS INCLUDED:** You **MUST** place every single task from the original list into the new schedule.
     - **Response:** In the \`reasoning\` field, explain the changes you made and why. If you had to move other tasks to resolve a conflict, clearly state which tasks were moved and why.
 
 **Original Task List & Constraints (for reference when making changes):**

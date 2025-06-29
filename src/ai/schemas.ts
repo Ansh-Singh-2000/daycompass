@@ -10,6 +10,7 @@ export const AIScheduledTaskSchema = z.object({
     startTime: z.string().describe("The suggested start time in ISO 8601 format, in the user's local timezone."),
     endTime: z.string().describe("The suggested end time in ISO 8601 format, in the user's local timezone."),
 });
+export type AIScheduledTask = z.infer<typeof AIScheduledTaskSchema>;
 
 // Input for the main schedule generation flow
 export const GenerateFullScheduleInputSchema = z.object({

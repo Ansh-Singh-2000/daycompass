@@ -25,7 +25,7 @@ const prompt = ai.definePrompt({
   name: 'generateFullSchedulePrompt',
   input: {schema: GenerateFullScheduleInputSchema},
   output: {schema: GenerateFullScheduleOutputSchema},
-  prompt: `You are an expert scheduling AI. Your task is to take a list of tasks and create a schedule.
+  prompt: `You are an expert scheduling AI. Your task is to take a list of tasks and create an optimized schedule.
 
 **Context:**
 - The current date and time is: \`{{{currentDateTime}}}\`
@@ -33,12 +33,12 @@ const prompt = ai.definePrompt({
 - The schedule must start on or after this date: \`{{{startDate}}}\`
 - The user's daily availability is from \`{{{timeConstraints.startTime}}}\` to \`{{{timeConstraints.endTime}}}\`.
 
-**Primary Directives (Must be followed exactly):**
-1.  **SCHEDULE ALL TASKS:** You **MUST** place every single task from the list below into the schedule. Do not omit any task.
-2.  **RESPECT DEADLINES:** A task with a deadline **MUST** be scheduled to finish on or before its deadline.
-3.  **AVOID BLOCKED TIMES:** You **MUST NOT** schedule any task during the user's recurring blocked times listed below.
-4.  **NO OVERLAPPING TASKS:** Tasks **MUST NOT** overlap with each other. The \`startTime\` of a task must be after the \`endTime\` of the previous task.
-5.  **ACCURATE DURATION:** The duration of each scheduled task (the time between its \`startTime\` and \`endTime\`) **MUST** be exactly equal to its \`estimatedTime\` in minutes.
+**CRITICAL RULES (NON-NEGOTIABLE):**
+1.  **ACCURATE DURATION:** The duration for each task in the schedule (the time between its \`startTime\` and \`endTime\`) **MUST** be exactly equal to its \`estimatedTime\` from the input task list. No exceptions.
+2.  **NO OVERLAPPING TASKS:** Tasks **MUST NOT** overlap with each other in the schedule. The \`startTime\` of any task must be after or equal to the \`endTime\` of the preceding task.
+3.  **SCHEDULE ALL TASKS:** You **MUST** place every single task from the list below into the schedule. Do not omit any tasks.
+4.  **RESPECT DEADLINES:** A task with a deadline **MUST** be scheduled to finish on or before its deadline.
+5.  **AVOID BLOCKED TIMES:** You **MUST NOT** schedule any task during the user's recurring blocked times listed below.
 
 **Task List to Schedule:**
 {{#each tasks}}
