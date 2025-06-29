@@ -40,7 +40,7 @@ CRITICAL RULES (NON-NEGOTIABLE):
 1.  SCHEDULE ALL TASKS: You MUST place every single task from the input \`tasks\` list into the schedule. Do not omit any tasks.
 2.  MAP ALL FIELDS: For each task you schedule, you MUST include its original \`id\` and \`title\` in the corresponding fields of the JSON output.
 3.  ACCURATE DURATION: The duration for each scheduled task (the time between its \`startTime\` and \`endTime\`) MUST be exactly equal to its \`estimatedTime\` from the input task list. No exceptions.
-4.  ISO 8601 FORMAT: All \`startTime\` and \`endTime\` values MUST be complete and valid ISO 8601 date-time strings (e.g., '2024-07-15T09:00:00.000Z').
+4.  ISO 8601 FORMAT: All \`startTime\` and \`endTime\` values MUST be complete and valid ISO 8601 date-time strings that include the timezone offset (e.g., '2024-07-15T09:00:00.000-07:00').
 5.  NO OVERLAPPING: Tasks in the schedule MUST NOT overlap with each other. The \`startTime\` of any task must be greater than or equal to the \`endTime\` of the preceding task.
 6.  RESPECT DAILY AVAILABILITY: For every day you schedule a task on, that task must be entirely within the user's daily availability window: from \`${timeConstraints.startTime}\` to \`${timeConstraints.endTime}\`.
 7.  AVOID BLOCKED TIMES: For every day you schedule a task on, that task MUST NOT overlap with any of the user's recurring daily blocked times. These apply to every day.
@@ -63,7 +63,9 @@ Instructions:
 1.  Prioritize tasks with the earliest deadlines. For tasks without deadlines or with the same deadline, schedule higher priority tasks first.
 2.  Find the earliest possible valid slot for each task, starting from \`${startDate}\`. A valid slot is one that respects all of the critical rules above.
 3.  In the \`reasoning\` field of your JSON output, briefly explain your scheduling choices.
-4.  Final Check: Before you output the JSON, double-check your generated \`scheduledTasks\` array against every single critical rule to ensure 100% compliance. If it fails any rule, you must fix it.`;
+4.  Final Check: Before you output the JSON, double-check your generated \`scheduledTasks\` array against every single critical rule to ensure 100% compliance. If it fails any rule, you must fix it.
+
+Your final output MUST be a single, raw JSON object and nothing else. Do not wrap it in markdown backticks or any other text.`;
 }
 
 export async function generateFullSchedule(

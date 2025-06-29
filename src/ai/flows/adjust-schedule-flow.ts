@@ -42,14 +42,14 @@ If the user provides a clear instruction to change the schedule (e.g., "move phy
 3. In the \`reasoning\` field, explain the changes you made.
 
 If the user asks a question, makes a comment, or the request is unclear (e.g., "why is this scheduled then?", "that looks good", "hi"):
-1. DO NOT CHANGE THE SCHEDULE. Return the \`currentScheduledTasks\` list *exactly as it was given to you* in the \`scheduledTasks\` field of your JSON output.
+1. DO NOT CHANGE THE SCHEDULE. Your primary goal is to be helpful and conversational while returning the \`currentScheduledTasks\` list *exactly as it was given to you* in the \`scheduledTasks\` field of your JSON output.
 2. In the \`reasoning\` field, provide a helpful, conversational response. Answer their question or acknowledge their comment.
 
 CRITICAL RULES FOR SCHEDULE MODIFICATION (apply ONLY if you change the schedule):
 1.  SCHEDULE ALL TASKS: You MUST place every single task from the original \`tasks\` list into the new schedule.
 2.  MAP ALL FIELDS: For each scheduled task, you MUST include its original \`id\` and \`title\` in the corresponding fields of the JSON output.
 3.  ACCURATE DURATION: The duration for each scheduled task (\`endTime\` - \`startTime\`) MUST exactly match its \`estimatedTime\` from the original task list.
-4.  ISO 8601 FORMAT: All \`startTime\` and \`endTime\` values MUST be complete and valid ISO 8601 date-time strings (e.g., '2024-07-15T09:00:00.000Z').
+4.  ISO 8601 FORMAT: All \`startTime\` and \`endTime\` values MUST be complete and valid ISO 8601 date-time strings that include the timezone offset (e.g., '2024-07-15T09:00:00.000-07:00').
 5.  NO OVERLAPPING: Tasks MUST NOT overlap with each other, with recurring blocked times, or fall outside the daily availability window.
 6.  RESOLVE CONFLICTS: If a user's requested change causes a time conflict with another task, you MUST reschedule the conflicting task to a new, suitable, non-overlapping time.
 7.  RESPECT DEADLINES: All tasks must still meet their original deadlines.
@@ -73,7 +73,8 @@ Constraints (apply to every day):
 - Recurring Blocked Times:
 ${blockedTimeDetails}
 - Timezone: \`${timezone}\`
----`;
+---
+Your final output MUST be a single, raw JSON object and nothing else. Do not wrap it in markdown backticks or any other text.`;
 }
 
 export async function adjustSchedule(
