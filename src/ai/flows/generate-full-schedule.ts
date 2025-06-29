@@ -37,6 +37,7 @@ const prompt = ai.definePrompt({
 1.  **SCHEDULE ALL TASKS:** You **MUST** place every single task from the list below into the schedule. Do not omit any task.
 2.  **RESPECT DEADLINES:** A task with a deadline **MUST** be scheduled to finish on or before its deadline.
 3.  **AVOID BLOCKED TIMES:** You **MUST NOT** schedule any task during the user's recurring blocked times listed below.
+4.  **ACCURATE DURATION:** The duration of each scheduled task (the time between its \`startTime\` and \`endTime\`) **MUST** be exactly equal to its \`estimatedTime\` in minutes.
 
 **Task List to Schedule:**
 {{#each tasks}}

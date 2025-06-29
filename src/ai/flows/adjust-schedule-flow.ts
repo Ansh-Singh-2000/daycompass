@@ -44,6 +44,7 @@ The user's timezone is: \`{{{timezone}}}\`. All dates and times are in this time
 3.  **Is the user requesting a schedule change?** If the request is a clear instruction (e.g., "move physics to 7pm", "reschedule my test for tomorrow"):
     - **Action:** Generate a NEW, complete schedule that incorporates the change.
     - You **MUST** place every single task from the original list into the new schedule.
+    - **Accurate Duration:** The duration for each task in the new schedule (the time between its \`startTime\` and \`endTime\`) **MUST** exactly match its \`estimatedTime\` from the original task list.
     - **Conflict Resolution:** If your change causes a time conflict with another task, you **MUST** reschedule the conflicting task to a new, suitable time. Do not simply remove it or place it on top of another task.
     - Respect all deadlines, priorities, and blocked times from the original context. Adhere to the user's timezone ({{{timezone}}}).
     - **Response:** In the \`reasoning\` field, explain the changes you made and why. If you had to move other tasks to resolve a conflict, clearly state which tasks were moved and why.
