@@ -32,12 +32,12 @@ interface SettingsDialogProps {
 }
 
 const aiModels = [
-    { value: 'llama3-8b-8192', label: 'Llama 3 8B' },
-    { value: 'llama3-70b-8192', label: 'Llama 3 70B' },
-    { value: 'mixtral-8x7b-32768', label: 'Mixtral 8x7B' },
-    { value: 'gemma-7b-it', label: 'Gemma 7B' },
-    { value: 'gemma2-9b-it', label: 'Gemma 2 9B' },
-    { value: 'deepseek-r1-distill-llama-70b', label: 'Deepseek R1 Distill' },
+    { value: 'llama3-8b-8192', label: 'llama3-8b-8192' },
+    { value: 'llama3-70b-8192', label: 'llama3-70b-8192' },
+    { value: 'mixtral-8x7b-32768', label: 'mixtral-8x7b-32768' },
+    { value: 'gemma-7b-it', label: 'gemma-7b-it' },
+    { value: 'gemma2-9b-it', label: 'gemma2-9b-it' },
+    { value: 'deepseek-r1-distill-llama-70b', label: 'deepseek-r1-distill-llama-70b' },
 ];
 
 export default function SettingsDialog({ 
@@ -93,7 +93,7 @@ export default function SettingsDialog({
                 <TabsTrigger value="blocked">Blocked Times</TabsTrigger>
                 <TabsTrigger value="ai">AI</TabsTrigger>
             </TabsList>
-            <TabsContent value="general" className="py-4">
+            <TabsContent value="general" className="py-4 min-h-[300px]">
                 <div className="space-y-4 rounded-md border p-4">
                     <h3 className="font-semibold text-foreground">Your Day</h3>
                     <p className="text-sm text-muted-foreground -mt-2">
@@ -123,7 +123,7 @@ export default function SettingsDialog({
                     </div>
                 </div>
             </TabsContent>
-            <TabsContent value="blocked" className="py-4">
+            <TabsContent value="blocked" className="py-4 min-h-[300px]">
                  <div className="space-y-3">
                     <Label>Recurring Busy Times</Label>
                     <p className="text-sm text-muted-foreground -mt-2">
@@ -187,7 +187,7 @@ export default function SettingsDialog({
                     </div>
                 </form>
             </TabsContent>
-            <TabsContent value="ai" className="py-4">
+            <TabsContent value="ai" className="py-4 min-h-[300px]">
                 <div className="space-y-2 rounded-md border p-4">
                     <div>
                         <Label htmlFor="ai-model">AI Model</Label>
