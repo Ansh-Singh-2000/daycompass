@@ -145,6 +145,9 @@ export default function Home() {
   const dateKey = format(viewedDate, 'yyyy-MM-dd');
   const currentSchedule = scheduledTasksByDate[dateKey] || [];
   const isLoading = isGenerating || isAdjusting;
+  const isAdjustDisabled = useMemo(() => {
+    return !tasks.some(t => t.startTime && !t.isCompleted);
+  }, [tasks]);
   
   // --- TASK & SCHEDULE LOGIC ---
   const runConfetti = () => {
@@ -286,6 +289,13 @@ export default function Home() {
     setIsGenerating(true);
     setReasoning(null);
 
+    const currentUncompletedSchedule = tasks.filter(t => t.startTime && !t.isCompleted).map(t => ({
+      id: t.id,
+      title: t.title,
+      startTime: t.startTime!,
+      endTime: t.endTime!,
+    }));
+
     const input = {
       model,
       tasks: tasksToSchedule.map(t => ({
@@ -300,6 +310,7 @@ export default function Home() {
       currentDateTime: format(new Date(), "yyyy-MM-dd'T'HH:mm:ss.SSSXXX"),
       startDate: format(new Date(), 'yyyy-MM-dd'),
       timezone,
+      currentScheduledTasks: currentUncompletedSchedule.length > 0 ? currentUncompletedSchedule : undefined,
     };
 
     const result = await createSchedule(input);
@@ -325,6 +336,30 @@ export default function Home() {
     setIsGenerating(false);
   };
 
+  const handleOpenAdjustment = () => {
+    const currentOnCalendar = tasks
+        .filter(t => t.startTime && !t.isCompleted)
+        .map(t => ({
+            id: t.id,
+            title: t.title,
+            startTime: t.startTime!,
+            endTime: t.endTime!,
+            priority: t.priority
+        }));
+    
+    if (currentOnCalendar.length === 0) {
+        toast({
+            title: "Nothing to Adjust",
+            description: "There are no active tasks on your calendar. Generate a schedule first.",
+        });
+        return;
+    }
+    
+    setProposedSchedule(currentOnCalendar);
+    setReasoning("I've loaded your current schedule. How can I help you adjust it?");
+    setIsAdjustDialogOpen(true);
+  };
+
   const handleApplySchedule = (finalSchedule: ProposedTask[]) => {
     const invalidTasks: string[] = [];
     const scheduledMap = new Map<string, ProposedTask>();
@@ -339,30 +374,25 @@ export default function Home() {
     setTasks(currentTasks => {
         const newScheduleMap = new Map(finalSchedule.map(t => [t.id, t]));
 
-        // Get IDs of tasks that were part of the generation but are not in the final schedule.
-        // This means the AI decided to unschedule them.
         const originalUncompletedTasks = currentTasks.filter(t => !t.isCompleted).map(t => t.id);
         const tasksToUnschedule = originalUncompletedTasks.filter(id => !newScheduleMap.has(id));
 
         return currentTasks.map(task => {
-            // Preserve completed tasks as they are.
             if (task.isCompleted) {
                 return task;
             }
 
-            // Update tasks that are in the new schedule.
             if (newScheduleMap.has(task.id)) {
                 const scheduledInfo = newScheduleMap.get(task.id)!;
                 return {
                     ...task,
                     startTime: scheduledInfo.startTime,
                     endTime: scheduledInfo.endTime,
-                    isCompleted: false, // Ensure it's not completed
-                    overdueNotified: false, // Reset notification status
+                    isCompleted: false, 
+                    overdueNotified: false, 
                 };
             }
             
-            // Unschedule tasks that were removed by the AI.
             if (tasksToUnschedule.includes(task.id)) {
                  return {
                     ...task,
@@ -371,7 +401,6 @@ export default function Home() {
                 };
             }
 
-            // Return other tasks (like newly added ones) unmodified.
             return task;
         });
     });
@@ -492,7 +521,9 @@ export default function Home() {
           <CardFooter className="p-4 border-t">
             <ScheduleControls
               onGenerate={handleGenerateSchedule}
+              onAdjust={handleOpenAdjustment}
               isLoading={isGenerating}
+              isAdjustDisabled={isAdjustDisabled}
             />
           </CardFooter>
         </Card>

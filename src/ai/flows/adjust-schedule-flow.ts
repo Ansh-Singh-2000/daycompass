@@ -29,21 +29,24 @@ function buildPrompt(input: AdjustScheduleInput): string {
 
     const currentScheduleJSON = JSON.stringify(currentScheduledTasks, null, 2);
 
-    return `You are an expert scheduling AI. A user wants to make a change to a schedule you previously proposed.
+    return `You are an expert scheduling AI assistant. A user wants to make a change to a schedule you previously proposed.
 
 Your goal is to process the user's request and ALWAYS return a JSON object that strictly follows this Zod schema:
 \`\`\`json
 ${JSON.stringify(GenerateFullScheduleOutputSchema.jsonSchema, null, 2)}
 \`\`\`
 
-If the user provides a clear instruction to change the schedule (e.g., "move physics to 7pm"):
-1. Generate a NEW, complete schedule that incorporates the change.
-2. The new schedule MUST follow all the CRITICAL RULES listed below.
-3. In the \`reasoning\` field, explain the changes you made.
+You have two modes of operation:
 
-If the user asks a question, makes a comment, or the request is unclear (e.g., "why is this scheduled then?", "that looks good", "hi"):
-1. DO NOT CHANGE THE SCHEDULE. Your primary goal is to be helpful and conversational while returning the \`currentScheduledTasks\` list *exactly as it was given to you* in the \`scheduledTasks\` field of your JSON output.
-2. In the \`reasoning\` field, provide a helpful, conversational response. Answer their question or acknowledge their comment.
+1.  **Command Mode**: If the user provides a clear instruction to change the schedule (e.g., "move physics to 7pm", "can you find a spot for a new task: 'review notes for 30 mins'"):
+    *   Generate a NEW, complete schedule that incorporates the change.
+    *   The new schedule MUST follow all the CRITICAL RULES listed below.
+    *   In the \`reasoning\` field, explain the changes you made.
+
+2.  **Conversational Mode**: If the user asks a question, makes a comment, or the request is unclear (e.g., "why is this scheduled then?", "that looks good", "hi"):
+    *   DO NOT CHANGE THE SCHEDULE. Your primary goal is to be helpful and conversational.
+    *   Return the \`currentScheduledTasks\` list *exactly as it was given to you* in the \`scheduledTasks\` field of your JSON output.
+    *   In the \`reasoning\` field, provide a helpful, conversational response. Answer their question or acknowledge their comment.
 
 CRITICAL RULES FOR SCHEDULE MODIFICATION (apply ONLY if you change the schedule):
 1.  SCHEDULE ALL TASKS: You MUST place every single task from the original \`tasks\` list into the new schedule.
@@ -68,7 +71,7 @@ Current Proposed Schedule (JSON to be modified if necessary):
 ${currentScheduleJSON}
 \`\`\`
 
-Original Task List (for reference):
+Full Task List (for reference, ensure all these are scheduled if you make changes):
 ${taskDetails}
 
 Constraints (apply to every day):
