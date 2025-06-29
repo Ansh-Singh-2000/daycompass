@@ -167,7 +167,7 @@ export default function SettingsDialog({
             </TabsContent>
             <TabsContent value="blocked" className="flex-1 flex flex-col min-h-0 py-4">
               <div className="flex flex-col md:grid md:grid-cols-2 gap-8 flex-1 px-1 min-h-0">
-                {/* Left Column: List */}
+                {/* Left Column / Top Section on Mobile: List */}
                 <div className="flex flex-col gap-3 min-h-0 flex-1">
                     <div className="shrink-0">
                         <h3 className="font-semibold text-foreground">Recurring Busy Times</h3>
@@ -196,8 +196,8 @@ export default function SettingsDialog({
                     </ScrollArea>
                 </div>
 
-                {/* Right Column: Form */}
-                <div className="space-y-3 shrink-0">
+                {/* Right Column / Bottom Section on Mobile: Form */}
+                <div className="space-y-3">
                   <h3 className="font-semibold text-foreground">Add New Block</h3>
                   <form onSubmit={handleAddBlockedTime} className="space-y-4 rounded-md border p-4">
                       <div>
