@@ -1,5 +1,6 @@
 import { Sparkles, Settings, TrendingUp, TrendingDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '../ThemeToggle';
 
 type HeaderProps = {
   onSettingsClick: () => void;
@@ -29,9 +30,12 @@ export default function Header({ onSettingsClick, points }: HeaderProps) {
             <span>{points.losses}</span>
           </div>
         </div>
-        <Button variant="outline" size="icon" onClick={onSettingsClick} aria-label="Settings">
-            <Settings className="h-5 w-5" />
-        </Button>
+        <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Button variant="outline" size="icon" onClick={onSettingsClick} aria-label="Settings">
+                <Settings className="h-5 w-5" />
+            </Button>
+        </div>
       </div>
     </header>
   );
