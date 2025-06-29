@@ -104,8 +104,6 @@ export default function Home() {
   const [reasoning, setReasoning] = useState<string | null>(null);
   const [timezone, setTimezone] = useState('UTC');
   
-  const schedulesRef = useRef(schedules);
-
   // --- EFFECTS ---
 
   // Save state to localStorage whenever it changes
@@ -117,11 +115,6 @@ export default function Home() {
   useEffect(() => { localStorage.setItem('day-weaver-model', model); }, [model]);
   useEffect(() => { localStorage.setItem('day-weaver-points', JSON.stringify(points)); }, [points]);
   
-  // Keep a ref to the latest schedules for callbacks
-  useEffect(() => {
-    schedulesRef.current = schedules;
-  }, [schedules]);
-
   // Handle day change logic on initial app load
   useEffect(() => {
     const todayStr = format(new Date(), 'yyyy-MM-dd');
@@ -153,73 +146,88 @@ export default function Home() {
     setTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
   }, []);
 
-  // Check for overdue tasks
+  const schedulesRef = useRef(schedules);
+  useEffect(() => {
+    schedulesRef.current = schedules;
+  }, [schedules]);
+
+  // Check for overdue tasks. This logic is based on the provided documentation.
   useEffect(() => {
     const checkOverdueTasks = () => {
-        const now = new Date();
-        const todayKey = format(now, 'yyyy-MM-dd');
+      const now = new Date();
 
-        Object.entries(schedules).forEach(([dateKey, scheduleItems]) => {
-            if (dateKey > todayKey) return;
+      // Find tasks that are scheduled, not completed, not yet notified, and are past their end time.
+      for (const task of tasks) {
+        // Find this task in the schedule
+        let scheduleDetails: { item: ScheduleItem; dateKey: string } | undefined;
+        for (const [dateKey, scheduleItems] of Object.entries(schedules)) {
+          const item = scheduleItems.find(i => i.id === task.id);
+          if (item) {
+            scheduleDetails = { item, dateKey };
+            break;
+          }
+        }
 
-            scheduleItems.forEach(item => {
-                const originalTask = tasks.find(t => t.id === item.id);
-                if (!originalTask || originalTask.overdueNotified || item.isCompleted) {
-                    return;
+        if (!scheduleDetails) continue; // Task is not on the calendar.
+
+        const { item, dateKey } = scheduleDetails;
+
+        // An overdue task is one that is not complete, not yet notified, and past its time.
+        const isOverdue = !item.isCompleted && !task.overdueNotified;
+        if (!isOverdue) continue;
+
+        try {
+          const itemEndDate = parseISO(`${dateKey}T${item.endTime}:00`);
+          if (isValid(itemEndDate) && now > itemEndDate) {
+            // This task is officially overdue. Notify the user.
+            
+            // First, immediately mark the task as notified in our state to prevent duplicate toasts.
+            setTasks(prevTasks =>
+              prevTasks.map(t =>
+                t.id === task.id ? { ...t, overdueNotified: true } : t
+              )
+            );
+
+            // Then, show the persistent toast.
+            toast({
+              variant: 'destructive',
+              title: 'Task Overdue!',
+              description: `"${task.title}" is past its scheduled time. Did you complete it?`,
+              duration: Infinity, // User must interact with this toast.
+              action: (
+                <ToastAction altText="Mark as done" onClick={() => handleToggleComplete(task.id)}>
+                  Yes, I did!
+                </ToastAction>
+              ),
+              onOpenChange: (open) => {
+                // This callback handles when the toast is dismissed (e.g., by clicking the 'X').
+                if (!open) {
+                  // The toast is closing. Check if the task is *still* incomplete.
+                  // We use a ref here to get the absolute latest schedule state inside this closure.
+                  const latestSchedules = schedulesRef.current;
+                  const latestItem = latestSchedules[dateKey]?.find((i: ScheduleItem) => i.id === task.id);
+                  
+                  // If the user closed the toast without completing the task, apply a penalty.
+                  if (latestItem && !latestItem.isCompleted) {
+                    setPoints(p => ({ ...p, losses: p.losses + 1 }));
+                  }
                 }
-                
-                try {
-                    // Previous logic was prone to timezone errors.
-                    // Constructing a full ISO-like string and parsing it is more robust.
-                    const itemEndDate = parseISO(`${dateKey}T${item.endTime}:00`);
-
-                    if (now > itemEndDate) {
-                        toast({
-                            variant: "destructive",
-                            title: "Task Overdue!",
-                            description: `"${item.name}" is past its scheduled time. Did you complete it?`,
-                            duration: Infinity,
-                            action: (
-                                <ToastAction altText="Mark as done" onClick={() => handleToggleComplete(item.id)}>
-                                    Yes, I did!
-                                </ToastAction>
-                            ),
-                            onOpenChange: (open) => {
-                                if (!open) {
-                                    // Use a ref to get the latest schedule state inside this callback
-                                    const currentSchedules = schedulesRef.current;
-                                    const currentItem = currentSchedules[dateKey]?.find((i: ScheduleItem) => i.id === item.id);
-                                    
-                                    if (currentItem && !currentItem.isCompleted) {
-                                        setPoints(p => ({...p, losses: p.losses + 1}));
-                                    }
-
-                                    // The main overdueNotified flag is set here when the toast is closed.
-                                    setTasks(prevTasks => prevTasks.map(t =>
-                                        t.id === item.id ? { ...t, overdueNotified: true } : t
-                                    ));
-                                }
-                            }
-                        });
-                        
-                        // Mark as notified immediately in the state to prevent the interval
-                        // from re-triggering the toast for the same task.
-                        setTasks(prevTasks => prevTasks.map(t =>
-                            t.id === item.id ? { ...t, overdueNotified: true } : t
-                        ));
-                    }
-                } catch(e) {
-                    console.error("Error checking overdue task, likely malformed time", item);
-                }
+              },
             });
-        });
+          }
+        } catch (e) {
+          console.error("Error while checking for overdue task:", task.title, e);
+        }
+      }
     };
 
+    // Run the check every minute and once on startup.
     const intervalId = setInterval(checkOverdueTasks, 60000);
-    checkOverdueTasks(); // Run on mount as well
+    checkOverdueTasks();
 
     return () => clearInterval(intervalId);
-  }, [schedules, tasks, toast]);
+  }, [schedules, tasks]);
+
 
   const dateKey = format(viewedDate, 'yyyy-MM-dd');
   const currentSchedule = schedules[dateKey] || [];
@@ -575,3 +583,4 @@ export default function Home() {
     
 
     
+
