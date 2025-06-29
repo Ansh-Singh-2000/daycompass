@@ -10,7 +10,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { BlockedTime } from "@/lib/types";
-import { Trash2 } from "lucide-react";
+import { Trash2, Plus } from "lucide-react";
 import { useState } from "react";
 
 let idCounter = 0;
@@ -28,9 +28,9 @@ export default function SettingsDialog({ isOpen, onClose, blockedTimes, setBlock
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
 
-  const handleAddBlockedTime = () => {
+  const handleAddBlockedTime = (e: React.FormEvent) => {
+    e.preventDefault();
     if (!title || !startTime || !endTime) {
-      // Basic validation
       return;
     }
     const newBlockedTime: BlockedTime = {
@@ -39,8 +39,7 @@ export default function SettingsDialog({ isOpen, onClose, blockedTimes, setBlock
       startTime,
       endTime,
     };
-    setBlockedTimes([...blockedTimes, newBlockedTime]);
-    // Reset form
+    setBlockedTimes(prev => [...prev, newBlockedTime]);
     setTitle('');
     setStartTime('');
     setEndTime('');
@@ -56,45 +55,23 @@ export default function SettingsDialog({ isOpen, onClose, blockedTimes, setBlock
         <DialogHeader>
           <DialogTitle>Recurring Busy Times</DialogTitle>
           <DialogDescription>
-            Add recurring times you are unavailable, like lunch or meetings. The AI will avoid scheduling tasks during these times.
+            The AI will avoid scheduling tasks during these daily blocks.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-6 py-4">
-           {/* Add New Block Section */}
-          <div className="space-y-4">
-            <h4 className="font-medium">Add New Block</h4>
-            <div className="space-y-3">
-              <div className="space-y-1">
-                <Label htmlFor="title">Title</Label>
-                <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Lunch Break" />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <Label htmlFor="start-time">Start Time</Label>
-                  <Input id="start-time" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
-                </div>
-                <div className="space-y-1">
-                  <Label htmlFor="end-time">End Time</Label>
-                  <Input id="end-time" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
-                </div>
-              </div>
-            </div>
-            <div className="flex justify-end">
-                <Button onClick={handleAddBlockedTime}>Add Time</Button>
-            </div>
-          </div>
-           {/* Current Blocks Section */}
-          <div className="space-y-3">
-            <h4 className="font-medium">Current Blocks</h4>
-            <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
+        
+        <div className="grid gap-4 py-4">
+          
+          <div className="space-y-2">
+            <Label>Current Blocks</Label>
+            <div className="space-y-2 max-h-40 overflow-y-auto rounded-md border p-2">
               {blockedTimes.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-4">No blocked times added.</p>
               ) : (
                 blockedTimes.map((bt) => (
-                  <div key={bt.id} className="flex items-center justify-between p-2 bg-secondary rounded-lg">
+                  <div key={bt.id} className="flex items-center justify-between p-2 bg-secondary rounded-md text-sm">
                     <div>
                       <p className="font-semibold">{bt.title}</p>
-                      <p className="text-sm text-muted-foreground">{bt.startTime} - {bt.endTime}</p>
+                      <p className="text-muted-foreground">{bt.startTime} - {bt.endTime}</p>
                     </div>
                     <Button variant="ghost" size="icon" onClick={() => handleDeleteBlockedTime(bt.id)} aria-label={`Delete ${bt.title}`}>
                       <Trash2 className="h-4 w-4 text-destructive" />
@@ -104,7 +81,42 @@ export default function SettingsDialog({ isOpen, onClose, blockedTimes, setBlock
               )}
             </div>
           </div>
+
+          <form onSubmit={handleAddBlockedTime} className="space-y-2">
+             <Label>Add New Block</Label>
+            <div className="flex items-end gap-2">
+              <Input
+                aria-label="Title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="e.g. Lunch"
+                className="flex-grow"
+                required
+              />
+              <Input
+                aria-label="Start Time"
+                type="time"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                className="w-[120px]"
+                required
+              />
+              <Input
+                aria-label="End Time"
+                type="time"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+                className="w-[120px]"
+                required
+              />
+              <Button type="submit" size="icon" aria-label="Add Blocked Time">
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+          </form>
+
         </div>
+
         <DialogFooter>
           <Button onClick={onClose}>Done</Button>
         </DialogFooter>
