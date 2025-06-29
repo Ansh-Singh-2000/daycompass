@@ -21,7 +21,7 @@ export default function ProposedScheduleItem({ task }: ProposedScheduleItemProps
             <div className="flex-1 min-w-0">
                 <p className="font-semibold text-card-foreground truncate">{task.title}</p>
                 <p className="text-sm text-muted-foreground">
-                    {format(parseISO(task.startTime), "E, MMM d, h:mm a")}
+                    {format(parseISO(task.startTime), "E, MMM d, h:mm a")} - {format(parseISO(task.endTime), "h:mm a")}
                 </p>
             </div>
             <Badge variant="outline" className={cn("capitalize flex-shrink-0", priorityStyles[task.priority])}>
