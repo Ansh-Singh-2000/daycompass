@@ -35,9 +35,9 @@ const aiModels = [
     { value: 'llama3-8b-8192', label: 'llama3-8b-8192' },
     { value: 'llama3-70b-8192', label: 'llama3-70b-8192' },
     { value: 'mixtral-8x7b-32768', label: 'mixtral-8x7b-32768' },
-    { value: 'gemma-7b-it', label: 'gemma-7b-it' },
     { value: 'gemma2-9b-it', label: 'gemma2-9b-it' },
     { value: 'deepseek-r1-distill-llama-70b', label: 'deepseek-r1-distill-llama-70b' },
+    { value: 'qwen-qwq-32b', label: 'qwen-qwq-32b' },
 ];
 
 export default function SettingsDialog({ 

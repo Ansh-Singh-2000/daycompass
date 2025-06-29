@@ -252,6 +252,7 @@ export default function Home() {
         onAdjust={handleAdjustSchedule}
         onApply={handleApplySchedule}
         isAdjusting={isAdjusting}
+        modelUsed={model}
       />
       <header className="shrink-0 border-b">
         <div className="px-4 lg:px-6 py-3">
