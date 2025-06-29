@@ -37,10 +37,10 @@ interface SettingsDialogProps {
 
 const aiModels = [
     { value: 'llama3-8b-8192', label: 'llama3-8b-8192' },
-    { value: 'llama3-70b-8192', label: 'llama3-70b-8192' },
+    { value: 'llama3-70b-8192', label: 'llama3-70b-8192', recommended: true },
     { value: 'mixtral-8x7b-32768', label: 'mixtral-8x7b-32768' },
     { value: 'gemma2-9b-it', label: 'gemma2-9b-it' },
-    { value: 'deepseek-r1-distill-llama-70b', label: 'deepseek-r1-distill-llama-70b' },
+    { value: 'deepseek-r1-distill-llama-70b', label: 'deepseek-r1-distill-llama-70b', recommended: true },
     { value: 'qwen-qwq-32b', label: 'qwen-qwq-32b' },
 ];
 
@@ -87,7 +87,7 @@ export default function SettingsDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl flex flex-col h-[90vh]">
+      <DialogContent className="sm:max-w-2xl flex flex-col h-[90vh] md:h-[70vh]">
         <DialogHeader>
           <DialogTitle>Settings</DialogTitle>
           <DialogDescription>
@@ -103,7 +103,7 @@ export default function SettingsDialog({
             </TabsList>
 
             <TabsContent value="general" className="py-4 overflow-y-auto">
-              <div className="space-y-6 px-4 pb-4">
+              <div className="space-y-6 px-1">
                 <div className="space-y-4 rounded-md border p-4">
                     <h3 className="font-semibold text-foreground">Working Hours</h3>
                     <p className="text-sm text-muted-foreground -mt-2">
@@ -202,9 +202,9 @@ export default function SettingsDialog({
                           required
                           />
                       </div>
-                      <div className="flex items-end gap-2">
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-2">
                           <div className="flex-1">
-                              <Label htmlFor="block-start" className="sr-only">Start Time</Label>
+                              <Label htmlFor="block-start">Start Time</Label>
                               <Input
                               id="block-start"
                               type="time"
@@ -214,7 +214,7 @@ export default function SettingsDialog({
                               />
                           </div>
                           <div className="flex-1">
-                              <Label htmlFor="block-end" className="sr-only">End Time</Label>
+                              <Label htmlFor="block-end">End Time</Label>
                               <Input
                               id="block-end"
                               type="time"
@@ -230,7 +230,7 @@ export default function SettingsDialog({
                     </div>
                 </form>
             </TabsContent>
-            <TabsContent value="ai" className="py-4">
+            <TabsContent value="ai" className="py-4 overflow-y-auto">
               <div className="space-y-2 rounded-md border p-4">
                   <div>
                       <Label htmlFor="ai-model">AI Model</Label>

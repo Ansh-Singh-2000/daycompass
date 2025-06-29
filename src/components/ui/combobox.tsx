@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Check, ChevronsUpDown } from "lucide-react"
+import { Check, ChevronsUpDown, Star } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/popover"
 
 interface ComboboxProps {
-  options: { value: string; label: string }[];
+  options: { value: string; label: string; recommended?: boolean }[];
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
@@ -74,14 +74,23 @@ export function Combobox({
                     onChange(currentValue === value ? "" : currentValue)
                     setOpen(false)
                   }}
+                  className="justify-between"
                 >
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      value === option.value ? "opacity-100" : "opacity-0"
-                    )}
-                  />
-                  {option.label}
+                  <div className="flex items-center">
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        value === option.value ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                    {option.label}
+                  </div>
+                   {option.recommended && (
+                    <div className="flex items-center gap-1.5 text-xs text-primary">
+                        <Star className="h-3.5 w-3.5" />
+                        <span>Recommended</span>
+                    </div>
+                  )}
                 </CommandItem>
               ))}
             </CommandGroup>
