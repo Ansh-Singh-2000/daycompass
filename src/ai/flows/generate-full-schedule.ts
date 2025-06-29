@@ -11,7 +11,6 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-// Schemas are kept to ensure type safety with the calling action.
 const GenerateFullScheduleInputSchema = z.object({
   tasksAsJson: z
     .string()
@@ -52,23 +51,13 @@ const prompt = ai.definePrompt({
   name: 'generateFullSchedulePrompt',
   input: {schema: GenerateFullScheduleInputSchema},
   output: {schema: GenerateFullScheduleOutputSchema},
-  prompt: `You are an expert AI assistant that creates multi-day schedules.
-Your task is to schedule all tasks from the provided JSON, respecting all constraints.
-
-Here is the context:
-- The tasks to schedule are in this JSON string: {{{tasksAsJson}}}
-- The current date and time is: {{currentDateTime}}
-- The first day for scheduling is: {{startDate}}
-- Your daily working hours are from {{timeConstraints.startTime}} to {{timeConstraints.endTime}}.
-
-Follow these rules strictly:
-1.  **Deadlines are critical.** Schedule every task on or before its due date. Prioritize tasks with earlier deadlines.
-2.  **Distribute the workload.** Balance tasks across multiple days to avoid cramming everything into the start of the week.
-3.  **No overlaps.** A task can only start after the previous one on the same day has finished.
-4.  **Include breaks.** Leave 15-30 minute gaps between tasks. You MUST schedule a 60-minute lunch break between 12:00 and 14:00 every day. Do not create tasks named "Break" or "Lunch"; they are just empty time slots.
-
-Your output must be a single JSON object matching the requested schema.
-`,
+  prompt: `You are a scheduling assistant. Based on the input, create a multi-day schedule.
+- The tasks are in \`tasksAsJson\`.
+- Schedule them between \`timeConstraints.startTime\` and \`timeConstraints.endTime\` starting from \`startDate\`.
+- Respect all deadlines. Prioritize tasks with earlier deadlines.
+- Do not overlap tasks on the same day.
+- Leave gaps between tasks, including a 60-minute lunch break around noon.
+- Your output MUST be a JSON object matching the schema.`,
 });
 
 const generateFullScheduleFlow = ai.defineFlow(
