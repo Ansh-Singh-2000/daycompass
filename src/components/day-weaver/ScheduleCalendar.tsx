@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
 import { format, parseISO, isValid } from 'date-fns';
+import { useMemo } from 'react';
 
 const FramerCard = motion(Card);
 
@@ -42,6 +43,68 @@ export default function ScheduleCalendar({
 
   const startHour = Math.floor(startMinutes / 60);
   const endHour = Math.ceil(endMinutes / 60);
+
+  const laidOutSchedule = useMemo(() => {
+    if (!schedule) return [];
+
+    const events = schedule
+      .map(item => ({
+        ...item,
+        start: parseISO(item.startTime!),
+        end: parseISO(item.endTime!),
+      }))
+      .filter(e => isValid(e.start) && isValid(e.end));
+    
+    events.sort((a, b) => a.start.getTime() - b.start.getTime() || b.end.getTime() - a.end.getTime());
+
+    const layoutData = events.map(e => ({ ...e, layout: { columns: 1, column: 0, zIndex: 1 } }));
+
+    for (let i = 0; i < layoutData.length; i++) {
+        const currentEvent = layoutData[i];
+        const collisions = [];
+
+        for (let j = 0; j < layoutData.length; j++) {
+            const otherEvent = layoutData[j];
+            if (currentEvent.start < otherEvent.end && currentEvent.end > otherEvent.start) {
+                if (!collisions.some(c => c.id === otherEvent.id)) {
+                    collisions.push(otherEvent);
+                }
+            }
+        }
+
+        if (collisions.length > 1) {
+            collisions.sort((a,b) => a.start.getTime() - b.start.getTime());
+            
+            const eventColumns: typeof collisions[][] = [];
+
+            collisions.forEach(event => {
+                let placed = false;
+                for (const col of eventColumns) {
+                    if (col[col.length - 1].end.getTime() <= event.start.getTime()) {
+                        col.push(event);
+                        const originalEvent = layoutData.find(e => e.id === event.id)!;
+                        originalEvent.layout.column = eventColumns.indexOf(col);
+                        placed = true;
+                        break;
+                    }
+                }
+                if (!placed) {
+                    const originalEvent = layoutData.find(e => e.id === event.id)!;
+                    originalEvent.layout.column = eventColumns.length;
+                    eventColumns.push([event]);
+                }
+            });
+
+            collisions.forEach(event => {
+                const originalEvent = layoutData.find(e => e.id === event.id)!;
+                originalEvent.layout.columns = eventColumns.length;
+                originalEvent.layout.zIndex = originalEvent.layout.column + 1;
+            });
+        }
+    }
+    return layoutData;
+  }, [schedule]);
+
 
   if (startHour >= endHour) {
     return (
@@ -88,17 +151,10 @@ export default function ScheduleCalendar({
           ))}
 
           {/* Schedule Items */}
-          {schedule.map((item, index) => {
-            if (!item.startTime || !item.endTime) return null;
-
-            const startDate = parseISO(item.startTime);
-            const endDate = parseISO(item.endTime);
+          {laidOutSchedule.map((item, index) => {
+            const startDate = item.start;
+            const endDate = item.end;
             
-            if (!isValid(startDate) || !isValid(endDate)) {
-              console.error(`Skipping task with invalid date: "${item.name}"`, item);
-              return null;
-            }
-
             const itemStartMinutes = startDate.getHours() * 60 + startDate.getMinutes();
             const itemEndMinutes = endDate.getHours() * 60 + endDate.getMinutes();
             const itemDuration = itemEndMinutes - itemStartMinutes;
@@ -108,6 +164,10 @@ export default function ScheduleCalendar({
 
             if (itemStartMinutes < startMinutes || itemEndMinutes > endMinutes || itemDuration <=0) return null;
 
+            const { columns, column, zIndex } = item.layout;
+            const widthPercent = 100 / columns;
+            const leftPercent = column * widthPercent;
+
             return (
               <FramerCard
                 key={item.id}
@@ -116,12 +176,15 @@ export default function ScheduleCalendar({
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: index * 0.05 }}
                 className={cn(
-                  'absolute left-2 right-2 p-3 text-sm rounded-lg shadow-lg transition-all duration-300 overflow-hidden',
+                  'absolute p-3 text-sm rounded-lg shadow-lg transition-all duration-300 overflow-hidden',
                   item.isCompleted ? 'bg-green-100 dark:bg-green-900/50 border-green-300' : 'bg-card',
                 )}
                 style={{
                   top: `${top}rem`,
                   height: `${height}rem`,
+                  left: `calc(${leftPercent}% + 2px)`,
+                  width: `calc(${widthPercent}% - 4px)`,
+                  zIndex: zIndex,
                 }}
               >
                 <div className="flex justify-between items-start h-full">
