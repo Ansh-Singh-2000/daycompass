@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -35,24 +36,101 @@ const initialBlockedTimes: BlockedTime[] = [
 ];
 
 export default function Home() {
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
-  const [schedules, setSchedules] = useState<Record<string, ScheduleItem[]>>({});
+  const { toast } = useToast();
+
+  // --- STATE PERSISTENCE & HYDRATION ---
+  const [tasks, setTasks] = useState<Task[]>(() => {
+    if (typeof window === 'undefined') return initialTasks;
+    try {
+        const saved = window.localStorage.getItem('day-weaver-tasks');
+        if (saved) {
+            const parsed = JSON.parse(saved);
+            return parsed.map((t: Task & { deadline: string | undefined }) => ({ ...t, deadline: t.deadline ? parseISO(t.deadline) : undefined }));
+        }
+    } catch (e) { console.error("Failed to load tasks from localStorage", e); }
+    return initialTasks;
+  });
+
+  const [schedules, setSchedules] = useState<Record<string, ScheduleItem[]>>(() => {
+    if (typeof window === 'undefined') return {};
+    try {
+        const saved = window.localStorage.getItem('day-weaver-schedules');
+        return saved ? JSON.parse(saved) : {};
+    } catch (e) { console.error("Failed to load schedules from localStorage", e); }
+    return {};
+  });
+
+  const [startTime, setStartTime] = useState<string>(() => {
+    if (typeof window === 'undefined') return '09:00';
+    return window.localStorage.getItem('day-weaver-startTime') || '09:00';
+  });
+
+  const [endTime, setEndTime] = useState<string>(() => {
+    if (typeof window === 'undefined') return '21:00';
+    return window.localStorage.getItem('day-weaver-endTime') || '21:00';
+  });
+
+  const [blockedTimes, setBlockedTimes] = useState<BlockedTime[]>(() => {
+    if (typeof window === 'undefined') return initialBlockedTimes;
+    try {
+        const saved = window.localStorage.getItem('day-weaver-blockedTimes');
+        return saved ? JSON.parse(saved) : initialBlockedTimes;
+    } catch (e) { console.error("Failed to load blocked times from localStorage", e); }
+    return initialBlockedTimes;
+  });
+
+  const [model, setModel] = useState<string>(() => {
+    if (typeof window === 'undefined') return 'llama3-8b-8192';
+    return window.localStorage.getItem('day-weaver-model') || 'llama3-8b-8192';
+  });
+
+  // Transient state (not persisted)
   const [isGenerating, setIsGenerating] = useState(false);
   const [isAdjusting, setIsAdjusting] = useState(false);
-  const [startTime, setStartTime] = useState('09:00');
-  const [endTime, setEndTime] = useState('21:00');
   const [viewedDate, setViewedDate] = useState(new Date());
-  const [blockedTimes, setBlockedTimes] = useState<BlockedTime[]>(initialBlockedTimes);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isAdjustDialogOpen, setIsAdjustDialogOpen] = useState(false);
   const [proposedSchedule, setProposedSchedule] = useState<ProposedTask[]>([]);
   const [reasoning, setReasoning] = useState<string | null>(null);
-  const { toast } = useToast();
   const [timezone, setTimezone] = useState('UTC');
-  const [model, setModel] = useState('llama3-8b-8192');
+
+  // --- EFFECTS ---
+
+  // Save state to localStorage whenever it changes
+  useEffect(() => { localStorage.setItem('day-weaver-tasks', JSON.stringify(tasks)); }, [tasks]);
+  useEffect(() => { localStorage.setItem('day-weaver-schedules', JSON.stringify(schedules)); }, [schedules]);
+  useEffect(() => { localStorage.setItem('day-weaver-startTime', startTime); }, [startTime]);
+  useEffect(() => { localStorage.setItem('day-weaver-endTime', endTime); }, [endTime]);
+  useEffect(() => { localStorage.setItem('day-weaver-blockedTimes', JSON.stringify(blockedTimes)); }, [blockedTimes]);
+  useEffect(() => { localStorage.setItem('day-weaver-model', model); }, [model]);
+
+  // Handle day change logic on initial app load
+  useEffect(() => {
+    const todayStr = format(new Date(), 'yyyy-MM-dd');
+    const lastVisit = localStorage.getItem('day-weaver-last-visit');
+
+    if (lastVisit && lastVisit < todayStr) {
+        const tasksToRemove = new Set<string>();
+
+        Object.keys(schedules).forEach(dateKey => {
+            if (dateKey < todayStr) {
+                schedules[dateKey].forEach(item => tasksToRemove.add(item.id));
+            }
+        });
+
+        if (tasksToRemove.size > 0) {
+            setTasks(prevTasks => prevTasks.filter(task => !tasksToRemove.has(task.id)));
+            toast({
+                title: "A New Day!",
+                description: `Removed ${tasksToRemove.size} past tasks from your inbox. Your schedule history is preserved on the calendar.`,
+            });
+        }
+    }
+
+    localStorage.setItem('day-weaver-last-visit', todayStr);
+  }, []); // Runs once on mount, client-side only
 
   useEffect(() => {
-    // Set the timezone from the browser once the component mounts
     setTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
   }, []);
 
@@ -69,14 +147,10 @@ export default function Home() {
   const handleDeleteTask = (id: string) => {
     setTasks(prev => prev.filter(task => task.id !== id));
     
-    // Remove the corresponding task from the schedule without resetting everything
     setSchedules(prevSchedules => {
       const newSchedules = { ...prevSchedules };
       for (const dateKey in newSchedules) {
-        // Filter out the deleted task from each day's schedule
         newSchedules[dateKey] = newSchedules[dateKey].filter(item => item.id !== id);
-        
-        // If a day becomes empty after deletion, remove the date key
         if (newSchedules[dateKey].length === 0) {
           delete newSchedules[dateKey];
         }
@@ -372,3 +446,5 @@ export default function Home() {
     </div>
   );
 }
+
+    
