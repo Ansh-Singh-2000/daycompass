@@ -4,19 +4,17 @@ import { useState } from 'react';
 import type { Task, ScheduleItem } from '@/lib/types';
 import { createSchedule } from './actions';
 import { useToast } from "@/hooks/use-toast";
-import { v4 as uuidv4 } from 'uuid';
 import Header from '@/components/day-weaver/Header';
 import TaskForm from '@/components/day-weaver/TaskForm';
 import TaskList from '@/components/day-weaver/TaskList';
 import ScheduleControls from '@/components/day-weaver/ScheduleControls';
 import ScheduleCalendar from '@/components/day-weaver/ScheduleCalendar';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { CalendarDays } from 'lucide-react';
-import { addDays } from 'date-fns';
+import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
+import { addDays, format } from 'date-fns';
 
-// Mocking UUID for consistent IDs during server/client render.
-// In a real app, a database-generated ID would be used.
 let idCounter = 0;
 const mockUuid = () => `mock-uuid-${idCounter++}`;
 
@@ -36,11 +34,12 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [startTime, setStartTime] = useState('09:00');
   const [endTime, setEndTime] = useState('21:00');
+  const [viewedDate, setViewedDate] = useState(new Date());
   const { toast } = useToast();
 
   const handleAddTask = (task: Omit<Task, 'id'>) => {
     setTasks(prev => [...prev, { ...task, id: mockUuid() }]);
-    setSchedule(null); // Invalidate schedule on task change
+    setSchedule(null);
   };
 
   const handleDeleteTask = (id: string) => {
@@ -50,6 +49,16 @@ export default function Home() {
 
   const handleReorderTasks = (newTasks: Task[]) => {
     setTasks(newTasks);
+    setSchedule(null);
+  };
+  
+  const handlePrevDay = () => {
+    setViewedDate(current => addDays(current, -1));
+    setSchedule(null);
+  };
+
+  const handleNextDay = () => {
+    setViewedDate(current => addDays(current, 1));
     setSchedule(null);
   };
 
@@ -73,6 +82,7 @@ export default function Home() {
       })),
       timeConstraints: { startTime, endTime },
       currentDateTime: new Date().toISOString(),
+      scheduleDate: viewedDate.toISOString().split('T')[0],
     };
 
     const result = await createSchedule(input);
@@ -131,9 +141,20 @@ export default function Home() {
 
         {/* Right Panel: Schedule */}
         <Card className="lg:col-span-2 flex flex-col overflow-hidden">
-          <CardHeader>
-            <CardTitle>Daily Schedule</CardTitle>
-            <CardDescription>Your AI-generated schedule for the day.</CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>Daily Schedule</CardTitle>
+              <CardDescription>Your AI-generated plan for the day.</CardDescription>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="icon" onClick={handlePrevDay} disabled={isLoading}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <span className="font-semibold text-foreground whitespace-nowrap">{format(viewedDate, "PPP")}</span>
+              <Button variant="outline" size="icon" onClick={handleNextDay} disabled={isLoading}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
           </CardHeader>
           <CardContent className="flex-1 flex flex-col gap-4 overflow-y-hidden p-4 pt-0">
             <div className="flex-1 relative min-h-0">
@@ -146,12 +167,24 @@ export default function Home() {
                   </div>
               )}
               {schedule ? (
-                <ScheduleCalendar
-                  schedule={schedule}
-                  onToggleComplete={handleToggleComplete}
-                  startTime={startTime}
-                  endTime={endTime}
-                />
+                 schedule.length > 0 ? (
+                  <ScheduleCalendar
+                    schedule={schedule}
+                    onToggleComplete={handleToggleComplete}
+                    startTime={startTime}
+                    endTime={endTime}
+                  />
+                 ) : (
+                  !isLoading && (
+                    <div className="flex items-center justify-center h-full border-2 border-dashed rounded-lg">
+                      <div className="text-center text-muted-foreground">
+                        <CalendarDays className="mx-auto h-12 w-12" />
+                        <p className="mt-4">Nothing scheduled for this day.</p>
+                        <p className="text-sm">Try generating a schedule or check another date.</p>
+                      </div>
+                    </div>
+                  )
+                 )
               ) : (
                 !isLoading && (
                   <div className="flex items-center justify-center h-full border-2 border-dashed rounded-lg">
