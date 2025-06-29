@@ -30,7 +30,7 @@ export default function ScheduleControls({
           onClick={onAdjust} 
           disabled={isLoading || isAdjustDisabled} 
           className="w-full" 
-          variant="secondary"
+          variant="outline"
         >
           <Wand2 className="mr-2 h-4 w-4" />
           Adjust
