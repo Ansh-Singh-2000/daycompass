@@ -31,7 +31,7 @@ export type GenerateFullScheduleInput = z.infer<typeof GenerateFullScheduleInput
 
 const GenerateFullScheduleOutputSchema = z.object({
   schedules: z.record(
-    z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format"),
+    z.string(),
     z.array(
         z.object({
             name: z.string().describe('The name of the task.'),
