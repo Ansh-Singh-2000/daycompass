@@ -419,30 +419,46 @@ export default function Home() {
   };
 
   const handleToggleComplete = (id: string) => {
-    let wasIncomplete = false;
+    let taskJustCompleted = false;
 
-    setSchedules(prev => {
-        const newSchedules = { ...prev };
-        
-        for (const dateKey in newSchedules) {
-            const itemIndex = newSchedules[dateKey].findIndex(item => item.id === id);
-            if (itemIndex > -1) {
-                const item = newSchedules[dateKey][itemIndex];
-                if (!item.isCompleted) {
-                    wasIncomplete = true;
-                }
-                newSchedules[dateKey][itemIndex] = { ...item, isCompleted: !item.isCompleted };
-                break;
-            }
+    setSchedules(prevSchedules => {
+      const newSchedules = { ...prevSchedules }; // Shallow copy
+
+      for (const dateKey in newSchedules) {
+        const scheduleForDay = newSchedules[dateKey];
+        const itemIndex = scheduleForDay.findIndex(item => item.id === id);
+
+        if (itemIndex !== -1) {
+          const itemToToggle = scheduleForDay[itemIndex];
+          
+          if (!itemToToggle.isCompleted) {
+            taskJustCompleted = true; // Will be marked as complete
+          }
+
+          // Create a new array for the day to avoid mutation
+          const updatedDaySchedule = [...scheduleForDay];
+          // Create a new, updated item
+          updatedDaySchedule[itemIndex] = {
+            ...itemToToggle,
+            isCompleted: !itemToToggle.isCompleted,
+          };
+
+          // Assign the new array back to the new schedules object
+          newSchedules[dateKey] = updatedDaySchedule;
+          break; // Exit loop once task is found and updated
         }
-        return newSchedules;
+      }
+      return newSchedules;
     });
 
-    if (wasIncomplete) {
-        setPoints(p => ({ ...p, gains: p.gains + 1 }));
-        runConfetti();
+    // Side effects are now triggered after the state update is queued.
+    // The `taskJustCompleted` flag is captured in the closure and is safe to use.
+    if (taskJustCompleted) {
+      setPoints(p => ({ ...p, gains: p.gains + 1 }));
+      runConfetti();
     }
   };
+
 
   return (
     <div className="h-screen flex flex-col bg-background text-foreground">
@@ -550,4 +566,5 @@ export default function Home() {
       </main>
     </div>
   );
-}
+
+    
