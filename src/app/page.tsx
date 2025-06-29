@@ -94,15 +94,18 @@ export default function Home() {
 
     const result = await createSchedule(input);
     
-    if (result.success && result.data) {
+    if (result.success && result.data && result.data.schedules) {
       const newSchedulesWithIds: Record<string, ScheduleItem[]> = {};
-        for (const dateKey in result.data) {
-            newSchedulesWithIds[dateKey] = result.data[dateKey].map(item => ({
+      result.data.schedules.forEach(dailySchedule => {
+        const dateKey = dailySchedule.date;
+        if (dateKey) { // Ensure dateKey is present
+            newSchedulesWithIds[dateKey] = dailySchedule.tasks.map(item => ({
                 ...item,
                 id: mockUuid(),
                 isCompleted: false
             }));
         }
+      });
       setSchedules(newSchedulesWithIds);
       toast({
         title: "Schedule Generated!",

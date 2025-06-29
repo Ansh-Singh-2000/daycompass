@@ -28,16 +28,20 @@ const GenerateFullScheduleInputSchema = z.object({
 });
 export type GenerateFullScheduleInput = z.infer<typeof GenerateFullScheduleInputSchema>;
 
-const GenerateFullScheduleOutputSchema = z.record(
-  z.string().describe("A date in 'YYYY-MM-DD' format."),
-  z.array(
-      z.object({
-          name: z.string().describe('The name of the task.'),
-          startTime: z.string().describe('The start time of the task in HH:mm format.'),
-          endTime: z.string().describe('The end time of the task in HH:mm format.'),
-      })
-  )
-).describe("An object where keys are dates in 'YYYY-MM-DD' format and values are the schedule arrays for that day. This is the top-level object in the JSON response.");
+const DailyScheduleSchema = z.object({
+    date: z.string().describe("The date for this schedule in 'YYYY-MM-DD' format."),
+    tasks: z.array(
+        z.object({
+            name: z.string().describe('The name of the task.'),
+            startTime: z.string().describe('The start time of the task in HH:mm format.'),
+            endTime: z.string().describe('The end time of the task in HH:mm format.'),
+        })
+    ).describe("An array of tasks scheduled for this specific day.")
+});
+
+const GenerateFullScheduleOutputSchema = z.object({
+    schedules: z.array(DailyScheduleSchema).describe("An array of daily schedules, covering all days required to schedule the provided tasks.")
+});
 export type GenerateFullScheduleOutput = z.infer<typeof GenerateFullScheduleOutputSchema>;
 
 
@@ -51,13 +55,16 @@ const prompt = ai.definePrompt({
   name: 'generateFullSchedulePrompt',
   input: {schema: GenerateFullScheduleInputSchema},
   output: {schema: GenerateFullScheduleOutputSchema},
-  prompt: `You are a scheduling assistant. Based on the input, create a multi-day schedule.
-- The tasks are in \`tasksAsJson\`.
-- Schedule them between \`timeConstraints.startTime\` and \`timeConstraints.endTime\` starting from \`startDate\`.
-- Respect all deadlines. Prioritize tasks with earlier deadlines.
-- Do not overlap tasks on the same day.
-- Leave gaps between tasks, including a 60-minute lunch break around noon.
-- Your output MUST be a JSON object matching the schema.`,
+  prompt: `You are a master scheduling assistant. Your goal is to create a complete, multi-day schedule based on a list of tasks and user constraints.
+
+Rules:
+1.  **Analyze All Tasks:** Review the entire list of tasks provided in \`tasksAsJson\`.
+2.  **Distribute Intelligently:** Distribute the tasks across multiple days, starting from \`startDate\`.
+3.  **Respect Deadlines:** Tasks with earlier deadlines MUST be scheduled first.
+4.  **No Overlaps:** Within a single day, tasks must not overlap. There should be a small gap between each task.
+5.  **Daily Hours:** Schedule tasks only within the user's provided \`timeConstraints.startTime\` and \`timeConstraints.endTime\`.
+6.  **Include Breaks:** Ensure there's a significant lunch break around noon (e.g., 60 minutes). Do not create a "Lunch" task; simply leave a gap in the schedule.
+7.  **Output Format:** Your final output must be a single JSON object that strictly adheres to the provided schema, with a top-level "schedules" property containing an array of daily schedules.`,
 });
 
 const generateFullScheduleFlow = ai.defineFlow(
@@ -77,7 +84,7 @@ const generateFullScheduleFlow = ai.defineFlow(
       
       console.log("AI returned structured output:", JSON.stringify(output, null, 2));
 
-      if (!output || Object.keys(output).length === 0) {
+      if (!output || !output.schedules || output.schedules.length === 0) {
         console.error('AI returned an empty or null structured output.');
         throw new Error('AI failed to generate a schedule.');
       }

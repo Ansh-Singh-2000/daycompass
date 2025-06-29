@@ -13,8 +13,8 @@ export async function createSchedule(input: GenerateFullScheduleInput) {
     const schedules = await generateFullSchedule(input);
     console.log("`generateFullSchedule` returned successfully.");
     
-    if (!schedules || Object.keys(schedules).length === 0) {
-      console.error('Validation Error: AI returned an empty or null schedule.');
+    if (!schedules || !schedules.schedules || schedules.schedules.length === 0) {
+      console.error('Validation Error: AI returned an empty or null schedule array.');
       throw new Error('AI failed to generate a schedule or returned an empty schedule.');
     }
     
