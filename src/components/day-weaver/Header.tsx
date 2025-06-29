@@ -1,4 +1,4 @@
-import { Sparkles, Settings, Trophy } from 'lucide-react';
+import { Sparkles, Settings, TrendingUp, TrendingDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 type HeaderProps = {
@@ -7,7 +7,6 @@ type HeaderProps = {
 };
 
 export default function Header({ onSettingsClick, points }: HeaderProps) {
-  const score = points.gains - points.losses;
   return (
     <header className="flex items-center justify-between">
       <div className="flex items-center gap-2">
@@ -17,9 +16,18 @@ export default function Header({ onSettingsClick, points }: HeaderProps) {
         </h1>
       </div>
       <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2 font-semibold text-foreground" title={`${points.gains} points gained, ${points.losses} points lost`}>
-            <Trophy className="h-5 w-5 text-yellow-500" />
-            <span>{score}</span>
+        <div
+          className="flex items-center gap-4 rounded-lg bg-muted px-3 py-1.5 text-sm font-semibold"
+          title={`${points.gains} tasks completed, ${points.losses} tasks missed`}
+        >
+          <div className="flex items-center gap-1.5 text-green-600 dark:text-green-500">
+            <TrendingUp className="h-5 w-5" />
+            <span>{points.gains}</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-destructive">
+            <TrendingDown className="h-5 w-5" />
+            <span>{points.losses}</span>
+          </div>
         </div>
         <Button variant="outline" size="icon" onClick={onSettingsClick} aria-label="Settings">
             <Settings className="h-5 w-5" />
