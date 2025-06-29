@@ -85,7 +85,7 @@ export default function TaskForm({ onAddTask }: TaskFormProps) {
             control={form.control}
             name="estimatedTime"
             render={({ field }) => (
-              <FormItem className="w-24">
+              <FormItem className="flex-1">
                 <FormControl>
                   <div className="relative">
                     <Input
