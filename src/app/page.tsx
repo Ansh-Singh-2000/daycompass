@@ -174,24 +174,23 @@ export default function Home() {
 
   const handleToggleComplete = useCallback((id: string) => {
     setTasks(prevTasks => {
-      let wasJustCompleted = false;
-      const newTasks = prevTasks.map(task => {
-        if (task.id === id) {
-          if (!task.isCompleted) {
-            wasJustCompleted = true;
-          }
-          return { ...task, isCompleted: true };
+        const task = prevTasks.find(t => t.id === id);
+        // If task is not found or is already being completed, do nothing to prevent race conditions.
+        if (!task || task.isCompleted) {
+            return prevTasks;
         }
-        return task;
-      });
-      
-      if (wasJustCompleted) {
+
+        // If we're here, the task exists and is not complete.
+        // Award a point and mark it as complete.
         runConfetti();
         setPoints(p => ({ ...p, gains: p.gains + 1 }));
-      }
-      return newTasks;
+        
+        // Return a new array with the updated task
+        return prevTasks.map(t => 
+            t.id === id ? { ...t, isCompleted: true } : t
+        );
     });
-  }, [setTasks, setPoints]);
+  }, [setPoints, setTasks]);
   
   const handleToastDismiss = useCallback((taskId: string) => {
       if (actionedToastIds.current.has(taskId)) {
