@@ -1,7 +1,7 @@
 import type { Task } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { GripVertical, Trash2, Clock, BarChart3, CalendarDays } from 'lucide-react';
+import { Trash2, Clock, BarChart3, CalendarDays } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 
@@ -18,8 +18,7 @@ const priorityStyles = {
 
 export default function TaskItem({ task, onDelete }: TaskItemProps) {
   return (
-    <div className="flex items-center gap-2 p-3 bg-secondary/50 rounded-lg border">
-      <GripVertical className="h-5 w-5 text-muted-foreground cursor-move" />
+    <div className="flex items-center gap-4 p-3 bg-secondary/50 rounded-lg border">
       <div className="flex-grow">
         <p className="font-medium text-foreground">{task.title}</p>
         <div className="flex items-center flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground mt-1">

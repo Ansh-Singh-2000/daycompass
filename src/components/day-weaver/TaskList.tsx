@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import type { Task } from '@/lib/types';
 import TaskItem from './TaskItem';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -8,35 +7,9 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 type TaskListProps = {
   tasks: Task[];
   onDeleteTask: (id: string) => void;
-  onReorderTasks: (tasks: Task[]) => void;
 };
 
-export default function TaskList({ tasks, onDeleteTask, onReorderTasks }: TaskListProps) {
-  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
-
-  const handleDragStart = (e: React.DragEvent<HTMLLIElement>, index: number) => {
-    setDraggedIndex(index);
-    if (e.dataTransfer) {
-      e.dataTransfer.effectAllowed = 'move';
-    }
-  };
-  
-  const handleDragOver = (e: React.DragEvent<HTMLLIElement>, index: number) => {
-    e.preventDefault();
-    if (draggedIndex === null || draggedIndex === index) return;
-    
-    const reorderedTasks = [...tasks];
-    const [draggedItem] = reorderedTasks.splice(draggedIndex, 1);
-    reorderedTasks.splice(index, 0, draggedItem);
-
-    setDraggedIndex(index);
-    onReorderTasks(reorderedTasks);
-  };
-
-  const handleDragEnd = () => {
-    setDraggedIndex(null);
-  };
-
+export default function TaskList({ tasks, onDeleteTask }: TaskListProps) {
   return (
     <div className="flex h-full flex-col">
       <h3 className="mb-2 shrink-0 text-base font-semibold">Your Tasks</h3>
@@ -50,15 +23,8 @@ export default function TaskList({ tasks, onDeleteTask, onReorderTasks }: TaskLi
                   </div>
               </li>
             ) : (
-                tasks.map((task, index) => (
-                <li
-                    key={task.id}
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, index)}
-                    onDragOver={(e) => handleDragOver(e, index)}
-                    onDragEnd={handleDragEnd}
-                    className={`transition-opacity ${draggedIndex === index ? 'opacity-50' : 'opacity-100'}`}
-                >
+                tasks.map((task) => (
+                <li key={task.id}>
                     <TaskItem task={task} onDelete={() => onDeleteTask(task.id)} />
                 </li>
                 ))
