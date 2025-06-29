@@ -102,67 +102,65 @@ export default function SettingsDialog({
                 <TabsTrigger value="ai">AI</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="general" className="flex-1 min-h-0 py-4">
-              <ScrollArea className="h-full px-4">
-                <div className="space-y-6 pb-4">
-                  <div className="space-y-4 rounded-md border p-4">
-                      <h3 className="font-semibold text-foreground">Working Hours</h3>
-                      <p className="text-sm text-muted-foreground -mt-2">
-                          Set your typical daily start and end times. The AI will only schedule tasks within this window.
-                      </p>
-                      <div className="flex flex-col sm:flex-row sm:items-end gap-4">
-                          <div className="flex-1">
-                              <Label htmlFor="start-time">Daily Start Time</Label>
-                              <Input
-                                  id="start-time"
-                                  type="time"
-                                  value={startTime}
-                                  onChange={(e) => onStartTimeChange(e.target.value)}
-                                  required
-                              />
-                          </div>
-                          <div className="flex-1">
-                              <Label htmlFor="end-time">Daily End Time</Label>
-                              <Input
-                                  id="end-time"
-                                  type="time"
-                                  value={endTime}
-                                  onChange={(e) => onEndTimeChange(e.target.value)}
-                                  required
-                              />
-                          </div>
-                      </div>
-                  </div>
-                  <div className="space-y-4 rounded-md border p-4">
-                      <h3 className="font-semibold text-foreground">Calendar Display</h3>
-                      <p className="text-sm text-muted-foreground -mt-2">
-                          Set your typical wake and sleep times to adjust the visible range on the calendar.
-                      </p>
-                      <div className="flex flex-col sm:flex-row sm:items-end gap-4">
-                          <div className="flex-1">
-                              <Label htmlFor="wake-time">Wake Up Time</Label>
-                              <Input
-                                  id="wake-time"
-                                  type="time"
-                                  value={wakeTime}
-                                  onChange={(e) => onWakeTimeChange(e.target.value)}
-                                  required
-                              />
-                          </div>
-                          <div className="flex-1">
-                              <Label htmlFor="sleep-time">Sleep Time</Label>
-                              <Input
-                                  id="sleep-time"
-                                  type="time"
-                                  value={sleepTime}
-                                  onChange={(e) => onSleepTimeChange(e.target.value)}
-                                  required
-                              />
-                          </div>
-                      </div>
-                  </div>
+            <TabsContent value="general" className="py-4 overflow-y-auto">
+              <div className="space-y-6 px-4 pb-4">
+                <div className="space-y-4 rounded-md border p-4">
+                    <h3 className="font-semibold text-foreground">Working Hours</h3>
+                    <p className="text-sm text-muted-foreground -mt-2">
+                        Set your typical daily start and end times. The AI will only schedule tasks within this window.
+                    </p>
+                    <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+                        <div className="flex-1">
+                            <Label htmlFor="start-time">Daily Start Time</Label>
+                            <Input
+                                id="start-time"
+                                type="time"
+                                value={startTime}
+                                onChange={(e) => onStartTimeChange(e.target.value)}
+                                required
+                            />
+                        </div>
+                        <div className="flex-1">
+                            <Label htmlFor="end-time">Daily End Time</Label>
+                            <Input
+                                id="end-time"
+                                type="time"
+                                value={endTime}
+                                onChange={(e) => onEndTimeChange(e.target.value)}
+                                required
+                            />
+                        </div>
+                    </div>
                 </div>
-              </ScrollArea>
+                <div className="space-y-4 rounded-md border p-4">
+                    <h3 className="font-semibold text-foreground">Calendar Display</h3>
+                    <p className="text-sm text-muted-foreground -mt-2">
+                        Set your typical wake and sleep times to adjust the visible range on the calendar.
+                    </p>
+                    <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+                        <div className="flex-1">
+                            <Label htmlFor="wake-time">Wake Up Time</Label>
+                            <Input
+                                id="wake-time"
+                                type="time"
+                                value={wakeTime}
+                                onChange={(e) => onWakeTimeChange(e.target.value)}
+                                required
+                            />
+                        </div>
+                        <div className="flex-1">
+                            <Label htmlFor="sleep-time">Sleep Time</Label>
+                            <Input
+                                id="sleep-time"
+                                type="time"
+                                value={sleepTime}
+                                onChange={(e) => onSleepTimeChange(e.target.value)}
+                                required
+                            />
+                        </div>
+                    </div>
+                </div>
+              </div>
             </TabsContent>
             <TabsContent value="blocked" className="flex-1 flex flex-col gap-4 py-4 min-h-0">
                 <div className="space-y-3 flex-1 flex flex-col min-h-0">
