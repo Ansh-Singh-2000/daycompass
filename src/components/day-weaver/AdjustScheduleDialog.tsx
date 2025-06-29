@@ -16,6 +16,7 @@ import { useState, useRef, useEffect } from "react";
 import ProposedScheduleItem from "./ProposedScheduleItem";
 import { v4 as uuidv4 } from 'uuid';
 import { cn } from "@/lib/utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface AdjustScheduleDialogProps {
   isOpen: boolean;
@@ -158,12 +159,14 @@ export default function AdjustScheduleDialog({
           {/* Right: Proposed Schedule */}
           <div className="flex flex-col gap-4 min-h-0">
             <h3 className="text-lg font-semibold">Proposed Schedule</h3>
-            <Card className="flex-1 bg-background/50 overflow-y-auto">
+            <Card className="flex-1 bg-background/50 overflow-hidden">
+              <ScrollArea className="h-full">
                 <div className="space-y-2 p-4">
                 {proposedSchedule.map(task => (
                     <ProposedScheduleItem key={task.id} task={task} />
                 ))}
                 </div>
+              </ScrollArea>
             </Card>
           </div>
         </div>
