@@ -6,7 +6,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, isValid } from 'date-fns';
 
 const FramerCard = motion(Card);
 
@@ -90,6 +90,11 @@ export default function ScheduleCalendar({
             const startDate = parseISO(item.startTime);
             const endDate = parseISO(item.endTime);
             
+            if (!isValid(startDate) || !isValid(endDate)) {
+              console.error(`Skipping task with invalid date: "${item.name}"`, item);
+              return null;
+            }
+
             const itemStartMinutes = startDate.getHours() * 60 + startDate.getMinutes();
             const itemEndMinutes = endDate.getHours() * 60 + endDate.getMinutes();
             const itemDuration = itemEndMinutes - itemStartMinutes;
