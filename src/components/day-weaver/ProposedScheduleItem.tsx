@@ -23,7 +23,7 @@ export default function ProposedScheduleItem({ task }: ProposedScheduleItemProps
     <Card className="p-2 bg-secondary/30">
         <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
-                <p className="font-semibold text-card-foreground truncate text-sm">{task.title}</p>
+                <p className="font-semibold text-card-foreground text-sm">{task.title}</p>
                 {areDatesValid ? (
                   <p className="text-xs text-muted-foreground">
                       {format(startDate, "E, MMM d, h:mma")} - {format(endDate, "h:mma")}
