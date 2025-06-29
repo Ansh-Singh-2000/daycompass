@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -14,6 +15,7 @@ import type { BlockedTime } from "@/lib/types";
 import { Trash2, Plus } from "lucide-react";
 import { useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
 
 let idCounter = 3;
 const mockUuid = () => `mock-blocked-uuid-${idCounter++}`;
@@ -176,7 +178,7 @@ export default function SettingsDialog({
                         <p className="text-sm text-muted-foreground text-center py-4">No blocked times added.</p>
                     ) : (
                         blockedTimes.map((bt) => (
-                        <div key={bt.id} className="flex items-center justify-between p-2 bg-secondary rounded-md text-sm">
+                        <div key={bt.id} className="flex items-center justify-between p-2 bg-primary/10 rounded-md text-sm">
                             <div>
                             <p className="font-semibold">{bt.title}</p>
                             <p className="text-muted-foreground">{bt.startTime} - {bt.endTime}</p>
