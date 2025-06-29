@@ -13,19 +13,22 @@ import ScheduleCalendar from '@/components/day-weaver/ScheduleCalendar';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { CalendarDays } from 'lucide-react';
+import { addDays } from 'date-fns';
 
 // Mocking UUID for consistent IDs during server/client render.
 // In a real app, a database-generated ID would be used.
 let idCounter = 0;
 const mockUuid = () => `mock-uuid-${idCounter++}`;
 
+const today = new Date();
 const initialTasks: Task[] = [
-  { id: mockUuid(), name: 'Physics - Kinematics Problem Set', duration: 120, priority: 'high' },
-  { id: mockUuid(), name: 'Chemistry - Chemical Bonding Revision', duration: 90, priority: 'medium' },
-  { id: mockUuid(), name: 'Maths - Integral Calculus Practice', duration: 120, priority: 'high' },
-  { id: mockUuid(), name: 'JEE Mock Test - Paper 1', duration: 180, priority: 'high' },
-  { id: mockUuid(), name: 'Mock Test Analysis', duration: 60, priority: 'medium' },
+  { id: mockUuid(), name: 'Physics - Kinematics Problem Set', duration: 120, priority: 'high', deadline: addDays(today, 3) },
+  { id: mockUuid(), name: 'Chemistry - Chemical Bonding Revision', duration: 90, priority: 'medium', deadline: addDays(today, 5) },
+  { id: mockUuid(), name: 'Maths - Integral Calculus Practice', duration: 120, priority: 'high', deadline: addDays(today, 2) },
+  { id: mockUuid(), name: 'JEE Mock Test - Paper 1', duration: 180, priority: 'high', deadline: addDays(today, 1) },
+  { id: mockUuid(), name: 'Mock Test Analysis', duration: 60, priority: 'medium', deadline: addDays(today, 1) },
 ];
+
 
 export default function Home() {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
@@ -64,8 +67,12 @@ export default function Home() {
     setSchedule(null);
 
     const input = {
-      tasks: tasks.map(({ id, ...rest }) => rest),
+      tasks: tasks.map(({ id, deadline, ...rest }) => ({ 
+        ...rest,
+        deadline: deadline?.toISOString()
+      })),
       timeConstraints: { startTime, endTime },
+      currentDateTime: new Date().toISOString(),
     };
 
     const result = await createSchedule(input);
@@ -103,7 +110,7 @@ export default function Home() {
             <CardTitle>Tasks &amp; Scheduling</CardTitle>
             <CardDescription>Add tasks, set availability, and generate your schedule.</CardDescription>
           </CardHeader>
-          <CardContent className="flex-1 flex flex-col gap-4 overflow-y-auto p-4">
+          <CardContent className="flex-1 flex flex-col gap-4 overflow-y-auto p-4 pt-2">
             <TaskForm onAddTask={handleAddTask} />
             <Separator />
             <div className="flex-1 min-h-0">

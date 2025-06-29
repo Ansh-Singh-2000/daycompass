@@ -5,6 +5,7 @@ export interface Task {
   name: string;
   duration: number; // in minutes
   priority: TaskPriority;
+  deadline?: Date;
 }
 
 export interface Schedule {

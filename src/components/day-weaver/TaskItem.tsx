@@ -1,8 +1,9 @@
 import type { Task } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { GripVertical, Trash2, Clock, BarChart3 } from 'lucide-react';
+import { GripVertical, Trash2, Clock, BarChart3, CalendarDays } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
 
 type TaskItemProps = {
   task: Task;
@@ -21,7 +22,7 @@ export default function TaskItem({ task, onDelete }: TaskItemProps) {
       <GripVertical className="h-5 w-5 text-muted-foreground cursor-move" />
       <div className="flex-grow">
         <p className="font-medium text-foreground">{task.name}</p>
-        <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+        <div className="flex items-center flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground mt-1">
           <div className="flex items-center gap-1.5">
             <Clock className="h-3.5 w-3.5" />
             <span>{task.duration} min</span>
@@ -32,6 +33,12 @@ export default function TaskItem({ task, onDelete }: TaskItemProps) {
                {task.priority}
              </Badge>
           </div>
+          {task.deadline && (
+            <div className="flex items-center gap-1.5">
+              <CalendarDays className="h-3.5 w-3.5" />
+              <span>Due: {format(task.deadline, 'MMM dd')}</span>
+            </div>
+          )}
         </div>
       </div>
       <Button variant="ghost" size="icon" onClick={onDelete} aria-label={`Delete task: ${task.name}`}>
