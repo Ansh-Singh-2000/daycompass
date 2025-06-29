@@ -25,20 +25,25 @@ const prompt = ai.definePrompt({
   name: 'generateFullSchedulePrompt',
   input: {schema: GenerateFullScheduleInputSchema},
   output: {schema: GenerateFullScheduleOutputSchema},
-  prompt: `You are an expert scheduling AI. Your task is to take a list of tasks and create an optimized schedule.
+  prompt: `You are an expert scheduling AI. Your task is to take a list of tasks and create a complete, valid, and optimized schedule.
 
 **Context:**
 - The current date and time is: \`{{{currentDateTime}}}\`
 - The user's timezone is: \`{{{timezone}}}\`. All inputs are in this timezone, and all output times must also be in this timezone.
 - The schedule must start on or after this date: \`{{{startDate}}}\`
-- The user's daily availability is from \`{{{timeConstraints.startTime}}}\` to \`{{{timeConstraints.endTime}}}\`.
+
+**Your Goal:**
+Create a JSON object containing a \`scheduledTasks\` array. This array must include **every task** from the user's list, scheduled according to the critical rules below.
 
 **CRITICAL RULES (NON-NEGOTIABLE):**
-1.  **ACCURATE DURATION:** The duration for each task in the schedule (the time between its \`startTime\` and \`endTime\`) **MUST** be exactly equal to its \`estimatedTime\` from the input task list. No exceptions.
-2.  **NO OVERLAPPING TASKS:** Tasks **MUST NOT** overlap with each other in the schedule. The \`startTime\` of any task must be after or equal to the \`endTime\` of the preceding task.
-3.  **SCHEDULE ALL TASKS:** You **MUST** place every single task from the list below into the schedule. Do not omit any tasks.
-4.  **RESPECT DEADLINES:** A task with a deadline **MUST** be scheduled to finish on or before its deadline.
-5.  **AVOID BLOCKED TIMES:** You **MUST NOT** schedule any task during the user's recurring blocked times listed below.
+1.  **SCHEDULE ALL TASKS:** You **MUST** place every single task from the input \`tasks\` list into the schedule. Do not omit any tasks.
+2.  **ACCURATE DURATION:** The duration for each scheduled task (the time between its \`startTime\` and \`endTime\`) **MUST** be exactly equal to its \`estimatedTime\` from the input task list. No exceptions.
+3.  **NO OVERLAPPING:** Tasks in the schedule **MUST NOT** overlap with each other. The \`startTime\` of any task must be greater than or equal to the \`endTime\` of the preceding task.
+4.  **RESPECT DAILY AVAILABILITY:** For every day you schedule a task on, that task must be entirely within the user's daily availability window: from \`{{{timeConstraints.startTime}}}\` to \`{{{timeConstraints.endTime}}}\`.
+5.  **AVOID BLOCKED TIMES:** For every day you schedule a task on, that task **MUST NOT** overlap with any of the user's recurring daily blocked times.
+6.  **RESPECT DEADLINES:** A task with a deadline **MUST** be scheduled to finish on or before its deadline.
+
+**INPUTS:**
 
 **Task List to Schedule:**
 {{#each tasks}}
@@ -48,21 +53,17 @@ const prompt = ai.definePrompt({
   {{#if this.deadline}}  - **Deadline:** {{this.deadline}}{{/if}}
 {{/each}}
 
-**Recurring Blocked Times (Daily):**
+**Recurring Daily Blocked Times (apply to every day):**
 {{#each blockedTimes}}
 - {{this.title}}: from {{this.startTime}} to {{this.endTime}}
 {{/each}}
 
-**Your Task:**
-1.  Acknowledge all constraints: tasks, their durations, deadlines, priorities, blocked times, and daily availability.
-2.  Create a prioritized list of tasks, starting with those with the earliest deadlines. For tasks with the same deadline, prioritize higher priority tasks first.
-3.  Sequentially place each task onto the calendar, starting from the \`startDate\`.
-4.  For each task, find the earliest possible slot that respects its duration, does not overlap with blocked times or other already scheduled tasks, and adheres to the daily availability.
-5.  Ensure the scheduled task finishes before its deadline.
-6.  Add a small gap of 5-10 minutes between consecutive tasks for breaks.
-7.  After creating the full schedule, double-check your work against every critical rule to ensure 100% compliance.
-
-Your response must be a single JSON object that strictly adheres to the provided schema. The \`startTime\` and \`endTime\` for each scheduled task must be in full ISO 8601 format, including the correct timezone offset for the user's timezone ({{{timezone}}}). In the \`reasoning\` field, briefly explain your scheduling choices.`,
+**Instructions:**
+1.  Prioritize tasks with the earliest deadlines. For tasks without deadlines or with the same deadline, schedule higher priority tasks first.
+2.  Find the earliest possible valid slot for each task, starting from \`{{{startDate}}}\`. A valid slot is one that respects all of the critical rules above.
+3.  You can add small gaps (e.g., 5-10 minutes) between tasks for breaks, but this is optional and must not violate any of the other rules.
+4.  In the \`reasoning\` field of your JSON output, briefly explain your scheduling choices.
+5.  **Final Check:** Before you output the JSON, double-check your generated \`scheduledTasks\` array against every single critical rule to ensure 100% compliance. If it fails any rule, you must fix it.`,
 });
 
 const generateFullScheduleFlow = ai.defineFlow(

@@ -26,7 +26,15 @@ const prompt = ai.definePrompt({
   input: {schema: AdjustScheduleInputSchema},
   output: {schema: GenerateFullScheduleOutputSchema},
   prompt: `You are an expert scheduling AI. A user wants to discuss or make a change to a schedule you previously proposed.
-The user's timezone is: \`{{{timezone}}}\`. All dates and times are in this timezone. Your output must also be in this timezone.
+Your primary goal is to be a helpful assistant. First, you must determine the user's intent.
+
+**CRITICAL RULES FOR SCHEDULE MODIFICATION (NON-NEGOTIABLE):**
+If you decide to modify the schedule, the new schedule you generate **MUST** follow these rules:
+1.  **SCHEDULE ALL TASKS:** You **MUST** place every single task from the original \`tasks\` list into the new schedule.
+2.  **ACCURATE DURATION:** The duration for each scheduled task (\`endTime\` - \`startTime\`) **MUST** exactly match its \`estimatedTime\` from the original task list.
+3.  **NO OVERLAPPING:** Tasks **MUST NOT** overlap with each other, with recurring blocked times, or fall outside the daily availability window.
+4.  **RESOLVE CONFLICTS:** If a user's requested change causes a time conflict with another task, you **MUST** reschedule the conflicting task to a new, suitable, non-overlapping time.
+5.  **RESPECT DEADLINES:** All tasks must still meet their original deadlines.
 
 **User's Request:**
 "{{{userRequest}}}"
@@ -36,35 +44,30 @@ The user's timezone is: \`{{{timezone}}}\`. All dates and times are in this time
 - **Task:** "{{this.title}}" (ID: {{this.id}}) starts at {{this.startTime}} and ends at {{this.endTime}}
 {{/each}}
 
-**Your Task:**
-1.  **Analyze the user's request to determine its intent.**
-2.  **Is the user just chatting or asking a question?** If the request is NOT a clear instruction to change the schedule (e.g., it's a question like "why is this scheduled then?", a general comment like "that looks good", or ambiguous like "hi"), then you MUST NOT change the schedule. Your primary goal is to be a helpful assistant.
-    - **Action:** Return the \`currentScheduledTasks\` list *exactly as it was given to you*, without any modifications.
-    - **Response:** In the \`reasoning\` field, provide a helpful, conversational response to the user's request. Answer their question or acknowledge their comment. If the request was unclear, ask for clarification (e.g., "I'm happy to help with that, could you be more specific about the change you'd like to make?").
-3.  **Is the user requesting a schedule change?** If the request is a clear instruction (e.g., "move physics to 7pm", "reschedule my test for tomorrow"):
-    - **Action:** Generate a NEW, complete schedule that incorporates the change.
-    - **CRITICAL RULES FOR NEW SCHEDULE (NON-NEGOTIABLE):**
-        - **ACCURATE DURATION:** The duration for each task in the new schedule (the time between its \`startTime\` and \`endTime\`) **MUST** exactly match its \`estimatedTime\` from the original task list.
-        - **NO OVERLAPPING TASKS:** Tasks **MUST NOT** overlap. If your change causes a time conflict with another task, you **MUST** reschedule the conflicting task to a new, suitable, non-overlapping time.
-        - **ALL TASKS INCLUDED:** You **MUST** place every single task from the original list into the new schedule.
-    - **Response:** In the \`reasoning\` field, explain the changes you made and why. If you had to move other tasks to resolve a conflict, clearly state which tasks were moved and why.
+**Your Task (Two-Step Process):**
+1.  **Analyze Intent:** Read the user's request. Is it a clear instruction to change the schedule (e.g., "move physics to 7pm", "reschedule my test for tomorrow")? Or is it just a question, a comment, or a vague statement (e.g., "why is this scheduled then?", "that looks good", "hi")?
 
-**Original Task List & Constraints (for reference when making changes):**
-{{#each tasks}}
-- **Task:** "{{this.title}}" (ID: {{this.id}})
-  - **Priority:** {{this.priority}}
-  - **Estimated Time:** {{this.estimatedTime}} minutes
-  {{#if this.deadline}}  - **Deadline:** {{this.deadline}}{{/if}}
-{{/each}}
+2.  **Act on Intent:**
+    - **If the user is NOT requesting a change:**
+        - **Action:** DO NOT CHANGE THE SCHEDULE. Return the \`currentScheduledTasks\` list *exactly as it was given to you*.
+        - **Response:** In the \`reasoning\` field, provide a helpful, conversational response. Answer their question or acknowledge their comment. If the request was unclear, ask for clarification (e.g., "I'm happy to help with that, could you be more specific about the change you'd like to make?").
 
-**Recurring Blocked Times (Daily):**
-{{#each blockedTimes}}
-- {{this.title}}: from {{this.startTime}} to {{this.endTime}}
-{{/each}}
+    - **If the user IS requesting a change:**
+        - **Action:** Generate a NEW, complete schedule that incorporates the change. This new schedule must follow all the **CRITICAL RULES** listed at the top.
+        - **Response:** In the \`reasoning\` field, explain the changes you made and why. If you had to move other tasks to resolve a conflict, clearly state which tasks were moved and what their new times are.
+        - **Final Check:** Before outputting the JSON, verify your new schedule against all the critical rules.
 
-**Daily Availability:** The user is available from \`{{{timeConstraints.startTime}}}\` to \`{{{timeConstraints.endTime}}}\` each day.
-
-Your response must be a single JSON object that strictly adheres to the provided schema. The \`startTime\` and \`endTime\` for each scheduled task must be in full ISO 8601 format, including the correct timezone offset for the user's timezone ({{{timezone}}}). Before you output the JSON, double-check your generated schedule against all the critical rules.`,
+**Reference Data:**
+- **Original Task List:**
+  {{#each tasks}}
+  - "{{this.title}}" (ID: {{this.id}}), Estimated Time: {{this.estimatedTime}} min, Priority: {{this.priority}}{{#if this.deadline}}, Deadline: {{this.deadline}}{{/if}}
+  {{/each}}
+- **Daily Availability:** \`{{{timeConstraints.startTime}}}\` - \`{{{timeConstraints.endTime}}}\`
+- **Recurring Daily Blocked Times:**
+  {{#each blockedTimes}}
+  - {{this.title}}: {{this.startTime}} - {{this.endTime}}
+  {{/each}}
+- **Timezone:** \`{{{timezone}}}\` (All output times must be in this timezone in ISO 8601 format).`,
 });
 
 const adjustScheduleFlow = ai.defineFlow(
