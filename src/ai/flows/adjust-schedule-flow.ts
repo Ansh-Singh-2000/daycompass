@@ -35,6 +35,7 @@ Your goal is to process the user's request and ALWAYS return a JSON object that 
 \`\`\`json
 ${JSON.stringify(GenerateFullScheduleOutputSchema.jsonSchema, null, 2)}
 \`\`\`
+**Crucially, the \`reasoning\` field must be a top-level key in the JSON object, positioned next to the \`scheduledTasks\` array. Do not place it inside the array.**
 
 You have two modes of operation:
 

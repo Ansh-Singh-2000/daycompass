@@ -36,6 +36,8 @@ Create a JSON object that strictly follows this Zod schema:
 \`\`\`json
 ${JSON.stringify(GenerateFullScheduleOutputSchema.jsonSchema, null, 2)}
 \`\`\`
+**Crucially, the \`reasoning\` field must be a top-level key in the JSON object, positioned next to the \`scheduledTasks\` array. Do not place it inside the array.**
+
 The JSON object must contain a \`scheduledTasks\` array. This array must include every task from the user's list, scheduled according to the critical rules below.
 
 CRITICAL RULES (NON-NEGOTIABLE):
