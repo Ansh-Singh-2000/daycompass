@@ -4,11 +4,11 @@ import { generateFullSchedule, GenerateFullScheduleInput } from '@/ai/flows/gene
 
 export async function createSchedule(input: GenerateFullScheduleInput) {
   try {
-    const result = await generateFullSchedule(input);
-    if (!result || !result.schedules) {
-      throw new Error('AI failed to generate a schedule.');
+    const schedules = await generateFullSchedule(input);
+    if (!schedules || Object.keys(schedules).length === 0) {
+      throw new Error('AI failed to generate a schedule or returned an empty schedule.');
     }
-    return { success: true, data: result.schedules };
+    return { success: true, data: schedules };
   } catch (error) {
     console.error('Error generating schedule:', error);
     // In a real app, you might want to log this error to a monitoring service.
