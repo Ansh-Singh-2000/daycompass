@@ -157,11 +157,11 @@ export default function ScheduleCalendar({
         style={{ height: `${hourSegments.length * HOUR_HEIGHT_REM}rem` }}
       >
         {/* Time Column */}
-        <div className="border-r dark:border-white/10">
+        <div className="border-r border-slate-200 dark:border-slate-700">
           {hourSegments.map((hour) => (
             <div
               key={hour}
-              className="text-right pr-2 pt-1 border-b dark:border-white/10"
+              className="text-right pr-2 pt-1 border-b border-slate-200 dark:border-slate-700"
               style={{ height: `${HOUR_HEIGHT_REM}rem` }}
             >
               <span className="text-xs font-medium text-gray-500 dark:text-gray-400 -translate-y-1/2 relative top-0">
@@ -178,7 +178,7 @@ export default function ScheduleCalendar({
           {hourSegments.map((hour, index) => (
             index > 0 && <div
               key={`line-${hour}`}
-              className="absolute w-full border-t border-dashed dark:border-white/10"
+              className="absolute w-full border-t border-slate-200 dark:border-slate-700"
               style={{ top: `${index * HOUR_HEIGHT_REM}rem` }}
             />
           ))}
