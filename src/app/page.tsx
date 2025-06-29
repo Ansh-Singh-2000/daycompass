@@ -160,6 +160,7 @@ export default function Home() {
   const isAdjustDisabled = useMemo(() => {
     return !tasks.some(t => t.startTime && !t.isCompleted);
   }, [tasks]);
+  const hasTasks = useMemo(() => tasks.some(t => t.startTime), [tasks]);
   
   // --- TASK & SCHEDULE LOGIC ---
   const runConfetti = () => {
@@ -573,29 +574,16 @@ export default function Home() {
                     </div>
                   </div>
               )}
-              {currentSchedule.length > 0 ? (
-                  <ScheduleCalendar
-                    schedule={currentSchedule}
-                    onToggleComplete={handleToggleComplete}
-                    startTime={wakeTime}
-                    endTime={sleepTime}
-                  />
-                 ) : (
-                  !isLoading && (
-                    <div className="flex items-center justify-center h-full border-2 border-dashed rounded-lg">
-                      <div className="text-center text-muted-foreground">
-                        <CalendarDays className="mx-auto h-12 w-12" />
-                        <p className="mt-4">
-                            {Object.keys(scheduledTasksByDate).length > 0 ? "Nothing scheduled for this day." : "Your schedule will appear here."}
-                        </p>
-                         <p className="text-sm">
-                            {Object.keys(scheduledTasksByDate).length > 0 ? "The AI kept this day clear." : "Add some tasks and click Generate."}
-                        </p>
-                      </div>
-                    </div>
-                  )
-                 )
-              }
+              <ScheduleCalendar
+                schedule={currentSchedule}
+                blockedTimes={blockedTimes}
+                onToggleComplete={handleToggleComplete}
+                startTime={wakeTime}
+                endTime={sleepTime}
+                viewedDate={viewedDate}
+                isLoading={isLoading}
+                hasTasks={hasTasks}
+              />
             </div>
           </CardContent>
         </Card>

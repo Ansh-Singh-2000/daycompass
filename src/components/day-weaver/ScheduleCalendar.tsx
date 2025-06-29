@@ -1,14 +1,15 @@
 
 'use client';
 
-import type { Task } from '@/lib/types';
+import type { Task, BlockedTime } from '@/lib/types';
 import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
-import { format, parseISO, isValid } from 'date-fns';
+import { format, parseISO, isValid, setHours, setMinutes, setSeconds, setMilliseconds } from 'date-fns';
 import { useMemo } from 'react';
+import { CalendarDays } from 'lucide-react';
 
 const FramerCard = motion(Card);
 
@@ -27,16 +28,24 @@ const priorityStyles = {
 // The component now accepts a list of Task objects that have been scheduled for a specific day
 type ScheduleCalendarProps = {
   schedule: (Task & { name: string })[]; 
+  blockedTimes: BlockedTime[];
   onToggleComplete: (id: string) => void;
   startTime: string;
   endTime: string;
+  viewedDate: Date;
+  isLoading: boolean;
+  hasTasks: boolean;
 };
 
 export default function ScheduleCalendar({
   schedule,
+  blockedTimes,
   onToggleComplete,
   startTime,
   endTime,
+  viewedDate,
+  isLoading,
+  hasTasks,
 }: ScheduleCalendarProps) {
   const startMinutes = timeToMinutes(startTime);
   const endMinutes = timeToMinutes(endTime);
@@ -105,6 +114,18 @@ export default function ScheduleCalendar({
     return layoutData;
   }, [schedule]);
 
+  const blockedEvents = useMemo(() => {
+    return blockedTimes.map(bt => {
+        const [startH, startM] = bt.startTime.split(':').map(Number);
+        const [endH, endM] = bt.endTime.split(':').map(Number);
+
+        const start = setMilliseconds(setSeconds(setMinutes(setHours(viewedDate, startH), startM), 0), 0);
+        const end = setMilliseconds(setSeconds(setMinutes(setHours(viewedDate, endH), endM), 0), 0);
+        
+        return { ...bt, start, end };
+    });
+  }, [blockedTimes, viewedDate]);
+
 
   if (startHour >= endHour) {
     return (
@@ -116,6 +137,18 @@ export default function ScheduleCalendar({
 
   const hourSegments = Array.from({ length: endHour - startHour }, (_, i) => startHour + i);
   const HOUR_HEIGHT_REM = 6; // h-24
+
+  if (!isLoading && schedule.length === 0 && !hasTasks) {
+    return (
+        <div className="flex items-center justify-center h-full border-2 border-dashed rounded-lg">
+          <div className="text-center text-muted-foreground">
+            <CalendarDays className="mx-auto h-12 w-12" />
+            <p className="mt-4">Your schedule will appear here.</p>
+            <p className="text-sm">Add some tasks and click Generate.</p>
+          </div>
+        </div>
+    )
+  }
 
   return (
     <div className="h-full overflow-y-auto rounded-lg border bg-secondary/20">
@@ -149,6 +182,38 @@ export default function ScheduleCalendar({
               style={{ top: `${index * HOUR_HEIGHT_REM}rem` }}
             />
           ))}
+
+          {/* Blocked Times */}
+          {blockedEvents.map((item) => {
+            const itemStart = item.start;
+            const itemEnd = item.end;
+            
+            const itemStartMinutes = itemStart.getHours() * 60 + itemStart.getMinutes();
+            const itemEndMinutes = itemEnd.getHours() * 60 + itemEnd.getMinutes();
+            const itemDuration = itemEndMinutes - itemStartMinutes;
+
+            const top = ((itemStartMinutes - startMinutes) / 60) * HOUR_HEIGHT_REM;
+            const height = (itemDuration / 60) * HOUR_HEIGHT_REM;
+
+            if (itemStartMinutes < startMinutes || itemEndMinutes > endMinutes || itemDuration <=0) return null;
+
+            return (
+              <div
+                key={item.id}
+                className={cn(
+                  'absolute w-full p-2 text-xs rounded-lg overflow-hidden flex items-center justify-center',
+                  'bg-muted/30 dark:bg-white/10 border-y border-dashed border-border/50'
+                )}
+                style={{
+                  top: `${top}rem`,
+                  height: `${height}rem`,
+                  zIndex: 0,
+                }}
+              >
+                <span className="font-semibold text-muted-foreground/80">{item.title}</span>
+              </div>
+            );
+          })}
 
           {/* Schedule Items */}
           {laidOutSchedule.map((item, index) => {
@@ -211,6 +276,16 @@ export default function ScheduleCalendar({
               </FramerCard>
             );
           })}
+
+           {/* Empty state message if no tasks for this day */}
+           {laidOutSchedule.length === 0 && !isLoading && hasTasks && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="text-center text-muted-foreground">
+                  <p className="mt-4 font-semibold">Nothing scheduled for this day</p>
+                  <p className="text-sm">The AI kept this day clear.</p>
+                </div>
+              </div>
+            )}
         </div>
       </div>
     </div>
