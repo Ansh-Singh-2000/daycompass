@@ -29,7 +29,6 @@ const GenerateFullScheduleInputSchema = z.object({
 
 export type GenerateFullScheduleInput = z.infer<typeof GenerateFullScheduleInputSchema>;
 
-// The new output schema is a direct record, not nested under "schedules"
 const GenerateFullScheduleOutputSchema = z.record(
   z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date key must be in YYYY-MM-DD format"),
   z.array(
@@ -47,15 +46,12 @@ export type GenerateFullScheduleOutput = z.infer<typeof GenerateFullScheduleOutp
 export async function generateFullSchedule(
   input: GenerateFullScheduleInput
 ): Promise<GenerateFullScheduleOutput> {
-  // The flow now returns the new output type directly
   return generateFullScheduleFlow(input);
 }
 
 const prompt = ai.definePrompt({
   name: 'generateFullSchedulePrompt',
   input: {schema: GenerateFullScheduleInputSchema},
-  // The output schema is the new, flatter one.
-  output: {schema: GenerateFullScheduleOutputSchema},
   prompt: `You are an AI scheduling assistant. Your task is to generate a multi-day schedule based on a list of tasks and constraints. You must schedule ALL tasks provided.
 
 **INPUT DATA:**
@@ -65,7 +61,7 @@ const prompt = ai.definePrompt({
 - **Current DateTime:** {{currentDateTime}}
 
 **RULES (STRICTLY ENFORCED):**
-1.  **Output Format:** Your output MUST be a valid JSON object. The keys MUST be date strings in "YYYY-MM-DD" format. The values MUST be an array of task objects scheduled for that day. DO NOT wrap the output in any other object (e.g., no root "schedules" key).
+1.  **Output Format:** Your output MUST be a valid JSON object. The keys MUST be date strings in "YYYY-MM-DD" format. The values MUST be an array of task objects scheduled for that day.
 2.  **Schedule All Tasks:** Every task from the input JSON must be scheduled.
 3.  **Deadlines are Absolute:** A task must be scheduled on or before its deadline. Tasks with earlier deadlines have higher priority.
 4.  **No Overlapping:** Tasks on any given day MUST NOT overlap. There must be a gap between the end time of one task and the start time of the next.
@@ -76,7 +72,7 @@ const prompt = ai.definePrompt({
 6.  **Load Balancing:** Distribute tasks across multiple days if their deadlines permit. Avoid cramming all work into the first few days.
 7.  **No Invented Tasks:** The output schedule must ONLY contain tasks from the input list. Do NOT create tasks named "Break," "Lunch," "Rest," etc. The breaks are the empty time between scheduled tasks.
 
-Produce the JSON schedule now based on these rules.
+Your entire response must be ONLY the JSON object, without any surrounding text, explanations, or markdown formatting like \`\`\`json.
 `,
 });
 
@@ -86,8 +82,24 @@ const generateFullScheduleFlow = ai.defineFlow(
     inputSchema: GenerateFullScheduleInputSchema,
     outputSchema: GenerateFullScheduleOutputSchema,
   },
-  async input => {
-    const {output} = await prompt(input);
-    return output!;
+  async (input) => {
+    const response = await prompt(input);
+    const rawOutput = response.text;
+
+    console.log('--- AI RAW OUTPUT ---');
+    console.log(rawOutput);
+    console.log('---------------------');
+    
+    try {
+      // Sometimes the AI wraps the JSON in markdown backticks.
+      const cleanedOutput = rawOutput.replace(/```json/g, '').replace(/```/g, '').trim();
+      const parsedJson = JSON.parse(cleanedOutput);
+      const validatedOutput = GenerateFullScheduleOutputSchema.parse(parsedJson);
+      return validatedOutput;
+    } catch (e) {
+      console.error('Failed to parse or validate AI output.', e);
+      console.error('Original AI output was:', rawOutput);
+      throw new Error('AI returned invalid JSON format.');
+    }
   }
 );
