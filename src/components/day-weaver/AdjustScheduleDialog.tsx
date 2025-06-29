@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -104,7 +105,7 @@ export default function AdjustScheduleDialog({
           </p>
         </DialogHeader>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1 min-h-0">
+        <div className="grid grid-rows-[3fr_2fr] md:grid-rows-1 grid-cols-1 md:grid-cols-2 gap-6 flex-1 min-h-0">
           {/* Left: Chat Panel */}
           <div className="flex flex-col gap-4 min-h-0">
              <h3 className="text-lg font-semibold">Chat with AI</h3>
