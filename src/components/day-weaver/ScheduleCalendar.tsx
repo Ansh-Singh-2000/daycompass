@@ -202,7 +202,7 @@ export default function ScheduleCalendar({
                 key={item.id}
                 className={cn(
                   'absolute w-full p-2 text-xs rounded-lg overflow-hidden flex items-center justify-center',
-                  'bg-slate-100 dark:bg-slate-900/80 border-y border-dashed border-slate-200 dark:border-slate-700/60'
+                  'bg-muted/70 dark:bg-muted/30 border-y border-dashed border-muted-foreground/30'
                 )}
                 style={{
                   top: `${top}rem`,
@@ -210,7 +210,7 @@ export default function ScheduleCalendar({
                   zIndex: 0,
                 }}
               >
-                <span className="font-semibold text-slate-500 dark:text-slate-400">{item.title}</span>
+                <span className="font-semibold text-muted-foreground">{item.title}</span>
               </div>
             );
           })}
