@@ -14,6 +14,7 @@ export type AIScheduledTask = z.infer<typeof AIScheduledTaskSchema>;
 
 // Input for the main schedule generation flow
 export const GenerateFullScheduleInputSchema = z.object({
+  model: z.string(),
   tasks: z.array(z.object({
     id: z.string(),
     title: z.string(),

@@ -49,6 +49,7 @@ export default function Home() {
   const [reasoning, setReasoning] = useState<string | null>(null);
   const { toast } = useToast();
   const [timezone, setTimezone] = useState('UTC');
+  const [model, setModel] = useState('llama3-8b-8192');
 
   useEffect(() => {
     // Set the timezone from the browser once the component mounts
@@ -99,6 +100,7 @@ export default function Home() {
     setReasoning(null);
 
     const input = {
+      model,
       tasks: tasks.map(t => ({
           ...t,
           estimatedTime: t.estimatedTime,
@@ -177,6 +179,7 @@ export default function Home() {
     setIsAdjusting(true);
 
     const input = {
+      model,
       tasks: tasks.map(t => ({
           ...t,
           estimatedTime: t.estimatedTime,
@@ -234,6 +237,8 @@ export default function Home() {
         onClose={() => setIsSettingsOpen(false)} 
         blockedTimes={blockedTimes}
         setBlockedTimes={setBlockedTimes}
+        model={model}
+        setModel={setModel}
       />
       <AdjustScheduleDialog
         isOpen={isAdjustDialogOpen}

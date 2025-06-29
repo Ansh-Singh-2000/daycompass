@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { BlockedTime } from "@/lib/types";
 import { Trash2, Plus } from "lucide-react";
 import { useState } from "react";
@@ -21,9 +22,18 @@ interface SettingsDialogProps {
   onClose: () => void;
   blockedTimes: BlockedTime[];
   setBlockedTimes: React.Dispatch<React.SetStateAction<BlockedTime[]>>;
+  model: string;
+  setModel: (model: string) => void;
 }
 
-export default function SettingsDialog({ isOpen, onClose, blockedTimes, setBlockedTimes }: SettingsDialogProps) {
+export default function SettingsDialog({ 
+  isOpen, 
+  onClose, 
+  blockedTimes, 
+  setBlockedTimes,
+  model,
+  setModel
+}: SettingsDialogProps) {
   const [title, setTitle] = useState('');
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
@@ -53,16 +63,42 @@ export default function SettingsDialog({ isOpen, onClose, blockedTimes, setBlock
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Recurring Busy Times</DialogTitle>
+          <DialogTitle>Settings</DialogTitle>
           <DialogDescription>
-            The AI will avoid scheduling tasks during these daily blocks.
+            Manage AI settings and recurring busy times for scheduling.
           </DialogDescription>
         </DialogHeader>
         
         <div className="grid gap-6 py-4">
           
+           <div className="space-y-3">
+            <Label>AI Settings</Label>
+            <div className="space-y-2 rounded-md border p-4">
+              <div>
+                <Label htmlFor="ai-model">AI Model</Label>
+                <Select value={model} onValueChange={setModel}>
+                  <SelectTrigger id="ai-model">
+                    <SelectValue placeholder="Select a model" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="llama3-8b-8192">Llama 3 8B</SelectItem>
+                    <SelectItem value="llama3-70b-8192">Llama 3 70B</SelectItem>
+                    <SelectItem value="mixtral-8x7b-32768">Mixtral 8x7B</SelectItem>
+                    <SelectItem value="gemma-7b-it">Gemma 7B</SelectItem>
+                  </SelectContent>
+                </Select>
+                 <p className="text-sm text-muted-foreground pt-1">
+                    Different models have different capabilities and speeds.
+                </p>
+              </div>
+            </div>
+          </div>
+          
           <div className="space-y-3">
-            <Label>Current Blocks</Label>
+            <Label>Recurring Busy Times</Label>
+             <p className="text-sm text-muted-foreground -mt-2">
+                The AI will avoid scheduling tasks during these daily blocks.
+            </p>
             <div className="space-y-2 max-h-48 overflow-y-auto rounded-md border p-2">
               {blockedTimes.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-4">No blocked times added.</p>

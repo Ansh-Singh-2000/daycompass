@@ -73,16 +73,23 @@ export async function generateFullSchedule(
   
   const completion = await groq.chat.completions.create({
       messages: [{ role: 'user', content: prompt }],
-      model: 'llama3-8b-8192',
+      model: input.model,
       response_format: { type: 'json_object' }
   });
 
-  const responseText = completion.choices[0]?.message?.content;
+  let responseText = completion.choices[0]?.message?.content;
   if (!responseText) {
     throw new Error('AI returned an empty response.');
   }
 
-  const parsedJson = JSON.parse(responseText);
-  
-  return parsedJson;
+  // Handle <think> tags by removing them
+  responseText = responseText.replace(/<think>[\s\S]*?<\/think>/, '').trim();
+
+  try {
+      const parsedJson = JSON.parse(responseText);
+      return parsedJson;
+  } catch (e) {
+      console.error("Failed to parse AI JSON response in generateFullSchedule:", responseText);
+      throw new Error(`The AI returned an invalid response. The raw response was: "${responseText}"`);
+  }
 }

@@ -83,14 +83,17 @@ export async function adjustSchedule(
   
   const completion = await groq.chat.completions.create({
     messages: [{ role: 'user', content: prompt }],
-    model: 'llama3-8b-8192',
+    model: input.model,
     response_format: { type: 'json_object' }
   });
 
-  const responseText = completion.choices[0]?.message?.content;
+  let responseText = completion.choices[0]?.message?.content;
   if (!responseText) {
     throw new Error('AI returned an empty response.');
   }
+  
+  // Handle <think> tags by removing them
+  responseText = responseText.replace(/<think>[\s\S]*?<\/think>/, '').trim();
 
   try {
       const parsedJson = JSON.parse(responseText);
