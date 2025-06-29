@@ -202,7 +202,7 @@ export default function ScheduleCalendar({
                 key={item.id}
                 className={cn(
                   'absolute w-full p-2 text-xs rounded-lg overflow-hidden flex items-center justify-center',
-                  'bg-muted/70 dark:bg-muted/30 border-y border-dashed border-muted-foreground/30'
+                  'bg-primary/5 dark:bg-primary/10 border-y border-dashed border-primary/20 dark:border-primary/40'
                 )}
                 style={{
                   top: `${top}rem`,
