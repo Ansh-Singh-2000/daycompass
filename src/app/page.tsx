@@ -107,28 +107,11 @@ export default function Home() {
   useEffect(() => { setCookie('day-weaver-model', model, 365); }, [model]);
   useEffect(() => { setCookie('day-weaver-points', JSON.stringify(points), 365); }, [points]);
   
-  // Handle day change logic on initial app load
+  // Create a ref to hold the latest tasks array for use in callbacks
+  const tasksRef = useRef(tasks);
   useEffect(() => {
-    const todayStr = format(new Date(), 'yyyy-MM-dd');
-    const lastVisit = getCookie('day-weaver-last-visit');
-
-    if (lastVisit && lastVisit < todayStr) {
-        setTasks(prevTasks => {
-          let hasChanged = false;
-          const newTasks = prevTasks.map(task => {
-            if (task.startTime && format(parseISO(task.startTime), 'yyyy-MM-dd') < todayStr) {
-                // This task is in the past. We don't remove it from the master list,
-                // but this is where you could add logic to "archive" or handle past tasks.
-                // For now, we'll just let them remain.
-            }
-            return task;
-          });
-          return hasChanged ? newTasks : prevTasks;
-        });
-    }
-
-    setCookie('day-weaver-last-visit', todayStr, 365);
-  }, []); // Runs once on mount, client-side only
+    tasksRef.current = tasks;
+  }, [tasks]);
 
   // Set timezone on mount
   useEffect(() => {
@@ -173,23 +156,24 @@ export default function Home() {
   };
 
   const handleToggleComplete = useCallback((id: string) => {
-    setTasks(prevTasks => {
-        const task = prevTasks.find(t => t.id === id);
-        // If task is not found or is already being completed, do nothing to prevent race conditions.
-        if (!task || task.isCompleted) {
-            return prevTasks;
-        }
+    // Use the ref to get the absolute latest tasks state to prevent race conditions.
+    const task = tasksRef.current.find(t => t.id === id);
+    if (!task || task.isCompleted) {
+        // If task is not found or already completed, do nothing.
+        return;
+    }
 
-        // If we're here, the task exists and is not complete.
-        // Award a point and mark it as complete.
-        runConfetti();
-        setPoints(p => ({ ...p, gains: p.gains + 1 }));
-        
-        // Return a new array with the updated task
-        return prevTasks.map(t => 
+    // If we're here, the task exists and is not complete.
+    // Award a point and mark it as complete.
+    runConfetti();
+    setPoints(p => ({ ...p, gains: p.gains + 1 }));
+
+    // Update the task state.
+    setTasks(prevTasks =>
+        prevTasks.map(t =>
             t.id === id ? { ...t, isCompleted: true } : t
-        );
-    });
+        )
+    );
   }, [setPoints, setTasks]);
   
   const handleToastDismiss = useCallback((taskId: string) => {
@@ -197,14 +181,18 @@ export default function Home() {
         actionedToastIds.current.delete(taskId);
         return;
       }
-      setPoints(p => ({ ...p, losses: p.losses + 1 }));
+      // Only penalize if the task is still not completed.
+      const task = tasksRef.current.find(t => t.id === taskId);
+      if (task && !task.isCompleted) {
+        setPoints(p => ({ ...p, losses: p.losses + 1 }));
+      }
   }, [setPoints]);
 
   const checkOverdueTasks = useCallback(() => {
     const now = new Date();
     const newlyOverdueTasks: Task[] = [];
     
-    tasks.forEach(task => {
+    tasksRef.current.forEach(task => {
       if (task.endTime && !task.isCompleted && !task.overdueNotified) {
         const itemEndTime = parseISO(task.endTime);
         if (isValid(itemEndTime) && now > itemEndTime) {
@@ -243,7 +231,7 @@ export default function Home() {
         });
       });
     }
-  }, [tasks, setTasks, toast, handleToggleComplete, handleToastDismiss]);
+  }, [toast, handleToggleComplete, handleToastDismiss]);
 
   const checkOverdueTasksRef = useRef(checkOverdueTasks);
   useEffect(() => {
@@ -252,8 +240,10 @@ export default function Home() {
 
   useEffect(() => {
     const check = () => checkOverdueTasksRef.current();
-    const initialCheckTimeout = setTimeout(check, 1000);
-    const intervalId = setInterval(check, 60000);
+    // Check immediately on mount
+    const initialCheckTimeout = setTimeout(check, 1000); 
+    // Then check every minute
+    const intervalId = setInterval(check, 60000); 
 
     return () => {
       clearTimeout(initialCheckTimeout);
@@ -367,7 +357,7 @@ export default function Home() {
                 };
             }
             // Unschedule tasks that were not in the final schedule from AI
-            return { ...task, startTime: undefined, endTime: undefined };
+            return { ...task, startTime: undefined, endTime: undefined, isCompleted: false, overdueNotified: false };
         })
     );
     
