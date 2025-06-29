@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
+import { Badge } from '@/components/ui/badge';
 
 const FramerCard = motion(Card);
 
@@ -12,6 +13,12 @@ const timeToMinutes = (time: string): number => {
   if (!time || !time.includes(':')) return 0;
   const [hours, minutes] = time.split(':').map(Number);
   return hours * 60 + minutes;
+};
+
+const priorityStyles = {
+  high: 'bg-red-200 text-red-900 border-red-300 dark:bg-red-900/50 dark:text-red-300 dark:border-red-800/50',
+  medium: 'bg-yellow-200 text-yellow-900 border-yellow-300 dark:bg-yellow-900/50 dark:text-yellow-300 dark:border-yellow-800/50',
+  low: 'bg-green-200 text-green-900 border-green-300 dark:bg-green-900/50 dark:text-green-300 dark:border-green-800/50',
 };
 
 type ScheduleCalendarProps = {
@@ -105,13 +112,18 @@ export default function ScheduleCalendar({
                 }}
               >
                 <div className="flex justify-between items-start h-full">
-                  <div className="flex-1 overflow-hidden pr-2">
-                    <p className={cn('font-semibold leading-tight', item.isCompleted && 'line-through text-muted-foreground')}>
-                      {item.name}
-                    </p>
-                    <p className={cn('text-xs text-muted-foreground', item.isCompleted && 'line-through')}>
-                      {item.startTime} - {item.endTime}
-                    </p>
+                  <div className="flex-1 overflow-hidden pr-2 flex flex-col justify-between h-full">
+                    <div>
+                      <p className={cn('font-semibold leading-tight', item.isCompleted && 'line-through text-muted-foreground')}>
+                        {item.name}
+                      </p>
+                      <p className={cn('text-xs text-muted-foreground', item.isCompleted && 'line-through')}>
+                        {item.startTime} - {item.endTime}
+                      </p>
+                    </div>
+                     <Badge variant="outline" className={cn("capitalize w-fit text-xs mt-1", priorityStyles[item.priority])}>
+                        {item.priority}
+                    </Badge>
                   </div>
                   <Checkbox
                     checked={item.isCompleted}

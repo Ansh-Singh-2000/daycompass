@@ -25,6 +25,7 @@ export interface Schedule {
 export interface ScheduleItem extends Schedule {
   id: string;
   isCompleted: boolean;
+  priority: TaskPriority;
 }
 
 export interface ProposedTask {

@@ -341,6 +341,7 @@ export default function Home() {
             startTime: format(startDate, 'HH:mm'),
             endTime: format(endDate, 'HH:mm'),
             isCompleted: false,
+            priority: scheduledTask.priority,
         });
       } catch (error) {
         console.error(`Skipping task with invalid date: "${scheduledTask.title}"`, error);
@@ -419,7 +420,6 @@ export default function Home() {
 
   const handleToggleComplete = (id: string) => {
     let wasIncomplete = false;
-    let originalTaskPriority: TaskPriority | undefined = undefined;
 
     setSchedules(prev => {
         const newSchedules = { ...prev };
@@ -430,10 +430,6 @@ export default function Home() {
                 const item = newSchedules[dateKey][itemIndex];
                 if (!item.isCompleted) {
                     wasIncomplete = true;
-                    const originalTask = tasks.find(t => t.id === id);
-                    if (originalTask) {
-                        originalTaskPriority = originalTask.priority;
-                    }
                 }
                 newSchedules[dateKey][itemIndex] = { ...item, isCompleted: !item.isCompleted };
                 break;
@@ -444,9 +440,7 @@ export default function Home() {
 
     if (wasIncomplete) {
         setPoints(p => ({ ...p, gains: p.gains + 1 }));
-        if (originalTaskPriority === 'high') {
-            runConfetti();
-        }
+        runConfetti();
     }
   };
 
