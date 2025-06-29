@@ -105,9 +105,9 @@ export default function SettingsDialog({
                 <TabsTrigger value="ai">AI</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="general" className="py-4 overflow-y-auto">
-              <div className="space-y-6 px-1">
-                <div className="space-y-4 rounded-md border p-4">
+            <TabsContent value="general" className="mt-2 rounded-md border bg-black/5 dark:bg-white/5 p-4 overflow-y-auto">
+              <div className="space-y-6">
+                <div className="space-y-4 rounded-md border p-4 bg-background">
                     <h3 className="font-semibold text-foreground">Working Hours</h3>
                     <p className="text-sm text-muted-foreground -mt-2">
                         Set your typical daily start and end times. The AI will only schedule tasks within this window.
@@ -135,7 +135,7 @@ export default function SettingsDialog({
                         </div>
                     </div>
                 </div>
-                <div className="space-y-4 rounded-md border p-4">
+                <div className="space-y-4 rounded-md border p-4 bg-background">
                     <h3 className="font-semibold text-foreground">Calendar Display</h3>
                     <p className="text-sm text-muted-foreground -mt-2">
                         Set your typical wake and sleep times to adjust the visible range on the calendar.
@@ -165,9 +165,8 @@ export default function SettingsDialog({
                 </div>
               </div>
             </TabsContent>
-            <TabsContent value="blocked" className="flex-1 flex flex-col min-h-0 py-4">
-              <div className="flex-1 flex flex-col md:grid md:grid-cols-2 gap-8 px-1 min-h-0">
-                {/* Left Column / Top Section on Mobile: List */}
+            <TabsContent value="blocked" className="mt-2 flex-1 flex flex-col min-h-0 rounded-md border bg-black/5 dark:bg-white/5 p-4">
+              <div className="flex-1 flex flex-col md:grid md:grid-cols-2 gap-8 min-h-0">
                 <div className="flex flex-col gap-3 min-h-0 flex-1">
                     <div className="shrink-0">
                         <h3 className="font-semibold text-foreground">Recurring Busy Times</h3>
@@ -176,7 +175,7 @@ export default function SettingsDialog({
                         </p>
                     </div>
                     <div className="flex-1 min-h-0">
-                        <ScrollArea className="h-full rounded-md border">
+                        <ScrollArea className="h-full rounded-md border bg-background">
                             <div className="p-2 space-y-2">
                                 {blockedTimes.length === 0 ? (
                                     <p className="text-sm text-muted-foreground text-center py-4">No blocked times added.</p>
@@ -197,11 +196,9 @@ export default function SettingsDialog({
                         </ScrollArea>
                     </div>
                 </div>
-
-                {/* Right Column / Bottom Section on Mobile: Form */}
                 <div className="space-y-3">
                   <h3 className="font-semibold text-foreground">Add New Block</h3>
-                  <form onSubmit={handleAddBlockedTime} className="space-y-4 rounded-md border p-4">
+                  <form onSubmit={handleAddBlockedTime} className="space-y-4 rounded-md border p-4 bg-background">
                       <div>
                           <Label htmlFor="block-title">Title</Label>
                           <div className="flex items-center gap-2">
@@ -244,8 +241,8 @@ export default function SettingsDialog({
                 </div>
               </div>
             </TabsContent>
-            <TabsContent value="ai" className="py-4 overflow-y-auto">
-              <div className="space-y-2 rounded-md border p-4">
+            <TabsContent value="ai" className="mt-2 rounded-md border bg-black/5 dark:bg-white/5 p-4 overflow-y-auto">
+              <div className="space-y-2 rounded-md border p-4 bg-background">
                   <div>
                       <Label htmlFor="ai-model">AI Model</Label>
                       <Combobox
