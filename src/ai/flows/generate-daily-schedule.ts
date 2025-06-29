@@ -86,7 +86,7 @@ Here is the full list of available tasks:
 
 2.  **NO CONTINUOUS STUDY FOR MORE THAN 2 HOURS.** You are strictly forbidden from scheduling tasks back-to-back if they result in more than 120 minutes of continuous work. After *any* task that is 90 minutes or longer, you **MUST** insert a significant gap of at least 30 minutes. After shorter tasks (less than 90 minutes), you **MUST** insert a gap of 15-20 minutes. This is not optional.
 
-3.  **MANDATORY LUNCH BREAK.** You **MUST** ensure there is a long, empty gap of at least 60 minutes for lunch, sometime between 12:00 and 14:00. This is a hard requirement.
+3.  **MANDATORY MIDDAY BREAK.** You **MUST** ensure there is a long, empty gap of at least 60 minutes, sometime between 12:00 and 14:00. Do not schedule any tasks during this time. This is a hard requirement.
 
 4.  **INTELLIGENT TASK DISTRIBUTION.**
     *   Spread tasks across the *entire* available time window from \`startTime\` to \`endTime\`. Do not cram tasks in one part of the day.
@@ -94,7 +94,7 @@ Here is the full list of available tasks:
 
 5.  **OUTPUT FORMATTING.**
     *   The output must be a valid JSON object with a single "schedule" array.
-    *   **CRITICAL: Do not create tasks named "Break", "Lunch", or "Rest".** The breaks are the *empty spaces* between the scheduled tasks.
+    *   **CRITICAL: Your primary directive is to schedule the user's tasks. Do not invent your own tasks. Do not create tasks named "Break", "Lunch", "Rest", "Snack", or any other activity that is not in the provided task list.** The breaks and rest periods are the *empty spaces* between the scheduled tasks in the final output. The only items in the output schedule should be the tasks I provided.
 `,
 });
 

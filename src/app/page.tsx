@@ -25,41 +25,47 @@ const initialTasks: Task[] = [
   { id: mockUuid(), name: 'Maths - Integral Calculus Practice', duration: 120, priority: 'high', deadline: addDays(today, 2) },
   { id: mockUuid(), name: 'JEE Mock Test - Paper 1', duration: 180, priority: 'high', deadline: addDays(today, 1) },
   { id: mockUuid(), name: 'Mock Test Analysis', duration: 60, priority: 'medium', deadline: addDays(today, 1) },
+  { id: mockUuid(), name: 'Organic Chemistry - Reaction Mechanisms', duration: 75, priority: 'high', deadline: addDays(today, 0) },
+  { id: mockUuid(), name: 'Physics - Rotational Motion', duration: 90, priority: 'medium', deadline: addDays(today, 4) },
+  { id: mockUuid(), name: 'Solve 200 Math problems', duration: 150, priority: 'high', deadline: addDays(today, 6) },
+  { id: mockUuid(), name: 'Review past mock test errors', duration: 60, priority: 'low', deadline: addDays(today, 7) },
+  { id: mockUuid(), name: 'JEE Mock Test - Paper 2', duration: 180, priority: 'high', deadline: addDays(today, 8) },
 ];
 
 
 export default function Home() {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
-  const [schedule, setSchedule] = useState<ScheduleItem[] | null>(null);
+  const [schedules, setSchedules] = useState<Record<string, ScheduleItem[]>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [startTime, setStartTime] = useState('09:00');
   const [endTime, setEndTime] = useState('21:00');
   const [viewedDate, setViewedDate] = useState(new Date());
   const { toast } = useToast();
 
+  const dateKey = format(viewedDate, 'yyyy-MM-dd');
+  const currentSchedule = schedules[dateKey];
+
   const handleAddTask = (task: Omit<Task, 'id'>) => {
     setTasks(prev => [...prev, { ...task, id: mockUuid() }]);
-    setSchedule(null);
+    setSchedules({}); // Invalidate all schedules if tasks change
   };
 
   const handleDeleteTask = (id: string) => {
     setTasks(prev => prev.filter(task => task.id !== id));
-    setSchedule(null);
+    setSchedules({}); // Invalidate all schedules if tasks change
   };
 
   const handleReorderTasks = (newTasks: Task[]) => {
     setTasks(newTasks);
-    setSchedule(null);
+    setSchedules({}); // Invalidate all schedules if tasks change
   };
   
   const handlePrevDay = () => {
     setViewedDate(current => addDays(current, -1));
-    setSchedule(null);
   };
 
   const handleNextDay = () => {
     setViewedDate(current => addDays(current, 1));
-    setSchedule(null);
   };
 
   const handleGenerateSchedule = async () => {
@@ -73,7 +79,6 @@ export default function Home() {
     }
     
     setIsLoading(true);
-    setSchedule(null);
 
     const input = {
       tasks: tasks.map(({ id, deadline, ...rest }) => ({ 
@@ -88,24 +93,33 @@ export default function Home() {
     const result = await createSchedule(input);
     
     if (result.success && result.data) {
-      setSchedule(result.data.map(item => ({ ...item, id: mockUuid(), isCompleted: false })));
+      setSchedules(prev => ({
+        ...prev,
+        [dateKey]: result.data.map(item => ({ ...item, id: mockUuid(), isCompleted: false }))
+      }));
     } else {
       toast({
         variant: "destructive",
         title: "Scheduling Failed",
         description: result.error || "An unknown error occurred.",
       });
-      setSchedule(null);
     }
     setIsLoading(false);
   };
 
   const handleToggleComplete = (id: string) => {
-    setSchedule(prev => 
-      prev 
-        ? prev.map(item => item.id === id ? { ...item, isCompleted: !item.isCompleted } : item) 
-        : null
-    );
+    setSchedules(prev => {
+      const daySchedule = prev[dateKey];
+      if (!daySchedule) {
+        return prev;
+      }
+      return {
+        ...prev,
+        [dateKey]: daySchedule.map(item =>
+          item.id === id ? { ...item, isCompleted: !item.isCompleted } : item
+        ),
+      };
+    });
   };
 
   return (
@@ -166,10 +180,10 @@ export default function Home() {
                     </div>
                   </div>
               )}
-              {schedule ? (
-                 schedule.length > 0 ? (
+              {currentSchedule ? (
+                 currentSchedule.length > 0 ? (
                   <ScheduleCalendar
-                    schedule={schedule}
+                    schedule={currentSchedule}
                     onToggleComplete={handleToggleComplete}
                     startTime={startTime}
                     endTime={endTime}
@@ -180,7 +194,7 @@ export default function Home() {
                       <div className="text-center text-muted-foreground">
                         <CalendarDays className="mx-auto h-12 w-12" />
                         <p className="mt-4">Nothing scheduled for this day.</p>
-                        <p className="text-sm">Try generating a schedule or check another date.</p>
+                        <p className="text-sm">The AI decided to keep this day clear. Try another date.</p>
                       </div>
                     </div>
                   )
