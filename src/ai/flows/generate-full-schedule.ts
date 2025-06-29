@@ -30,7 +30,7 @@ const GenerateFullScheduleInputSchema = z.object({
 export type GenerateFullScheduleInput = z.infer<typeof GenerateFullScheduleInputSchema>;
 
 const GenerateFullScheduleOutputSchema = z.record(
-  z.string(), // Loosened validation to prevent crashes from minor AI formatting deviations.
+  z.string().describe("A date in 'YYYY-MM-DD' format."),
   z.array(
       z.object({
           name: z.string().describe('The name of the task.'),
@@ -52,27 +52,27 @@ export async function generateFullSchedule(
 const prompt = ai.definePrompt({
   name: 'generateFullSchedulePrompt',
   input: {schema: GenerateFullScheduleInputSchema},
-  prompt: `You are an AI scheduling assistant. Your task is to generate a multi-day schedule based on a list of tasks and constraints. You must schedule ALL tasks provided.
+  output: {schema: GenerateFullScheduleOutputSchema},
+  prompt: `You are an expert AI scheduling assistant. Your goal is to create an optimized, multi-day schedule based on a list of tasks and constraints. You must schedule ALL tasks provided.
 
-**INPUT DATA:**
-- **Tasks (JSON):** {{{tasksAsJson}}}
-- **Start Date:** {{startDate}}
+**Context:**
+- **All Tasks (JSON):** {{{tasksAsJson}}}
+- **First Day to Schedule:** {{startDate}}
 - **Daily Time Window:** {{timeConstraints.startTime}} to {{timeConstraints.endTime}}
-- **Current DateTime:** {{currentDateTime}}
+- **Current Time:** {{currentDateTime}}
 
-**RULES (STRICTLY ENFORCED):**
-1.  **Output Format:** Your output MUST be a valid JSON object. The keys MUST be date strings in "YYYY-MM-DD" format. The values MUST be an array of task objects scheduled for that day.
-2.  **Schedule All Tasks:** Every task from the input JSON must be scheduled.
-3.  **Deadlines are Absolute:** A task must be scheduled on or before its deadline. Tasks with earlier deadlines have higher priority.
-4.  **No Overlapping:** Tasks on any given day MUST NOT overlap. There must be a gap between the end time of one task and the start time of the next.
-5.  **Burnout Prevention:**
-    - Insert breaks between tasks. A 15-20 minute gap for tasks under 90 minutes, and a 30+ minute gap for tasks 90 minutes or longer.
-    - No more than 2 hours of continuous scheduled work is allowed.
-    - A mandatory 60-minute break must be scheduled between 12:00 and 14:00 on every day that contains tasks. Do not schedule any tasks during this time.
-6.  **Load Balancing:** Distribute tasks across multiple days if their deadlines permit. Avoid cramming all work into the first few days.
-7.  **No Invented Tasks:** The output schedule must ONLY contain tasks from the input list. Do NOT create tasks named "Break," "Lunch," "Rest," etc. The breaks are the empty time between scheduled tasks.
+**Core Directives (to be followed strictly):**
+1.  **Schedule All Tasks:** Every single task from the input JSON must be placed in the schedule.
+2.  **Respect Deadlines:** This is your highest priority. A task must be scheduled on or before its deadline. Tasks with earlier deadlines must be prioritized.
+3.  **No Overlapping Events:** Within a single day, tasks must not overlap. The start time of one task must be after the end time of the previous one.
+4.  **Prevent Burnout & Add Breaks:**
+    - Insert reasonable breaks between tasks. A 15-20 minute gap is appropriate for most tasks. Use a 30+ minute gap for tasks that are 90 minutes or longer.
+    - No more than 2 hours of continuous work should be scheduled without a break.
+    - A mandatory 60-minute break must be scheduled between 12:00 PM and 2:00 PM (14:00) on every day that contains tasks. Do not schedule any tasks during this lunch window.
+5.  **Smart Load Balancing:** If tasks have flexible deadlines, distribute them across multiple days to create a balanced workload. Do not cram everything into the first few days if it's not necessary.
+6.  **No Fictional Tasks:** Only schedule tasks from the provided list. Do not create tasks named "Break," "Lunch," "Rest," etc. The breaks are the empty time between scheduled tasks.
 
-Your entire response must be ONLY the JSON object, without any surrounding text, explanations, or markdown formatting like \`\`\`json.
+Generate the full schedule as a single JSON object where keys are dates ('YYYY-MM-DD') and values are the arrays of tasks for that day.
 `,
 });
 
@@ -83,29 +83,15 @@ const generateFullScheduleFlow = ai.defineFlow(
     outputSchema: GenerateFullScheduleOutputSchema,
   },
   async (input) => {
-    const response = await prompt(input);
-    const rawOutput = response.text;
-
-    console.log('--- AI RAW OUTPUT ---');
-    console.log(rawOutput);
-    console.log('---------------------');
+    console.log("Calling AI with input:", input);
+    const { output } = await prompt(input);
     
-    try {
-      // Find the JSON block within the raw output, even if there's text around it.
-      const jsonMatch = rawOutput.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) {
-        console.error('No JSON object found in the AI response.');
-        throw new Error('AI returned invalid JSON format.');
-      }
-      
-      const jsonString = jsonMatch[0];
-      const parsedJson = JSON.parse(jsonString);
-      const validatedOutput = GenerateFullScheduleOutputSchema.parse(parsedJson);
-      return validatedOutput;
-    } catch (e) {
-      console.error('Failed to parse or validate AI output.', e);
-      console.error('Original AI output was:', rawOutput);
-      throw new Error('AI returned invalid JSON format.');
+    if (!output) {
+      console.error('AI did not return a valid structured output.');
+      throw new Error('AI failed to generate a schedule.');
     }
+
+    console.log("AI returned structured output:", output);
+    return output;
   }
 );
