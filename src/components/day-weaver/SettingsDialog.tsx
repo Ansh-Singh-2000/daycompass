@@ -64,17 +64,19 @@ export default function SettingsDialog({ isOpen, onClose, blockedTimes, setBlock
           <div className="space-y-4">
             <h4 className="font-medium">Add New Block</h4>
             <div className="space-y-3">
-              <div className="grid grid-cols-3 items-center gap-4">
-                <Label htmlFor="title" className="text-right">Title</Label>
-                <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} className="col-span-2" placeholder="e.g. Lunch Break" />
+              <div className="space-y-1">
+                <Label htmlFor="title">Title</Label>
+                <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Lunch Break" />
               </div>
-              <div className="grid grid-cols-3 items-center gap-4">
-                <Label htmlFor="start-time" className="text-right">Start Time</Label>
-                <Input id="start-time" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className="col-span-2" />
-              </div>
-              <div className="grid grid-cols-3 items-center gap-4">
-                <Label htmlFor="end-time" className="text-right">End Time</Label>
-                <Input id="end-time" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="col-span-2" />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <Label htmlFor="start-time">Start Time</Label>
+                  <Input id="start-time" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="end-time">End Time</Label>
+                  <Input id="end-time" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
+                </div>
               </div>
             </div>
             <div className="flex justify-end">
