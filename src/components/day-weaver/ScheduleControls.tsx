@@ -30,8 +30,8 @@ export default function ScheduleControls({
 
   return (
     <form onSubmit={handleSubmit} className="w-full space-y-4">
-      <div className="grid grid-cols-2 gap-4">
-        <div>
+      <div className="flex items-end gap-4">
+        <div className="flex-1">
           <Label htmlFor="start-time">Start Time</Label>
           <Input
             id="start-time"
@@ -42,7 +42,7 @@ export default function ScheduleControls({
             required
           />
         </div>
-        <div>
+        <div className="flex-1">
           <Label htmlFor="end-time">End Time</Label>
           <Input
             id="end-time"
