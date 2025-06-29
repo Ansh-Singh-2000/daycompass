@@ -53,26 +53,22 @@ const prompt = ai.definePrompt({
   name: 'generateFullSchedulePrompt',
   input: {schema: GenerateFullScheduleInputSchema},
   output: {schema: GenerateFullScheduleOutputSchema},
-  prompt: `You are an expert AI scheduling assistant. Your goal is to create an optimized, multi-day schedule based on a list of tasks and constraints. You must schedule ALL tasks provided.
+  prompt: `You are an expert AI assistant that creates multi-day schedules.
+Your task is to schedule all tasks from the provided JSON, respecting all constraints.
 
-**Context:**
-- **All Tasks (JSON):** {{{tasksAsJson}}}
-- **First Day to Schedule:** {{startDate}}
-- **Daily Time Window:** {{timeConstraints.startTime}} to {{timeConstraints.endTime}}
-- **Current Time:** {{currentDateTime}}
+Here is the context:
+- The tasks to schedule are in this JSON string: {{{tasksAsJson}}}
+- The current date and time is: {{currentDateTime}}
+- The first day for scheduling is: {{startDate}}
+- Your daily working hours are from {{timeConstraints.startTime}} to {{timeConstraints.endTime}}.
 
-**Core Directives (to be followed strictly):**
-1.  **Schedule All Tasks:** Every single task from the input JSON must be placed in the schedule.
-2.  **Respect Deadlines:** This is your highest priority. A task must be scheduled on or before its deadline. Tasks with earlier deadlines must be prioritized.
-3.  **No Overlapping Events:** Within a single day, tasks must not overlap. The start time of one task must be after the end time of the previous one.
-4.  **Prevent Burnout & Add Breaks:**
-    - Insert reasonable breaks between tasks. A 15-20 minute gap is appropriate for most tasks. Use a 30+ minute gap for tasks that are 90 minutes or longer.
-    - No more than 2 hours of continuous work should be scheduled without a break.
-    - A mandatory 60-minute break must be scheduled between 12:00 PM and 2:00 PM (14:00) on every day that contains tasks. Do not schedule any tasks during this lunch window.
-5.  **Smart Load Balancing:** If tasks have flexible deadlines, distribute them across multiple days to create a balanced workload. Do not cram everything into the first few days if it's not necessary.
-6.  **No Fictional Tasks:** Only schedule tasks from the provided list. Do not create tasks named "Break," "Lunch," "Rest," etc. The breaks are the empty time between scheduled tasks.
+Follow these rules strictly:
+1.  **Deadlines are critical.** Schedule every task on or before its due date. Prioritize tasks with earlier deadlines.
+2.  **Distribute the workload.** Balance tasks across multiple days to avoid cramming everything into the start of the week.
+3.  **No overlaps.** A task can only start after the previous one on the same day has finished.
+4.  **Include breaks.** Leave 15-30 minute gaps between tasks. You MUST schedule a 60-minute lunch break between 12:00 and 14:00 every day. Do not create tasks named "Break" or "Lunch"; they are just empty time slots.
 
-Generate the full schedule as a single JSON object where keys are dates ('YYYY-MM-DD') and values are the arrays of tasks for that day.
+Your output must be a single JSON object matching the requested schema.
 `,
 });
 
@@ -83,15 +79,28 @@ const generateFullScheduleFlow = ai.defineFlow(
     outputSchema: GenerateFullScheduleOutputSchema,
   },
   async (input) => {
-    console.log("Calling AI with input:", input);
-    const { output } = await prompt(input);
-    
-    if (!output) {
-      console.error('AI did not return a valid structured output.');
-      throw new Error('AI failed to generate a schedule.');
-    }
+    console.log("///////////////////////////////////////////");
+    console.log("///      INSIDE GENKIT FLOW             ///");
+    console.log("///////////////////////////////////////////");
+    console.log("Calling AI with input:", JSON.stringify(input, null, 2));
 
-    console.log("AI returned structured output:", output);
-    return output;
+    try {
+      const { output } = await prompt(input);
+      
+      console.log("AI returned structured output:", JSON.stringify(output, null, 2));
+
+      if (!output || Object.keys(output).length === 0) {
+        console.error('AI returned an empty or null structured output.');
+        throw new Error('AI failed to generate a schedule.');
+      }
+
+      return output;
+    } catch (e) {
+      console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+      console.error("!!! ERROR WITHIN THE GENKIT FLOW ITSELF !!!");
+      console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+      console.error("Error object:", e);
+      throw e; // Re-throw the error to be caught by the server action
+    }
   }
 );
