@@ -43,7 +43,6 @@ const aiModels = [
     { value: 'mixtral-8x7b-32768', label: 'mixtral-8x7b-32768' },
     { value: 'gemma2-9b-it', label: 'gemma2-9b-it' },
     { value: 'deepseek-r1-distill-llama-70b', label: 'deepseek-r1-distill-llama-70b', recommended: true },
-    { value: 'qwen-qwq-32b', label: 'qwen-qwq-32b' },
 ];
 
 export default function SettingsDialog({ 
@@ -164,38 +163,41 @@ export default function SettingsDialog({
                 </div>
               </div>
             </TabsContent>
-            <TabsContent value="blocked" className="flex-1 flex flex-col gap-4 py-4 min-h-0">
-              <div className="flex-1 flex flex-col min-h-0 space-y-3">
-                <div className="px-1 shrink-0">
-                    <h3 className="font-semibold text-foreground">Recurring Busy Times</h3>
-                    <p className="text-sm text-muted-foreground">
-                        The AI will avoid scheduling tasks during these daily blocks.
-                    </p>
-                </div>
-                <ScrollArea className="flex-1 rounded-md border">
-                  <div className="p-2 space-y-2">
-                    {blockedTimes.length === 0 ? (
-                        <p className="text-sm text-muted-foreground text-center py-4">No blocked times added.</p>
-                    ) : (
-                        blockedTimes.map((bt) => (
-                        <div key={bt.id} className="flex items-center justify-between p-2 bg-primary/10 rounded-md text-sm">
-                            <div>
-                            <p className="font-semibold">{bt.title}</p>
-                            <p className="text-muted-foreground">{bt.startTime} - {bt.endTime}</p>
-                            </div>
-                            <Button variant="ghost" size="icon" onClick={() => handleDeleteBlockedTime(bt.id)} aria-label={`Delete ${bt.title}`}>
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
+            <TabsContent value="blocked" className="flex-1 flex flex-col min-h-0 py-4">
+              <div className="grid md:grid-cols-2 gap-8 flex-1 px-1 min-h-0">
+                {/* Left Column: List */}
+                <div className="flex flex-col gap-3 min-h-0">
+                    <div className="shrink-0">
+                        <h3 className="font-semibold text-foreground">Recurring Busy Times</h3>
+                        <p className="text-sm text-muted-foreground">
+                            The AI will avoid scheduling tasks during these daily blocks.
+                        </p>
+                    </div>
+                    <ScrollArea className="flex-1 rounded-md border">
+                        <div className="p-2 space-y-2">
+                            {blockedTimes.length === 0 ? (
+                                <p className="text-sm text-muted-foreground text-center py-4">No blocked times added.</p>
+                            ) : (
+                                blockedTimes.map((bt) => (
+                                <div key={bt.id} className="flex items-center justify-between p-2 bg-primary/10 rounded-md text-sm">
+                                    <div>
+                                    <p className="font-semibold">{bt.title}</p>
+                                    <p className="text-muted-foreground">{bt.startTime} - {bt.endTime}</p>
+                                    </div>
+                                    <Button variant="ghost" size="icon" onClick={() => handleDeleteBlockedTime(bt.id)} aria-label={`Delete ${bt.title}`}>
+                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                    </Button>
+                                </div>
+                                ))
+                            )}
                         </div>
-                        ))
-                    )}
-                  </div>
-                </ScrollArea>
-              </div>
+                    </ScrollArea>
+                </div>
 
-              <div className="space-y-4 rounded-md border p-4 shrink-0">
-                  <h3 className="font-semibold text-foreground -mt-1">Add New Block</h3>
-                  <form onSubmit={handleAddBlockedTime} className="space-y-3">
+                {/* Right Column: Form */}
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-foreground">Add New Block</h3>
+                  <form onSubmit={handleAddBlockedTime} className="space-y-4 rounded-md border p-4">
                       <div>
                           <Label htmlFor="block-title">Title</Label>
                           <Input
@@ -206,8 +208,8 @@ export default function SettingsDialog({
                               required
                           />
                       </div>
-                      <div className="flex flex-col sm:flex-row items-end gap-2">
-                          <div className="flex-1 w-full">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
                               <Label htmlFor="block-start">Start Time</Label>
                               <Input
                               id="block-start"
@@ -217,7 +219,7 @@ export default function SettingsDialog({
                               required
                               />
                           </div>
-                          <div className="flex-1 w-full">
+                          <div>
                               <Label htmlFor="block-end">End Time</Label>
                               <Input
                               id="block-end"
@@ -227,11 +229,12 @@ export default function SettingsDialog({
                               required
                               />
                           </div>
-                          <Button type="submit" aria-label="Add Blocked Time" className="shrink-0 w-full sm:w-auto">
-                              <Plus className="h-4 w-4 mr-2" /> Add
-                          </Button>
                       </div>
+                      <Button type="submit" aria-label="Add Blocked Time" className="w-full">
+                        <Plus className="h-4 w-4 mr-2" /> Add
+                      </Button>
                   </form>
+                </div>
               </div>
             </TabsContent>
             <TabsContent value="ai" className="py-4 overflow-y-auto">
