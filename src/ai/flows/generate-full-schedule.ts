@@ -38,11 +38,13 @@ The JSON object must contain a \`scheduledTasks\` array. This array must include
 
 CRITICAL RULES (NON-NEGOTIABLE):
 1.  SCHEDULE ALL TASKS: You MUST place every single task from the input \`tasks\` list into the schedule. Do not omit any tasks.
-2.  ACCURATE DURATION: The duration for each scheduled task (the time between its \`startTime\` and \`endTime\`) MUST be exactly equal to its \`estimatedTime\` from the input task list. No exceptions.
-3.  NO OVERLAPPING: Tasks in the schedule MUST NOT overlap with each other. The \`startTime\` of any task must be greater than or equal to the \`endTime\` of the preceding task.
-4.  RESPECT DAILY AVAILABILITY: For every day you schedule a task on, that task must be entirely within the user's daily availability window: from \`${timeConstraints.startTime}\` to \`${timeConstraints.endTime}\`.
-5.  AVOID BLOCKED TIMES: For every day you schedule a task on, that task MUST NOT overlap with any of the user's recurring daily blocked times. These apply to every day.
-6.  RESPECT DEADLINES: A task with a deadline MUST be scheduled to finish on or before its deadline.
+2.  MAP ALL FIELDS: For each task you schedule, you MUST include its original \`id\` and \`title\` in the corresponding fields of the JSON output.
+3.  ACCURATE DURATION: The duration for each scheduled task (the time between its \`startTime\` and \`endTime\`) MUST be exactly equal to its \`estimatedTime\` from the input task list. No exceptions.
+4.  ISO 8601 FORMAT: All \`startTime\` and \`endTime\` values MUST be complete and valid ISO 8601 date-time strings (e.g., '2024-07-15T09:00:00.000Z').
+5.  NO OVERLAPPING: Tasks in the schedule MUST NOT overlap with each other. The \`startTime\` of any task must be greater than or equal to the \`endTime\` of the preceding task.
+6.  RESPECT DAILY AVAILABILITY: For every day you schedule a task on, that task must be entirely within the user's daily availability window: from \`${timeConstraints.startTime}\` to \`${timeConstraints.endTime}\`.
+7.  AVOID BLOCKED TIMES: For every day you schedule a task on, that task MUST NOT overlap with any of the user's recurring daily blocked times. These apply to every day.
+8.  RESPECT DEADLINES: A task with a deadline MUST be scheduled to finish on or before its deadline.
 
 Context:
 - The current date and time is: \`${currentDateTime}\`

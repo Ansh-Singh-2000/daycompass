@@ -40,10 +40,12 @@ ${JSON.stringify(GenerateFullScheduleOutputSchema.jsonSchema, null, 2)}
 CRITICAL RULES FOR SCHEDULE MODIFICATION (NON-NEGOTIABLE):
 If you decide to modify the schedule, the new schedule you generate MUST follow these rules:
 1.  SCHEDULE ALL TASKS: You MUST place every single task from the original \`tasks\` list into the new schedule.
-2.  ACCURATE DURATION: The duration for each scheduled task (\`endTime\` - \`startTime\`) MUST exactly match its \`estimatedTime\` from the original task list.
-3.  NO OVERLAPPING: Tasks MUST NOT overlap with each other, with recurring blocked times, or fall outside the daily availability window.
-4.  RESOLVE CONFLICTS: If a user's requested change causes a time conflict with another task, you MUST reschedule the conflicting task to a new, suitable, non-overlapping time.
-5.  RESPECT DEADLINES: All tasks must still meet their original deadlines.
+2.  MAP ALL FIELDS: For each task you schedule, you MUST include its original \`id\` and \`title\` in the corresponding fields of the JSON output.
+3.  ACCURATE DURATION: The duration for each scheduled task (\`endTime\` - \`startTime\`) MUST exactly match its \`estimatedTime\` from the original task list.
+4.  ISO 8601 FORMAT: All \`startTime\` and \`endTime\` values MUST be complete and valid ISO 8601 date-time strings (e.g., '2024-07-15T09:00:00.000Z').
+5.  NO OVERLAPPING: Tasks MUST NOT overlap with each other, with recurring blocked times, or fall outside the daily availability window.
+6.  RESOLVE CONFLICTS: If a user's requested change causes a time conflict with another task, you MUST reschedule the conflicting task to a new, suitable, non-overlapping time.
+7.  RESPECT DEADLINES: All tasks must still meet their original deadlines.
 
 User's Request:
 "${userRequest}"
