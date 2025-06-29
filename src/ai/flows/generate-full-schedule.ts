@@ -42,34 +42,12 @@ const GenerateFullScheduleOutputSchema = z.record(
 export type GenerateFullScheduleOutput = z.infer<typeof GenerateFullScheduleOutputSchema>;
 
 
-// DEBUGGING: This function now bypasses the AI and returns hardcoded data.
 export async function generateFullSchedule(
   input: GenerateFullScheduleInput
 ): Promise<GenerateFullScheduleOutput> {
-  console.log('--- DEBUG: INSIDE `generateFullSchedule` ---');
-
-  const today = new Date();
-  const todayKey = today.toISOString().split('T')[0];
-  const tomorrow = new Date();
-  tomorrow.setDate(today.getDate() + 1);
-  const tomorrowKey = tomorrow.toISOString().split('T')[0];
-
-  const debugSchedule: GenerateFullScheduleOutput = {
-    [todayKey]: [
-      { name: 'DEBUG: First Day Task', startTime: '09:00', endTime: '10:00' }
-    ],
-    [tomorrowKey]: [
-      { name: 'DEBUG: Second Day Task', startTime: '11:00', endTime: '12:00' }
-    ]
-  };
-  
-  console.log('--- DEBUG: Returning hardcoded schedule. ---');
-  return Promise.resolve(debugSchedule);
+  return generateFullScheduleFlow(input);
 }
 
-
-// The original AI flow is commented out for debugging purposes.
-/*
 const prompt = ai.definePrompt({
   name: 'generateFullSchedulePrompt',
   input: {schema: GenerateFullScheduleInputSchema},
@@ -125,4 +103,3 @@ const generateFullScheduleFlow = ai.defineFlow(
     }
   }
 );
-*/
