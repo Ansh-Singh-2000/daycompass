@@ -148,16 +148,6 @@ export default function Home() {
     setTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
   }, []);
 
-  const schedulesRef = useRef(schedules);
-  useEffect(() => {
-    schedulesRef.current = schedules;
-  }, [schedules]);
-
-  const tasksRef = useRef(tasks);
-  useEffect(() => {
-    tasksRef.current = tasks;
-  }, [tasks]);
-
   // --- TASK & SCHEDULE LOGIC ---
   const runConfetti = () => {
     confetti({
@@ -178,41 +168,55 @@ export default function Home() {
         const itemIndex = newSchedules[dateKey].findIndex((item: ScheduleItem) => item.id === id);
         if (itemIndex > -1) {
           const isCurrentlyCompleted = newSchedules[dateKey][itemIndex].isCompleted;
-          newSchedules[dateKey][itemIndex].isCompleted = !isCurrentlyCompleted;
           if (!isCurrentlyCompleted) {
-            wasJustCompleted = true;
+             newSchedules[dateKey][itemIndex].isCompleted = true;
+             wasJustCompleted = true;
           }
           itemFound = true;
-          break; // Assume unique IDs, so we can stop
+          break;
         }
       }
       
       if (itemFound) {
         return newSchedules;
       }
-      return prevSchedules; // No change
+      return prevSchedules;
     });
 
     if (wasJustCompleted) {
         runConfetti();
         setPoints(p => ({ ...p, gains: p.gains + 1 }));
-    } else {
-        // This handles toggling back to incomplete
-        setPoints(p => ({ ...p, gains: Math.max(0, p.gains - 1) }));
     }
   }, [setSchedules, setPoints]);
+  
+  const handleToastDismiss = useCallback((taskId: string) => {
+      if (actionedToastIds.current.has(taskId)) {
+        actionedToastIds.current.delete(taskId);
+        return;
+      }
 
-  const checkOverdueTasks = useCallback((schedulesToCheck?: Record<string, ScheduleItem[]>) => {
+      let wasIncomplete = false;
+      for (const dateKey in schedules) {
+          const item = schedules[dateKey].find(i => i.id === taskId);
+          if (item && !item.isCompleted) {
+              wasIncomplete = true;
+              break;
+          }
+      }
+
+      if (wasIncomplete) {
+          setPoints(p => ({ ...p, losses: p.losses + 1 }));
+      }
+  }, [schedules, setPoints]);
+
+  const checkOverdueTasks = useCallback((schedulesToCheck: Record<string, ScheduleItem[]>) => {
     const now = new Date();
-    const currentTasks = tasksRef.current;
-    const currentSchedules = schedulesToCheck || schedulesRef.current;
-
     const newlyOverdueTasks: { task: Task; dateKey: string }[] = [];
     const taskIdsToMarkAsNotified = new Set<string>();
 
-    for (const [dateKey, scheduleItems] of Object.entries(currentSchedules)) {
+    for (const [dateKey, scheduleItems] of Object.entries(schedulesToCheck)) {
       for (const item of scheduleItems) {
-        const masterTask = currentTasks.find(t => t.id === item.id);
+        const masterTask = tasks.find(t => t.id === item.id);
 
         if (!masterTask || item.isCompleted || masterTask.overdueNotified) {
           continue;
@@ -233,7 +237,7 @@ export default function Home() {
         )
       );
 
-      newlyOverdueTasks.forEach(({ task, dateKey }) => {
+      newlyOverdueTasks.forEach(({ task }) => {
         toast({
           variant: 'destructive',
           title: 'Task Overdue!',
@@ -249,35 +253,29 @@ export default function Home() {
           ),
           onOpenChange: (open) => {
             if (!open) {
-              if (actionedToastIds.current.has(task.id)) {
-                actionedToastIds.current.delete(task.id);
-                return;
-              }
-              
-              const latestSchedules = schedulesRef.current;
-              const latestItem = latestSchedules[dateKey]?.find(i => i.id === task.id);
-              if (latestItem && !latestItem.isCompleted) {
-                setPoints(p => ({ ...p, losses: p.losses + 1 }));
-              }
+                handleToastDismiss(task.id);
             }
           },
         });
       });
     }
-  }, [toast, handleToggleComplete, setPoints, setTasks]);
-  
+  }, [tasks, toast, setTasks, handleToggleComplete, handleToastDismiss]);
+
+  const checkOverdueTasksRef = useRef(checkOverdueTasks);
   useEffect(() => {
-    const check = () => checkOverdueTasks();
-    // Check on initial load after a short delay to ensure state is ready
+      checkOverdueTasksRef.current = checkOverdueTasks;
+  });
+
+  useEffect(() => {
+    const check = () => checkOverdueTasksRef.current(schedules);
     const initialCheckTimeout = setTimeout(check, 1000);
-    // Then check every minute
     const intervalId = setInterval(check, 60000);
 
     return () => {
       clearTimeout(initialCheckTimeout);
       clearInterval(intervalId);
     };
-  }, [checkOverdueTasks]);
+  }, [schedules]);
 
 
   const dateKey = format(viewedDate, 'yyyy-MM-dd');
