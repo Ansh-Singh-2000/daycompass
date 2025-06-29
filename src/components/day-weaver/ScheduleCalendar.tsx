@@ -242,7 +242,7 @@ export default function ScheduleCalendar({
                 transition={{ delay: index * 0.05 }}
                 className={cn(
                   'absolute p-3 text-sm rounded-lg shadow-lg transition-all duration-300 overflow-hidden',
-                  item.isCompleted ? 'bg-green-100/80 dark:bg-green-500/20 border border-green-200 dark:border-green-500/40' : 'bg-card',
+                  item.isCompleted ? 'bg-green-100/80 dark:bg-green-800/30 border border-green-200 dark:border-green-700/50' : 'bg-card dark:bg-secondary',
                 )}
                 style={{
                   top: `${top}rem`,
