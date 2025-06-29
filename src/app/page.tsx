@@ -13,7 +13,6 @@ import SettingsDialog from '@/components/day-weaver/SettingsDialog';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 import { CalendarDays, ChevronLeft, ChevronRight, Info } from 'lucide-react';
 import { addDays, format, parseISO } from 'date-fns';
 
@@ -169,21 +168,20 @@ export default function Home() {
         blockedTimes={blockedTimes}
         setBlockedTimes={setBlockedTimes}
       />
-      <div className="px-4 pt-4 lg:px-6 lg:pt-6">
+      <header className="px-4 lg:px-6 py-3 border-b shrink-0">
         <Header onSettingsClick={() => setIsSettingsOpen(true)} />
-      </div>
-      <main className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 px-4 pb-4 lg:px-6 lg:pb-6 overflow-hidden">
+      </header>
+      <main className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 px-4 py-4 lg:px-6 lg:py-4 overflow-hidden">
         {/* Left Panel: Task Management */}
         <Card className="lg:col-span-1 flex flex-col overflow-hidden">
-          <CardHeader>
+          <CardHeader className="p-4">
             <CardTitle>Tasks & Scheduling</CardTitle>
             <CardDescription>Add tasks, set availability, and generate your schedule.</CardDescription>
           </CardHeader>
-          <CardContent className="flex-1 flex flex-col gap-4 p-4 pt-2 overflow-hidden">
-            <div className="pt-2">
+          <CardContent className="flex-1 flex flex-col gap-2 p-4 pt-0 overflow-hidden">
+            <div>
               <TaskForm onAddTask={handleAddTask} />
             </div>
-            <Separator />
             <div className="flex-1 min-h-0">
               <TaskList tasks={tasks} onDeleteTask={handleDeleteTask} onReorderTasks={handleReorderTasks} />
             </div>

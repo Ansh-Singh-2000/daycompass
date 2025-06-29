@@ -39,7 +39,7 @@ export default function TaskList({ tasks, onDeleteTask, onReorderTasks }: TaskLi
 
   return (
     <div className="flex h-full flex-col">
-      <h3 className="mb-2 shrink-0 text-lg font-medium">Your Tasks</h3>
+      <h3 className="mb-2 shrink-0 text-base font-semibold">Your Tasks</h3>
       <ScrollArea className="flex-1">
         {tasks.length === 0 ? (
           <div className="flex h-full items-center justify-center rounded-lg border-2 border-dashed text-center pr-4">
