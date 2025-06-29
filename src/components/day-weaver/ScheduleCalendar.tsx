@@ -162,8 +162,8 @@ export default function ScheduleCalendar({
             <div
               key={hour}
               className={cn(
-                "text-right pr-2 pt-1",
-                index > 0 && "border-t-2 border-slate-200 dark:border-slate-700"
+                "text-right pr-2",
+                "border-t-2 border-slate-200 dark:border-slate-700"
               )}
               style={{ height: `${HOUR_HEIGHT_REM}rem` }}
             >
@@ -179,7 +179,7 @@ export default function ScheduleCalendar({
         <div className="relative">
           {/* Hour lines */}
           {hourSegments.map((hour, index) => (
-            index > 0 && <div
+            <div
               key={`line-${hour}`}
               className="absolute w-full border-t-2 border-slate-200 dark:border-slate-700"
               style={{ top: `${index * HOUR_HEIGHT_REM}rem` }}
@@ -193,12 +193,17 @@ export default function ScheduleCalendar({
             
             const itemStartMinutes = itemStart.getHours() * 60 + itemStart.getMinutes();
             const itemEndMinutes = itemEnd.getHours() * 60 + itemEnd.getMinutes();
-            const itemDuration = itemEndMinutes - itemStartMinutes;
+            
+            if (itemEndMinutes <= startMinutes || itemStartMinutes >= endMinutes) return null;
 
-            const top = ((itemStartMinutes - startMinutes) / 60) * HOUR_HEIGHT_REM;
-            const height = (itemDuration / 60) * HOUR_HEIGHT_REM;
+            const visibleStartMinutes = Math.max(itemStartMinutes, startMinutes);
+            const visibleEndMinutes = Math.min(itemEndMinutes, endMinutes);
+            const visibleDuration = visibleEndMinutes - visibleStartMinutes;
 
-            if (itemStartMinutes < startMinutes || itemEndMinutes > endMinutes || itemDuration <=0) return null;
+            if (visibleDuration <= 0) return null;
+
+            const top = ((visibleStartMinutes - startMinutes) / 60) * HOUR_HEIGHT_REM;
+            const height = (visibleDuration / 60) * HOUR_HEIGHT_REM;
 
             return (
               <div
@@ -225,12 +230,17 @@ export default function ScheduleCalendar({
             
             const itemStartMinutes = startDate.getHours() * 60 + startDate.getMinutes();
             const itemEndMinutes = endDate.getHours() * 60 + endDate.getMinutes();
-            const itemDuration = itemEndMinutes - itemStartMinutes;
 
-            const top = ((itemStartMinutes - startMinutes) / 60) * HOUR_HEIGHT_REM;
-            const height = (itemDuration / 60) * HOUR_HEIGHT_REM;
+            if (itemEndMinutes <= startMinutes || itemStartMinutes >= endMinutes) return null;
 
-            if (itemStartMinutes < startMinutes || itemEndMinutes > endMinutes || itemDuration <=0) return null;
+            const visibleStartMinutes = Math.max(itemStartMinutes, startMinutes);
+            const visibleEndMinutes = Math.min(itemEndMinutes, endMinutes);
+            const visibleDuration = visibleEndMinutes - visibleStartMinutes;
+            
+            if (visibleDuration <= 0) return null;
+            
+            const top = ((visibleStartMinutes - startMinutes) / 60) * HOUR_HEIGHT_REM;
+            const height = (visibleDuration / 60) * HOUR_HEIGHT_REM;
 
             const { columns, column, zIndex } = item.layout;
             const widthPercent = 100 / columns;
