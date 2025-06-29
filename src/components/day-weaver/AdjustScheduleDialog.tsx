@@ -44,6 +44,7 @@ export default function AdjustScheduleDialog({
   const [chatInput, setChatInput] = useState("");
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -65,6 +66,14 @@ export default function AdjustScheduleDialog({
     }
   }, [chatHistory]);
 
+  useEffect(() => {
+    // When the dialog is open and we are not in the middle of an adjustment,
+    // focus the input field. This handles both initial open and re-focusing after an adjustment.
+    if (isOpen && !isAdjusting) {
+        inputRef.current?.focus();
+    }
+  }, [isOpen, isAdjusting]);
+
 
   const handleChatSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,8 +82,10 @@ export default function AdjustScheduleDialog({
     const userMessage: ChatMessage = { role: 'user', content: chatInput, id: uuidv4() };
     setChatHistory(prev => [...prev, userMessage]);
     
-    await onAdjust(chatInput);
+    const currentInput = chatInput;
     setChatInput("");
+
+    await onAdjust(currentInput);
   };
 
   return (
@@ -120,6 +131,7 @@ export default function AdjustScheduleDialog({
               <div className="p-4 border-t">
                 <form onSubmit={handleChatSubmit} className="flex items-center gap-2">
                     <Input
+                        ref={inputRef}
                         value={chatInput}
                         onChange={(e) => setChatInput(e.target.value)}
                         placeholder="e.g., 'Move Physics to 7pm'"
@@ -137,7 +149,7 @@ export default function AdjustScheduleDialog({
           {/* Right: Proposed Schedule */}
           <div className="flex flex-col gap-4 min-h-0">
             <h3 className="text-lg font-semibold">Proposed Schedule</h3>
-            <Card className="flex-1 bg-background/50 overflow-y-auto relative">
+            <Card className="flex-1 bg-background/50 overflow-y-auto">
                 <div className="space-y-2 p-4">
                 {proposedSchedule.map(task => (
                     <ProposedScheduleItem key={task.id} task={task} />

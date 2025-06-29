@@ -37,16 +37,16 @@ The user's timezone is: \`{{{timezone}}}\`. All dates and times are in this time
 {{/each}}
 
 **Your Task:**
-1.  **Analyze the user's request.**
-2.  **If the request is a clear instruction to change the schedule** (e.g., "move physics to 7pm", "reschedule my test for tomorrow"):
-    - Generate a NEW, complete schedule that incorporates the change.
+1.  **Analyze the user's request to determine its intent.**
+2.  **Is the user just chatting or asking a question?** If the request is NOT a clear instruction to change the schedule (e.g., it's a question like "why is this scheduled then?", a general comment like "that looks good", or ambiguous like "hi"), then you MUST NOT change the schedule. Your primary goal is to be a helpful assistant.
+    - **Action:** Return the \`currentScheduledTasks\` list *exactly as it was given to you*, without any modifications.
+    - **Response:** In the \`reasoning\` field, provide a helpful, conversational response to the user's request. Answer their question or acknowledge their comment. If the request was unclear, ask for clarification (e.g., "I'm happy to help with that, could you be more specific about the change you'd like?").
+3.  **Is the user requesting a schedule change?** If the request is a clear instruction (e.g., "move physics to 7pm", "reschedule my test for tomorrow"):
+    - **Action:** Generate a NEW, complete schedule that incorporates the change.
     - You **MUST** place every single task from the original list into the new schedule.
     - **Conflict Resolution:** If your change causes a time conflict with another task, you **MUST** reschedule the conflicting task to a new, suitable time. Do not simply remove it or place it on top of another task.
     - Respect all deadlines, priorities, and blocked times from the original context. Adhere to the user's timezone ({{{timezone}}}).
-    - In the \`reasoning\` field, explain the changes you made and why. If you had to move other tasks to resolve a conflict, clearly state which tasks were moved and why.
-3.  **If the request is NOT a clear instruction to change the schedule** (e.g., it's a question like "why is this scheduled then?", a general comment like "that looks good", or ambiguous like "hi"):
-    - Do **NOT** change the schedule. Return the \`currentScheduledTasks\` exactly as they were given to you.
-    - In the \`reasoning\` field, provide a helpful, conversational response to the user's request. Explain why you are not changing the schedule if relevant (e.g., "That's a bit too vague, could you be more specific?").
+    - **Response:** In the \`reasoning\` field, explain the changes you made and why. If you had to move other tasks to resolve a conflict, clearly state which tasks were moved and why.
 
 **Original Task List & Constraints (for reference when making changes):**
 {{#each tasks}}
