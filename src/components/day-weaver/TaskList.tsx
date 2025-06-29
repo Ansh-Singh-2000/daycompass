@@ -1,8 +1,9 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import type { Task } from '@/lib/types';
 import TaskItem from './TaskItem';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 type TaskListProps = {
   tasks: Task[];
@@ -38,7 +39,7 @@ export default function TaskList({ tasks, onDeleteTask, onReorderTasks }: TaskLi
 
   if (tasks.length === 0) {
     return (
-      <div className="text-center py-8 px-4 border-2 border-dashed rounded-lg">
+      <div className="flex h-full flex-col items-center justify-center rounded-lg border-2 border-dashed text-center">
         <p className="text-muted-foreground">Your task list is empty.</p>
         <p className="text-sm text-muted-foreground/80">Add a task above to get started.</p>
       </div>
@@ -46,22 +47,24 @@ export default function TaskList({ tasks, onDeleteTask, onReorderTasks }: TaskLi
   }
 
   return (
-    <div className="space-y-2">
-      <h3 className="text-lg font-medium">Your Tasks</h3>
-      <ul className="space-y-2">
-        {tasks.map((task, index) => (
-          <li 
-            key={task.id}
-            draggable
-            onDragStart={(e) => handleDragStart(e, index)}
-            onDragOver={(e) => handleDragOver(e, index)}
-            onDragEnd={handleDragEnd}
-            className={`transition-opacity ${draggedIndex === index ? 'opacity-50' : 'opacity-100'}`}
-          >
-            <TaskItem task={task} onDelete={() => onDeleteTask(task.id)} />
-          </li>
-        ))}
-      </ul>
+    <div className="flex h-full flex-col">
+      <h3 className="mb-2 shrink-0 text-lg font-medium">Your Tasks</h3>
+      <ScrollArea className="flex-1">
+        <ul className="space-y-2 pr-4">
+          {tasks.map((task, index) => (
+            <li 
+              key={task.id}
+              draggable
+              onDragStart={(e) => handleDragStart(e, index)}
+              onDragOver={(e) => handleDragOver(e, index)}
+              onDragEnd={handleDragEnd}
+              className={`transition-opacity ${draggedIndex === index ? 'opacity-50' : 'opacity-100'}`}
+            >
+              <TaskItem task={task} onDelete={() => onDeleteTask(task.id)} />
+            </li>
+          ))}
+        </ul>
+      </ScrollArea>
     </div>
   );
 }
