@@ -1,7 +1,15 @@
-import {genkit} from 'genkit';
-import {googleAI} from '@genkit-ai/googleai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
-export const ai = genkit({
-  plugins: [googleAI()],
-  model: 'googleai/gemini-1.5-flash-latest',
+// IMPORTANT: The user must add their GEMINI_API_KEY to the .env file.
+const apiKey = process.env.GEMINI_API_KEY;
+
+if (!apiKey) {
+  // This error will be caught by the server action and displayed to the user.
+  throw new Error('GEMINI_API_KEY environment variable not set.');
+}
+
+const genAI = new GoogleGenerativeAI(apiKey);
+
+export const geminiModel = genAI.getGenerativeModel({
+  model: 'gemini-1.5-flash-latest',
 });

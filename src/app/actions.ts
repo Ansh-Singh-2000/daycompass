@@ -8,7 +8,11 @@ import { differenceInMinutes, isBefore, parseISO, format } from 'date-fns';
 async function handleAIError(error: unknown) {
     let errorMessage = 'An unexpected error occurred with the AI. Please try again.';
     if (error instanceof Error) {
-        errorMessage = `An AI error occurred: ${error.message}`;
+        if (error.message.includes('GEMINI_API_KEY')) {
+            errorMessage = 'The Gemini API key is not configured. Please set it in your environment variables.';
+        } else {
+            errorMessage = `An AI error occurred: ${error.message}`;
+        }
     }
     console.error(error);
     return { success: false, error: errorMessage };
