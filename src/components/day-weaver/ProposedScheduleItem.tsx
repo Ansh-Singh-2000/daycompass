@@ -2,7 +2,7 @@ import type { ProposedTask } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, isValid } from 'date-fns';
 
 type ProposedScheduleItemProps = {
   task: ProposedTask;
@@ -15,14 +15,22 @@ const priorityStyles = {
 };
 
 export default function ProposedScheduleItem({ task }: ProposedScheduleItemProps) {
+  const startDate = parseISO(task.startTime);
+  const endDate = parseISO(task.endTime);
+  const areDatesValid = isValid(startDate) && isValid(endDate);
+
   return (
     <Card className="p-3 bg-secondary/30">
         <div className="flex items-start justify-between gap-4">
             <div className="flex-1 min-w-0">
                 <p className="font-semibold text-card-foreground truncate">{task.title}</p>
-                <p className="text-sm text-muted-foreground">
-                    {format(parseISO(task.startTime), "E, MMM d, h:mm a")} - {format(parseISO(task.endTime), "h:mm a")}
-                </p>
+                {areDatesValid ? (
+                  <p className="text-sm text-muted-foreground">
+                      {format(startDate, "E, MMM d, h:mm a")} - {format(endDate, "h:mm a")}
+                  </p>
+                ) : (
+                  <p className="text-sm text-destructive">Invalid time from AI</p>
+                )}
             </div>
             <Badge variant="outline" className={cn("capitalize flex-shrink-0", priorityStyles[task.priority])}>
                 {task.priority}
