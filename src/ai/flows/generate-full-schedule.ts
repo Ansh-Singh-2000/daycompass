@@ -55,18 +55,21 @@ const prompt = ai.definePrompt({
   name: 'generateFullSchedulePrompt',
   input: {schema: GenerateFullScheduleInputSchema},
   output: {schema: GenerateFullScheduleOutputSchema},
-  prompt: `You are a master scheduling assistant. Your goal is to create a complete, multi-day schedule based on a list of tasks and user constraints.
+  prompt: `You are a master scheduling assistant. Your goal is to create a logical and efficient multi-day schedule. You must follow these rules without exception.
 
-Rules:
-1.  **Analyze All Tasks:** Review the entire list of tasks provided in \`tasksAsJson\`.
-2.  **Distribute Intelligently:** Distribute the tasks across multiple days, starting from \`startDate\`.
-3.  **Respect Deadlines:** Tasks with earlier deadlines MUST be scheduled first.
-4.  **No Overlaps:** Within a single day, tasks must not overlap. There should be a small gap between each task.
-5.  **Daily Hours:** Schedule tasks only within the user's provided \`timeConstraints.startTime\` and \`timeConstraints.endTime\`.
-6.  **Include Breaks:** Ensure there's a significant lunch break around noon (e.g., 60 minutes). Do not create a "Lunch" task; simply leave a gap in the schedule.
-7.  **Schedule All Tasks:** You MUST schedule every single task provided in \`tasksAsJson\`. Do not omit any tasks. The final schedule must account for all of them.
-8.  **Date Format:** Dates in the output must be a string in the exact 'YYYY-MM-DD' format.
-9.  **Output Format:** Your final output must be a single JSON object that strictly adheres to the provided schema, with a top-level "schedules" property containing an array of daily schedules.`,
+**CRITICAL CONTEXT:**
+- The current date and time is: \`{{{currentDateTime}}}\`.
+- Scheduling should begin on \`{{{startDate}}}\`.
+
+**RULES:**
+1.  **DEADLINE ADHERENCE IS PARAMOUNT:** A task with a deadline **MUST** be scheduled on or before its deadline date. This is your most important rule. If a deadline has already passed, schedule the task as early as possible starting from \`{{{startDate}}}\`.
+2.  **PRIORITIZE URGENT TASKS:** Tasks with earlier deadlines must be scheduled before tasks with later deadlines.
+3.  **SCHEDULE ALL TASKS:** You MUST schedule every single task provided in \`tasksAsJson\`. Do not omit any tasks.
+4.  **RESPECT DAILY HOURS:** Schedule tasks strictly within the user's provided \`timeConstraints.startTime\` and \`timeConstraints.endTime\`.
+5.  **NO OVERLAPS:** Tasks on the same day must not overlap. Leave a small buffer (5-15 minutes) between consecutive tasks.
+6.  **INCLUDE BREAKS:** Ensure there's a significant lunch break around noon (e.g., 60 minutes). Do not create a "Lunch" task; simply leave a gap in the schedule.
+7.  **DATE FORMAT:** Dates in the output must be a string in the exact 'YYYY-MM-DD' format.
+8.  **OUTPUT FORMAT:** Your final output must be a single JSON object that strictly adheres to the provided schema, with a top-level "schedules" property containing an array of daily schedules.`,
 });
 
 const generateFullScheduleFlow = ai.defineFlow(
