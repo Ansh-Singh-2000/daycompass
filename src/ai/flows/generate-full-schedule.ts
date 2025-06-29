@@ -64,7 +64,8 @@ Rules:
 4.  **No Overlaps:** Within a single day, tasks must not overlap. There should be a small gap between each task.
 5.  **Daily Hours:** Schedule tasks only within the user's provided \`timeConstraints.startTime\` and \`timeConstraints.endTime\`.
 6.  **Include Breaks:** Ensure there's a significant lunch break around noon (e.g., 60 minutes). Do not create a "Lunch" task; simply leave a gap in the schedule.
-7.  **Output Format:** Your final output must be a single JSON object that strictly adheres to the provided schema, with a top-level "schedules" property containing an array of daily schedules.`,
+7.  **Schedule All Tasks:** You MUST schedule every single task provided in \`tasksAsJson\`. Do not omit any tasks. The final schedule must account for all of them.
+8.  **Output Format:** Your final output must be a single JSON object that strictly adheres to the provided schema, with a top-level "schedules" property containing an array of daily schedules.`,
 });
 
 const generateFullScheduleFlow = ai.defineFlow(
@@ -84,7 +85,7 @@ const generateFullScheduleFlow = ai.defineFlow(
       
       console.log("AI returned structured output:", JSON.stringify(output, null, 2));
 
-      if (!output || !output.schedules || output.schedules.length === 0) {
+      if (!output || !output.schedules) {
         console.error('AI returned an empty or null structured output.');
         throw new Error('AI failed to generate a schedule.');
       }
