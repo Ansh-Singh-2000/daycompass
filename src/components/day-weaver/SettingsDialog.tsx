@@ -108,7 +108,7 @@ export default function SettingsDialog({
                   <p className="text-sm text-muted-foreground -mt-2">
                       Set your typical daily start and end times. The AI will only schedule tasks within this window.
                   </p>
-                  <div className="flex items-end gap-4">
+                  <div className="flex flex-col sm:flex-row sm:items-end gap-4">
                       <div className="flex-1">
                           <Label htmlFor="start-time">Daily Start Time</Label>
                           <Input
@@ -136,7 +136,7 @@ export default function SettingsDialog({
                   <p className="text-sm text-muted-foreground -mt-2">
                       Set your typical wake and sleep times to adjust the visible range on the calendar.
                   </p>
-                  <div className="flex items-end gap-4">
+                  <div className="flex flex-col sm:flex-row sm:items-end gap-4">
                       <div className="flex-1">
                           <Label htmlFor="wake-time">Wake Up Time</Label>
                           <Input
@@ -189,8 +189,8 @@ export default function SettingsDialog({
 
                 <form onSubmit={handleAddBlockedTime} className="space-y-3 shrink-0">
                     <Label>Add New Block</Label>
-                    <div className="flex items-end gap-2">
-                    <div className="flex-grow">
+                    <div className="flex flex-col sm:flex-row items-end gap-2">
+                    <div className="flex-grow w-full">
                         <Label htmlFor="block-title" className="sr-only">Title</Label>
                         <Input
                         id="block-title"
@@ -200,7 +200,7 @@ export default function SettingsDialog({
                         required
                         />
                     </div>
-                    <div className="w-[130px]">
+                    <div className="w-full sm:w-[130px]">
                         <Label htmlFor="block-start" className="sr-only">Start Time</Label>
                         <Input
                         id="block-start"
@@ -210,7 +210,7 @@ export default function SettingsDialog({
                         required
                         />
                     </div>
-                    <div className="w-[130px]">
+                    <div className="w-full sm:w-[130px]">
                         <Label htmlFor="block-end" className="sr-only">End Time</Label>
                         <Input
                         id="block-end"
@@ -220,7 +220,7 @@ export default function SettingsDialog({
                         required
                         />
                     </div>
-                    <Button type="submit" aria-label="Add Blocked Time" className="px-3">
+                    <Button type="submit" aria-label="Add Blocked Time" className="px-3 w-full sm:w-auto">
                         <Plus className="h-4 w-4 mr-1" /> Add
                     </Button>
                     </div>
