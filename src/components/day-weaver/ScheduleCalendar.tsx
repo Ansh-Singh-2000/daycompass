@@ -158,10 +158,13 @@ export default function ScheduleCalendar({
       >
         {/* Time Column */}
         <div className="border-r-2 border-slate-200 dark:border-slate-700">
-          {hourSegments.map((hour) => (
+          {hourSegments.map((hour, index) => (
             <div
               key={hour}
-              className="text-right pr-2 pt-1 border-b-2 border-slate-200 dark:border-slate-700"
+              className={cn(
+                "text-right pr-2 pt-1",
+                index > 0 && "border-t-2 border-slate-200 dark:border-slate-700"
+              )}
               style={{ height: `${HOUR_HEIGHT_REM}rem` }}
             >
               <span className="text-xs font-medium text-gray-500 dark:text-gray-400 -translate-y-1/2 relative top-0">
