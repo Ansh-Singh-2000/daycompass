@@ -45,6 +45,7 @@ CRITICAL RULES (NON-NEGOTIABLE):
 6.  RESPECT DAILY AVAILABILITY: For every day you schedule a task on, that task must be entirely within the user's daily availability window: from \`${timeConstraints.startTime}\` to \`${timeConstraints.endTime}\`.
 7.  AVOID BLOCKED TIMES: For every day you schedule a task on, that task MUST NOT overlap with any of the user's recurring daily blocked times. These apply to every day.
 8.  RESPECT DEADLINES: A task with a deadline MUST be scheduled to finish on or before its deadline.
+9.  SCHEDULE IN THE FUTURE: All tasks must be scheduled to start on or after the \`currentDateTime\`. Do not schedule any tasks in the past.
 
 Context:
 - The current date and time is: \`${currentDateTime}\`

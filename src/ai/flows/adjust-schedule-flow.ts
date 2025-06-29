@@ -16,7 +16,7 @@ export type AdjustScheduleInput = z.infer<typeof AdjustScheduleInputSchema>;
 export type AdjustScheduleOutput = z.infer<typeof GenerateFullScheduleOutputSchema>;
 
 function buildPrompt(input: AdjustScheduleInput): string {
-    const { tasks, blockedTimes, timeConstraints, currentScheduledTasks, userRequest, timezone } = input;
+    const { tasks, blockedTimes, timeConstraints, currentScheduledTasks, userRequest, timezone, currentDateTime } = input;
     
     const taskDetails = tasks.map(task => 
         `- "${task.title}" (ID: ${task.id}), Estimated Time: ${task.estimatedTime} min, Priority: ${task.priority}` +
@@ -53,9 +53,12 @@ CRITICAL RULES FOR SCHEDULE MODIFICATION (apply ONLY if you change the schedule)
 5.  NO OVERLAPPING: Tasks MUST NOT overlap with each other, with recurring blocked times, or fall outside the daily availability window.
 6.  RESOLVE CONFLICTS: If a user's requested change causes a time conflict with another task, you MUST reschedule the conflicting task to a new, suitable, non-overlapping time.
 7.  RESPECT DEADLINES: All tasks must still meet their original deadlines.
+8.  SCHEDULE IN THE FUTURE: Any newly scheduled or rescheduled \`startTime\` must be in the future, occurring after the \`currentDateTime\`. Do not move tasks to a time in the past.
 
 ---
 CONTEXT:
+
+- Current Date & Time: \`${currentDateTime}\`
 
 User's Request:
 "${userRequest}"

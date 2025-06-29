@@ -156,23 +156,18 @@ export default function Home() {
   };
 
   const handleToggleComplete = useCallback((id: string) => {
-    // Use the ref to get the absolute latest tasks state to prevent race conditions.
     const task = tasksRef.current.find(t => t.id === id);
     if (!task || task.isCompleted) {
-        // If task is not found or already completed, do nothing.
-        return;
+      return;
     }
-
-    // If we're here, the task exists and is not complete.
-    // Award a point and mark it as complete.
+  
     runConfetti();
     setPoints(p => ({ ...p, gains: p.gains + 1 }));
-
-    // Update the task state.
+  
     setTasks(prevTasks =>
-        prevTasks.map(t =>
-            t.id === id ? { ...t, isCompleted: true } : t
-        )
+      prevTasks.map(t =>
+        t.id === id ? { ...t, isCompleted: true } : t
+      )
     );
   }, [setPoints, setTasks]);
   
@@ -181,7 +176,6 @@ export default function Home() {
         actionedToastIds.current.delete(taskId);
         return;
       }
-      // Only penalize if the task is still not completed.
       const task = tasksRef.current.find(t => t.id === taskId);
       if (task && !task.isCompleted) {
         setPoints(p => ({ ...p, losses: p.losses + 1 }));
@@ -240,9 +234,7 @@ export default function Home() {
 
   useEffect(() => {
     const check = () => checkOverdueTasksRef.current();
-    // Check immediately on mount
     const initialCheckTimeout = setTimeout(check, 1000); 
-    // Then check every minute
     const intervalId = setInterval(check, 60000); 
 
     return () => {
@@ -255,22 +247,18 @@ export default function Home() {
   const handleAddTask = (task: Omit<Task, 'id'>) => {
     const newTask = { ...task, id: uuidv4() };
     setTasks(prev => [...prev, newTask]);
-    // Reset schedule for this task if it existed
-    setTasks(prev => prev.map(t => t.id === newTask.id ? { ...t, startTime: undefined, endTime: undefined, isCompleted: undefined, overdueNotified: undefined } : t));
     setReasoning(null);
   };
 
   const handleDeleteTask = (id: string) => {
     const taskToDelete = tasks.find(t => t.id === id);
     if (taskToDelete?.isCompleted) {
-        // It's completed. Archive it so it disappears from the list but not the calendar.
         setTasks(currentTasks => 
             currentTasks.map(task => 
                 task.id === id ? { ...task, archived: true } : task
             )
         );
     } else {
-        // It's not completed, so delete it for real.
         setTasks(currentTasks => currentTasks.filter(task => task.id !== id));
     }
     setReasoning(null);
@@ -348,10 +336,16 @@ export default function Home() {
         }
     });
 
-    setTasks(currentTasks => 
-        currentTasks.map(task => {
-            if (scheduledMap.has(task.id)) {
-                const scheduledInfo = scheduledMap.get(task.id)!;
+    setTasks(currentTasks => {
+        const newScheduleMap = new Map(finalSchedule.map(t => [t.id, t]));
+
+        return currentTasks.map(task => {
+            if (task.isCompleted) {
+                return task;
+            }
+
+            if (newScheduleMap.has(task.id)) {
+                const scheduledInfo = newScheduleMap.get(task.id)!;
                 return {
                     ...task,
                     startTime: scheduledInfo.startTime,
@@ -360,10 +354,14 @@ export default function Home() {
                     overdueNotified: false,
                 };
             }
-            // Unschedule tasks that were not in the final schedule from AI
-            return { ...task, startTime: undefined, endTime: undefined, isCompleted: false, overdueNotified: false };
-        })
-    );
+            
+            return {
+                ...task,
+                startTime: undefined,
+                endTime: undefined,
+            };
+        });
+    });
     
     setReasoning(null);
     setIsAdjustDialogOpen(false);
@@ -387,7 +385,6 @@ export default function Home() {
       });
     }
 
-    // Run check immediately after applying schedule
     setTimeout(() => checkOverdueTasksRef.current(), 100);
   }
 
