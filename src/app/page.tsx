@@ -81,12 +81,10 @@ export default function Home() {
     setIsLoading(true);
 
     const input = {
-      tasksAsJson: JSON.stringify(
-        tasks.map(({ id, ...rest }) => ({ 
+      tasks: tasks.map(({ id, ...rest }) => ({ 
           ...rest,
           deadline: rest.deadline?.toISOString()
-        }))
-      ),
+      })),
       timeConstraints: { startTime, endTime },
       currentDateTime: new Date().toISOString(),
       startDate: format(new Date(), 'yyyy-MM-dd'),

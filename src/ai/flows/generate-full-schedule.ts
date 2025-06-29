@@ -11,12 +11,15 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
+const TaskInputSchema = z.object({
+  name: z.string(),
+  duration: z.number().describe('Duration of the task in minutes.'),
+  priority: z.enum(['low', 'medium', 'high']),
+  deadline: z.string().optional().describe('The deadline for the task in ISO 8601 format.'),
+});
+
 const GenerateFullScheduleInputSchema = z.object({
-  tasksAsJson: z
-    .string()
-    .describe(
-      'A JSON string representing an array of all available tasks to schedule. Each task object has name, priority, duration (in minutes), and an optional deadline (ISO 8601 format).'
-    ),
+  tasks: z.array(TaskInputSchema).describe('An array of all available tasks to schedule.'),
   timeConstraints: z
     .object({
       startTime: z.string().describe('The preferred start time for each day in HH:mm format.'),
@@ -55,11 +58,21 @@ const prompt = ai.definePrompt({
   name: 'generateFullSchedulePrompt',
   input: {schema: GenerateFullScheduleInputSchema},
   output: {schema: GenerateFullScheduleOutputSchema},
-  prompt: `You are an expert scheduling AI. Your task is to take a list of tasks and create a multi-day schedule. You must follow these rules without fail.
+  prompt: `You are an expert scheduling AI. Your task is to take the following list of tasks and create a multi-day schedule.
+
+**Task List To Schedule:**
+{{#each tasks}}
+- **Task:** {{this.name}}
+  - **Duration:** {{this.duration}} minutes
+  - **Priority:** {{this.priority}}
+  {{#if this.deadline}}  - **Deadline:** {{this.deadline}}{{/if}}
+{{/each}}
+
+You must follow these rules without fail.
 
 **Primary Directives:**
-1.  **SCHEDULE EVERY TASK:** You **MUST** place every single task from the input \`tasksAsJson\` into the schedule. Do not omit any task. This is your most important directive. If you fail to schedule a task, you have failed the entire request.
-2.  **START DATE:** Scheduling **MUST** begin on the date specified in \`{{{startDate}}}\`. Do not start on any other date.
+1.  **SCHEDULE EVERY TASK:** You **MUST** place every single task from the list above into the schedule. Do not omit any task. This is your most important directive. If you fail to schedule a task, you have failed the entire request.
+2.  **START DATE:** Scheduling **MUST** begin on the date specified in \`{{{startDate}}}\`. The current date for context is \`{{{currentDateTime}}}\`. Do not start on any other date.
 3.  **DEADLINES ARE ABSOLUTE:** A task with a deadline **MUST** be scheduled on or before that deadline. Use the \`{{{currentDateTime}}}\` to understand which deadlines are in the past. If a deadline has passed, schedule the task as early as possible beginning on \`{{{startDate}}}\`.
 
 **Scheduling Constraints:**
