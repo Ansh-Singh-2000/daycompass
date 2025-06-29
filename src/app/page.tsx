@@ -537,7 +537,7 @@ export default function Home() {
         )}
         <div className="flex-1 flex flex-col lg:flex-row gap-6 min-h-0">
           {/* Left Panel: Task Management */}
-          <Card className="lg:w-[480px] lg:shrink-0 flex flex-col">
+          <Card className="lg:w-[400px] lg:shrink-0 xl:w-[480px] flex flex-col">
             <CardHeader>
               <CardTitle>Tasks & Scheduling</CardTitle>
               <CardDescription>Add tasks and generate your AI-powered schedule.</CardDescription>
