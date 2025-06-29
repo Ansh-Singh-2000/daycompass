@@ -95,38 +95,42 @@ export default function SettingsDialog({
                 <TabsTrigger value="ai">AI</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="general" className="flex-1 py-4 overflow-y-auto">
-                <div className="space-y-4 rounded-md border p-4">
-                    <h3 className="font-semibold text-foreground">Your Day</h3>
-                    <p className="text-sm text-muted-foreground -mt-2">
-                        Set your typical daily start and end times for scheduling.
-                    </p>
-                    <div className="flex items-end gap-4">
-                        <div className="flex-1">
-                            <Label htmlFor="start-time">Daily Start Time</Label>
-                            <Input
-                                id="start-time"
-                                type="time"
-                                value={startTime}
-                                onChange={(e) => onStartTimeChange(e.target.value)}
-                                required
-                            />
-                        </div>
-                        <div className="flex-1">
-                            <Label htmlFor="end-time">Daily End Time</Label>
-                            <Input
-                                id="end-time"
-                                type="time"
-                                value={endTime}
-                                onChange={(e) => onEndTimeChange(e.target.value)}
-                                required
-                            />
+            <TabsContent value="general" className="flex-1 min-h-0">
+                <ScrollArea className="h-full w-full">
+                  <div className="py-4 pr-6">
+                    <div className="space-y-4 rounded-md border p-4">
+                        <h3 className="font-semibold text-foreground">Your Day</h3>
+                        <p className="text-sm text-muted-foreground -mt-2">
+                            Set your typical daily start and end times for scheduling.
+                        </p>
+                        <div className="flex items-end gap-4">
+                            <div className="flex-1">
+                                <Label htmlFor="start-time">Daily Start Time</Label>
+                                <Input
+                                    id="start-time"
+                                    type="time"
+                                    value={startTime}
+                                    onChange={(e) => onStartTimeChange(e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <div className="flex-1">
+                                <Label htmlFor="end-time">Daily End Time</Label>
+                                <Input
+                                    id="end-time"
+                                    type="time"
+                                    value={endTime}
+                                    onChange={(e) => onEndTimeChange(e.target.value)}
+                                    required
+                                />
+                            </div>
                         </div>
                     </div>
-                </div>
+                  </div>
+                </ScrollArea>
             </TabsContent>
             <TabsContent value="blocked" className="flex-1 flex flex-col gap-4 py-4 min-h-0">
-                <div className="space-y-3 flex-1 flex flex-col min-h-0">
+                <div className="space-y-3 flex-1 flex flex-col min-h-0 pr-6">
                     <Label>Recurring Busy Times</Label>
                     <p className="text-sm text-muted-foreground -mt-2">
                         The AI will avoid scheduling tasks during these daily blocks.
@@ -152,7 +156,7 @@ export default function SettingsDialog({
                     </ScrollArea>
                 </div>
 
-                <form onSubmit={handleAddBlockedTime} className="space-y-3 shrink-0">
+                <form onSubmit={handleAddBlockedTime} className="space-y-3 shrink-0 pr-6">
                     <Label>Add New Block</Label>
                     <div className="flex items-end gap-2">
                     <div className="flex-grow">
@@ -191,23 +195,27 @@ export default function SettingsDialog({
                     </div>
                 </form>
             </TabsContent>
-            <TabsContent value="ai" className="flex-1 py-4 overflow-y-auto">
-                <div className="space-y-2 rounded-md border p-4">
-                    <div>
-                        <Label htmlFor="ai-model">AI Model</Label>
-                        <Combobox
-                            options={aiModels}
-                            value={model}
-                            onChange={setModel}
-                            placeholder="Select a model..."
-                            notFoundMessage="No model found."
-                            inputPlaceholder="Search or enter model..."
-                        />
-                        <p className="text-sm text-muted-foreground pt-1">
-                            Choose a preset or type a custom model name from Groq.
-                        </p>
+            <TabsContent value="ai" className="flex-1 min-h-0">
+                <ScrollArea className="h-full w-full">
+                  <div className="py-4 pr-6">
+                    <div className="space-y-2 rounded-md border p-4">
+                        <div>
+                            <Label htmlFor="ai-model">AI Model</Label>
+                            <Combobox
+                                options={aiModels}
+                                value={model}
+                                onChange={setModel}
+                                placeholder="Select a model..."
+                                notFoundMessage="No model found."
+                                inputPlaceholder="Search or enter model..."
+                            />
+                            <p className="text-sm text-muted-foreground pt-1">
+                                Choose a preset or type a custom model name from Groq.
+                            </p>
+                        </div>
                     </div>
-                </div>
+                  </div>
+                </ScrollArea>
             </TabsContent>
         </Tabs>
 
