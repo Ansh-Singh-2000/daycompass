@@ -8,7 +8,7 @@ import type {
   ToastProps,
 } from "@/components/ui/toast"
 
-const TOAST_LIMIT = 1
+const TOAST_LIMIT = 5 // Increased from 1 to allow multiple notifications
 const TOAST_REMOVE_DELAY = 1000000
 
 type ToasterToast = ToastProps & {
@@ -159,6 +159,9 @@ function toast({ ...props }: Toast) {
       id,
       open: true,
       onOpenChange: (open) => {
+        // This is the fix: call the original onOpenChange from props
+        // before calling the internal dismiss logic.
+        props.onOpenChange?.(open)
         if (!open) dismiss()
       },
     },
