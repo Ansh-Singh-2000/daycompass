@@ -23,6 +23,7 @@ import confetti from 'canvas-confetti';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import Footer from '@/components/day-weaver/Footer';
+import LoadingSkeleton from '@/components/day-weaver/LoadingSkeleton';
 
 const today = new Date();
 const initialTasks: Task[] = [
@@ -44,6 +45,7 @@ export default function Home() {
   const { toast } = useToast();
   const actionedToastIds = useRef(new Set<string>());
   const isMobile = useIsMobile();
+  const [isHydrated, setIsHydrated] = useState(false);
 
   // --- STATE PERSISTENCE & HYDRATION ---
   const [tasks, setTasks] = useState<Task[]>(() => {
@@ -129,9 +131,10 @@ export default function Home() {
     tasksRef.current = tasks;
   }, [tasks]);
 
-  // Set timezone on mount
+  // Set timezone on mount and mark as hydrated to prevent SSR/client mismatch
   useEffect(() => {
     setTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
+    setIsHydrated(true);
   }, []);
 
   // --- DERIVED STATE ---
@@ -492,6 +495,10 @@ export default function Home() {
 
     setIsAdjusting(false);
   };
+  
+  if (!isHydrated) {
+    return <LoadingSkeleton />;
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground transition-colors duration-300">
