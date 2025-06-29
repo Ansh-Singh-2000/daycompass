@@ -18,8 +18,17 @@ import { Separator } from '@/components/ui/separator';
 let idCounter = 0;
 const mockUuid = () => `mock-uuid-${idCounter++}`;
 
+const initialTasks: Task[] = [
+  { id: mockUuid(), name: 'Physics - Kinematics Problem Set', duration: 120, priority: 'high' },
+  { id: mockUuid(), name: 'Chemistry - Chemical Bonding Revision', duration: 90, priority: 'medium' },
+  { id: mockUuid(), name: 'Maths - Integral Calculus Practice', duration: 120, priority: 'high' },
+  { id: mockUuid(), name: 'Short break & snack', duration: 20, priority: 'low' },
+  { id: mockUuid(), name: 'JEE Mock Test - Paper 1', duration: 180, priority: 'high' },
+  { id: mockUuid(), name: 'Mock Test Analysis', duration: 60, priority: 'medium' },
+];
+
 export default function Home() {
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [schedule, setSchedule] = useState<ScheduleItem[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [hasGenerated, setHasGenerated] = useState(false);
