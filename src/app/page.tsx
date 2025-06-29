@@ -14,7 +14,7 @@ import AdjustScheduleDialog from '@/components/day-weaver/AdjustScheduleDialog';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
-import { addDays, format, parseISO } from 'date-fns';
+import { addDays, format, parseISO, isValid } from 'date-fns';
 import { v4 as uuidv4 } from 'uuid';
 
 
@@ -138,10 +138,18 @@ export default function Home() {
 
   const handleApplySchedule = (finalSchedule: ProposedTask[]) => {
     const newSchedules: Record<string, ScheduleItem[]> = {};
+    const invalidTasks: string[] = [];
         
     for (const scheduledTask of finalSchedule) {
-        const taskDate = parseISO(scheduledTask.startTime);
-        const dateKey = format(taskDate, 'yyyy-MM-dd');
+      try {
+        const startDate = parseISO(scheduledTask.startTime);
+        const endDate = parseISO(scheduledTask.endTime);
+
+        if (!isValid(startDate) || !isValid(endDate)) {
+          throw new Error('Invalid date format');
+        }
+
+        const dateKey = format(startDate, 'yyyy-MM-dd');
 
         if (!newSchedules[dateKey]) {
             newSchedules[dateKey] = [];
@@ -150,10 +158,14 @@ export default function Home() {
         newSchedules[dateKey].push({
             id: scheduledTask.id,
             name: scheduledTask.title,
-            startTime: format(parseISO(scheduledTask.startTime), 'HH:mm'),
-            endTime: format(parseISO(scheduledTask.endTime), 'HH:mm'),
+            startTime: format(startDate, 'HH:mm'),
+            endTime: format(endDate, 'HH:mm'),
             isCompleted: false,
         });
+      } catch (error) {
+        console.error(`Skipping task with invalid date: "${scheduledTask.title}"`, error);
+        invalidTasks.push(scheduledTask.title);
+      }
     }
     
     Object.values(newSchedules).forEach(day => day.sort((a,b) => a.startTime.localeCompare(b.startTime)));
@@ -169,10 +181,18 @@ export default function Home() {
     setIsAdjustDialogOpen(false);
     setProposedSchedule([]);
 
-    toast({
-        title: "Schedule Applied!",
-        description: "Your new schedule is ready.",
-    });
+    if (invalidTasks.length > 0) {
+      toast({
+        variant: "destructive",
+        title: "Schedule Partially Applied",
+        description: `The AI returned invalid data for: ${invalidTasks.join(', ')}.`,
+      });
+    } else {
+      toast({
+          title: "Schedule Applied!",
+          description: "Your new schedule is ready.",
+      });
+    }
   }
 
   const handleAdjustSchedule = async (userRequest: string) => {
