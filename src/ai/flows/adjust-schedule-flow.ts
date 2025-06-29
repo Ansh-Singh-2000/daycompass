@@ -25,7 +25,7 @@ const prompt = ai.definePrompt({
   name: 'adjustSchedulePrompt',
   input: {schema: AdjustScheduleInputSchema},
   output: {schema: GenerateFullScheduleOutputSchema},
-  prompt: `You are an expert scheduling AI. A user wants to make a change to a schedule you previously proposed.
+  prompt: `You are an expert scheduling AI. A user wants to discuss or make a change to a schedule you previously proposed.
 
 **User's Request:**
 "{{{userRequest}}}"
@@ -35,15 +35,18 @@ const prompt = ai.definePrompt({
 - **Task:** "{{this.title}}" (ID: {{this.id}}) starts at {{this.startTime}} and ends at {{this.endTime}}
 {{/each}}
 
-Based on the user's request, you must generate a NEW, complete schedule.
+**Your Task:**
+1.  **Analyze the user's request.**
+2.  **If the request is a clear instruction to change the schedule** (e.g., "move physics to 7pm", "reschedule my test for tomorrow"):
+    - Generate a NEW, complete schedule that incorporates the change.
+    - You **MUST** place every single task from the original list into the new schedule.
+    - Respect all deadlines, priorities, and blocked times from the original context.
+    - In the \`reasoning\` field, explain the changes you made and why.
+3.  **If the request is NOT a clear instruction to change the schedule** (e.g., it's a question like "why is this scheduled then?", a general comment like "that looks good", or ambiguous like "hi"):
+    - Do **NOT** change the schedule. Return the \`currentScheduledTasks\` exactly as they were given to you.
+    - In the \`reasoning\` field, provide a helpful, conversational response to the user's request. Explain why you are not changing the schedule if relevant (e.g., "That's a bit too vague, could you be more specific?").
 
-**Key Constraints (MUST be followed):**
-1.  **SCHEDULE ALL TASKS:** You **MUST** place every single task from the original list into the new schedule.
-2.  **RESPECT DEADLINES & PRIORITIES:** Use the original task list below for priorities and deadlines.
-3.  **AVOID BLOCKED TIMES:** Do not schedule tasks during the user's blocked times.
-4.  **DAILY AVAILABILITY:** The user is available from \`{{{timeConstraints.startTime}}}\` to \`{{{timeConstraints.endTime}}}\` each day.
-
-**Original Task List (for reference):**
+**Original Task List & Constraints (for reference when making changes):**
 {{#each tasks}}
 - **Task:** "{{this.title}}" (ID: {{this.id}})
   - **Priority:** {{this.priority}}
@@ -56,7 +59,9 @@ Based on the user's request, you must generate a NEW, complete schedule.
 - {{this.title}}: from {{this.startTime}} to {{this.endTime}}
 {{/each}}
 
-Your response must be a single JSON object that strictly adheres to the provided schema. In the \`reasoning\` field, explain the changes you made based on the user's request.`,
+**Daily Availability:** The user is available from \`{{{timeConstraints.startTime}}}\` to \`{{{timeConstraints.endTime}}}\` each day.
+
+Your response must be a single JSON object that strictly adheres to the provided schema.`,
 });
 
 const adjustScheduleFlow = ai.defineFlow(
@@ -69,6 +74,10 @@ const adjustScheduleFlow = ai.defineFlow(
     const { output } = await prompt(input);
     if (!output) {
       throw new Error('AI failed to generate an adjusted schedule.');
+    }
+    // If the AI is just chatting, it might not return tasks. We'll return the original ones.
+    if (!output.scheduledTasks || output.scheduledTasks.length === 0) {
+        output.scheduledTasks = input.currentScheduledTasks.map(({id, title, startTime, endTime}) => ({id, title, startTime, endTime}));
     }
     return output;
   }

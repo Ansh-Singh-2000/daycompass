@@ -12,23 +12,21 @@ import ScheduleCalendar from '@/components/day-weaver/ScheduleCalendar';
 import SettingsDialog from '@/components/day-weaver/SettingsDialog';
 import AdjustScheduleDialog from '@/components/day-weaver/AdjustScheduleDialog';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from '@/components/ui/button';
-import { CalendarDays, ChevronLeft, ChevronRight, Info } from 'lucide-react';
+import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
 import { addDays, format, parseISO } from 'date-fns';
+import { v4 as uuidv4 } from 'uuid';
 
-let idCounter = 0;
-const mockUuid = () => `mock-uuid-${idCounter++}`;
 
 const today = new Date();
 const initialTasks: Task[] = [
-  { id: mockUuid(), title: 'Physics - Kinematics Problem Set', estimatedTime: 120, priority: 'high', deadline: addDays(today, 3) },
-  { id: mockUuid(), title: 'Chemistry - Chemical Bonding Revision', estimatedTime: 90, priority: 'medium', deadline: addDays(today, 5) },
-  { id: mockUuid(), title: 'Maths - Integral Calculus Practice', estimatedTime: 120, priority: 'high', deadline: addDays(today, 2) },
-  { id: mockUuid(), title: 'JEE Mock Test - Paper 1', estimatedTime: 180, priority: 'high', deadline: addDays(today, 1) },
-  { id: mockUuid(), title: 'Mock Test Analysis', estimatedTime: 60, priority: 'medium', deadline: addDays(today, 1) },
-  { id: mockUuid(), title: 'Organic Chemistry - Reaction Mechanisms', estimatedTime: 75, priority: 'high', deadline: addDays(today, 0) },
-  { id: mockUuid(), title: 'Physics - Rotational Motion', estimatedTime: 90, priority: 'medium', deadline: addDays(today, 4) },
+  { id: uuidv4(), title: 'Physics - Kinematics Problem Set', estimatedTime: 120, priority: 'high', deadline: addDays(today, 3) },
+  { id: uuidv4(), title: 'Chemistry - Chemical Bonding Revision', estimatedTime: 90, priority: 'medium', deadline: addDays(today, 5) },
+  { id: uuidv4(), title: 'Maths - Integral Calculus Practice', estimatedTime: 120, priority: 'high', deadline: addDays(today, 2) },
+  { id: uuidv4(), title: 'JEE Mock Test - Paper 1', estimatedTime: 180, priority: 'high', deadline: addDays(today, 1) },
+  { id: uuidv4(), title: 'Mock Test Analysis', estimatedTime: 60, priority: 'medium', deadline: addDays(today, 1) },
+  { id: uuidv4(), title: 'Organic Chemistry - Reaction Mechanisms', estimatedTime: 75, priority: 'high', deadline: addDays(today, 0) },
+  { id: uuidv4(), title: 'Physics - Rotational Motion', estimatedTime: 90, priority: 'medium', deadline: addDays(today, 4) },
 ];
 
 const initialBlockedTimes: BlockedTime[] = [
@@ -56,7 +54,7 @@ export default function Home() {
   const isLoading = isGenerating || isAdjusting;
 
   const handleAddTask = (task: Omit<Task, 'id'>) => {
-    setTasks(prev => [...prev, { ...task, id: mockUuid() }]);
+    setTasks(prev => [...prev, { ...task, id: uuidv4() }]);
     setSchedules({}); 
     setReasoning(null);
   };
@@ -246,19 +244,17 @@ export default function Home() {
       <main className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 px-4 py-4 lg:px-6 lg:py-4 overflow-hidden">
         {/* Left Panel: Task Management */}
         <Card className="lg:col-span-1 flex flex-col overflow-hidden">
-          <CardHeader className="p-4 pb-2">
+          <CardHeader>
             <CardTitle>Tasks & Scheduling</CardTitle>
             <CardDescription>Add tasks, set availability, and generate your schedule.</CardDescription>
           </CardHeader>
-          <CardContent className="flex-1 flex flex-col gap-2 p-4 pt-2 overflow-hidden">
-            <div>
-              <TaskForm onAddTask={handleAddTask} />
-            </div>
+          <CardContent className="flex-1 flex flex-col gap-4 p-4 pt-0 overflow-hidden">
+            <TaskForm onAddTask={handleAddTask} />
             <div className="flex-1 min-h-0">
-              <TaskList tasks={tasks} onDeleteTask={handleDeleteTask} onReorderTasks={handleReorderTasks} />
+               <TaskList tasks={tasks} onDeleteTask={handleDeleteTask} onReorderTasks={handleReorderTasks} />
             </div>
           </CardContent>
-          <CardFooter className="p-4 pt-2 border-t">
+          <CardFooter className="p-4 border-t">
             <ScheduleControls
               onGenerate={handleGenerateSchedule}
               isLoading={isGenerating}
@@ -288,15 +284,6 @@ export default function Home() {
             </div>
           </CardHeader>
           <CardContent className="flex-1 flex flex-col gap-4 overflow-y-hidden p-4 pt-0">
-            {schedules[dateKey] && !isAdjustDialogOpen && (
-                 <Alert>
-                    <Info className="h-4 w-4" />
-                    <AlertTitle>AI Reasoning</AlertTitle>
-                    <AlertDescription>
-                        This schedule was generated based on your tasks and settings.
-                    </AlertDescription>
-                </Alert>
-            )}
             <div className="flex-1 relative min-h-0">
               {isGenerating && (
                  <div className="absolute inset-0 flex items-center justify-center bg-card/50 backdrop-blur-sm z-10 rounded-lg">
