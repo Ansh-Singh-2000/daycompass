@@ -149,8 +149,8 @@ export default function AdjustScheduleDialog({
                         value={chatInput}
                         onChange={(e) => setChatInput(e.target.value)}
                         placeholder="e.g., 'Move Physics to 7pm'"
-                        className="flex-grow"
-                        disabled={isAdjusting}
+                        className={cn("flex-grow", isAdjusting && "opacity-50 cursor-not-allowed")}
+                        readOnly={isAdjusting}
                     />
                     <Button type="submit" size="icon" disabled={isAdjusting || !chatInput.trim()}>
                         {isAdjusting ? <Loader2 className="animate-spin" /> : <Send />}
