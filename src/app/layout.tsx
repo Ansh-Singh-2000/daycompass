@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Day Compass',
     description: 'An intelligent daily planner to help you chart the perfect day.',
-    images: ['/og-image.png'], // The path to your image in the `public` folder
+    images: ['/og-image.png'],
   },
 };
 
