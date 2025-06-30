@@ -345,16 +345,6 @@ export default function Home() {
         });
         setProposedSchedule(enrichedProposedSchedule);
         setReasoning(result.data.reasoning);
-
-        if (result.data.unscheduledTasks && result.data.unscheduledTasks.length > 0) {
-            const unscheduledTitles = result.data.unscheduledTasks.map(t => `"${t.title}"`).join(', ');
-            toast({
-                variant: "destructive",
-                title: "Could Not Schedule All Tasks",
-                description: `The AI could not find a valid time for: ${unscheduledTitles}. Check the AI's reasoning in the adjustment dialog for more details.`,
-                duration: 10000,
-            });
-        }
         
         setIsAdjustDialogOpen(true);
     } else {
@@ -487,14 +477,16 @@ export default function Home() {
     const result = await refineSchedule(input);
 
     if (result.success && result.data) {
-        const enrichedProposedSchedule = result.data.scheduledTasks.map(scheduledTask => {
-          const originalTask = tasks.find(t => t.id === scheduledTask.id);
-          return {
-              ...scheduledTask,
-              priority: originalTask?.priority || 'medium',
-          };
-        });
-        setProposedSchedule(enrichedProposedSchedule);
+        if (result.data.scheduledTasks && Array.isArray(result.data.scheduledTasks)) {
+            const enrichedProposedSchedule = result.data.scheduledTasks.map(scheduledTask => {
+              const originalTask = tasks.find(t => t.id === scheduledTask.id);
+              return {
+                  ...scheduledTask,
+                  priority: originalTask?.priority || 'medium',
+              };
+            });
+            setProposedSchedule(enrichedProposedSchedule);
+        }
         setReasoning(result.data.reasoning);
     } else {
        toast({

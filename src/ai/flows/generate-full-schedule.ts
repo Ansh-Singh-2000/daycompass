@@ -40,15 +40,13 @@ You MUST generate a JSON object that strictly adheres to the following Zod schem
 ${JSON.stringify(GenerateFullScheduleOutputSchema.jsonSchema, null, 2)}
 \`\`\`
 
-**CRITICAL NOTE:** The \`reasoning\` field and the optional \`unscheduledTasks\` field MUST be top-level keys in the JSON object, at the same level as \`scheduledTasks\`.
-
 ---
 ### The Scheduling Logic (Follow these steps)
 
 1.  **Prioritize:** Order the tasks. First by the earliest deadline, then by priority (high > medium > low).
 2.  **Schedule:** Attempt to place *every single task* from the input \`tasks\` list onto the calendar, starting from \`${startDate}\`.
 3.  **Validate:** For every task you place, it MUST obey ALL of the "Golden Rules" below. There are no exceptions.
-4.  **Handle Overflows:** If you have tried to schedule a task and cannot find ANY valid time slot for it without breaking a Golden Rule, you MUST NOT force it into the schedule. Instead, add it to the \`unscheduledTasks\` array in your final JSON output. For each unscheduled task, provide a clear \`reason\` explaining *why* it could not be scheduled (e.g., "No available time before the deadline," or "Not enough time in the day with existing commitments.").
+4.  **Handle Overflows:** If you have tried to schedule a task and cannot find ANY valid time slot for it without breaking a Golden Rule, you MUST NOT include that task in the final \`scheduledTasks\` array. You MUST mention this clearly in the \`reasoning\` field, explaining which tasks could not be scheduled and why (e.g., "I've created your schedule, but couldn't find a spot for 'Task X' before its deadline.").
 
 ---
 ### The Golden Rules (NON-NEGOTIABLE)
@@ -69,7 +67,7 @@ You MUST follow these rules for every task you place in the \`scheduledTasks\` a
 
 In the \`reasoning\` field of your JSON output, provide a concise, friendly explanation of your work.
 - If all tasks were scheduled, say something like: "Here is your optimized schedule! I've prioritized your tasks by deadline and made sure everything fits within your available time."
-- If some tasks were left unscheduled, explain it clearly: "I've created a schedule with as many tasks as possible, but I couldn't find a spot for a few of them. I've listed them separately with the reasons why."
+- If some tasks were left unscheduled, explain it clearly as per the "Handle Overflows" rule.
 - If you are updating an existing schedule, explain the key changes you made.
 
 ---
@@ -85,7 +83,7 @@ ${currentScheduleJSON ? `
 - **IMPORTANT**: The user already has a schedule. Use this as a strong reference. Your goal is to intelligently update it.
   - Keep tasks at their currently scheduled times if possible.
   - Only move tasks if necessary to accommodate new/unscheduled tasks or resolve conflicts.
-  - Ensure all tasks from the Task List are present in either the final scheduled or unscheduled list.
+  - Ensure all tasks from the Task List are present in the final scheduled list, unless impossible.
 
 Current Schedule Reference (JSON):
 \`\`\`json
