@@ -1,4 +1,4 @@
-import { Sparkles, Settings, TrendingUp, TrendingDown } from 'lucide-react';
+import { Compass, Settings, TrendingUp, TrendingDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '../ThemeToggle';
 
@@ -11,7 +11,7 @@ export default function Header({ onSettingsClick, points }: HeaderProps) {
   return (
     <header className="flex items-center justify-between">
       <div className="flex items-center gap-2">
-        <Sparkles className="h-6 w-6 text-primary" />
+        <Compass className="h-6 w-6 text-primary" />
         <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
           Day Compass
         </h1>

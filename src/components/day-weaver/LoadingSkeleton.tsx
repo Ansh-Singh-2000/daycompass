@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Sparkles, Smartphone } from "lucide-react";
+import { Compass, Smartphone } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -15,7 +15,7 @@ export default function LoadingSkeleton() {
                     {/* Simplified Header Skeleton */}
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <Sparkles className="h-6 w-6 text-primary" />
+                            <Compass className="h-6 w-6 text-primary" />
                             <Skeleton className="h-8 w-32" />
                         </div>
                         <div className="flex items-center gap-4">
@@ -34,7 +34,7 @@ export default function LoadingSkeleton() {
                         <Smartphone className="h-4 w-4" />
                         <AlertTitle>Optimized for Desktop</AlertTitle>
                         <AlertDescription>
-                            For the best experience, please use Day Weaver on a larger screen.
+                            For the best experience, please use Day Compass on a larger screen.
                         </AlertDescription>
                     </Alert>
                 )}
