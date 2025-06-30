@@ -11,11 +11,11 @@ export default function LoadingSkeleton() {
     return (
         <div className="min-h-screen flex flex-col bg-background text-foreground transition-colors duration-300">
             <header className="shrink-0 border-b">
-                <div className="px-4 lg:px-6 py-3">
+                <div className="px-4 lg:px-6 py-2">
                     {/* Simplified Header Skeleton */}
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2 sm:gap-3">
-                            <Skeleton className="h-14 w-14 sm:h-20 sm:w-20" />
+                            <Skeleton className="h-10 w-10 sm:h-14 sm:w-14" />
                             <Skeleton className="h-8 sm:h-9 w-36 sm:w-48" />
                         </div>
                         <div className="flex items-center gap-2 sm:gap-4">
@@ -95,7 +95,7 @@ export default function LoadingSkeleton() {
                 </div>
             </main>
             <footer className="shrink-0 border-t">
-              <div className="container mx-auto flex h-16 flex-col items-center justify-between gap-2 px-4 py-3 sm:flex-row sm:gap-0">
+              <div className="container mx-auto flex flex-col items-center justify-between gap-2 px-4 py-3 sm:flex-row sm:gap-0">
                 <Skeleton className="h-5 w-56" />
                 <Skeleton className="h-9 w-28" />
               </div>

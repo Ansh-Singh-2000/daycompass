@@ -547,7 +547,7 @@ export default function Home() {
         modelUsed={model}
       />
       <header className="shrink-0 border-b">
-        <div className="px-4 lg:px-6 py-3">
+        <div className="px-4 lg:px-6 py-2">
           <Header onSettingsClick={() => setIsSettingsOpen(true)} points={points} />
         </div>
       </header>

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -47,7 +48,7 @@ export default function Footer() {
 
   return (
     <footer className="shrink-0 border-t">
-      <div className="container mx-auto flex h-16 flex-col items-center justify-between gap-2 px-4 py-3 sm:flex-row sm:gap-0">
+      <div className="container mx-auto flex flex-col items-center justify-between gap-2 px-4 py-3 sm:flex-row sm:gap-0">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <span>Made with</span>
           <span className="inline-block animate-beat" style={{ animationDuration: '1.5s' }}>❤️</span>
