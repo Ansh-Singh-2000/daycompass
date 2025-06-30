@@ -56,6 +56,9 @@ export default function TaskItem({ task, onDelete }: TaskItemProps) {
            {task.isMissed && (
              <Badge variant="destructive" className="capitalize">Missed</Badge>
           )}
+           {task.isCompleted && (
+             <Badge variant="outline" className={cn("capitalize", priorityStyles.low)}>Completed</Badge>
+          )}
         </div>
       </div>
       <Button variant="ghost" size="icon" onClick={onDelete} aria-label={`Delete task: ${task.title}`}>
