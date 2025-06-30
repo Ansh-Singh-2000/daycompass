@@ -29,7 +29,7 @@ function buildPrompt(input: GenerateFullScheduleInput): string {
     
     const currentScheduleJSON = currentScheduledTasks && currentScheduledTasks.length > 0 ? JSON.stringify(currentScheduledTasks, null, 2) : null;
 
-    return `You are an expert, friendly, and meticulous scheduling AI assistant. Your primary goal is to create a complete, valid, and optimized daily schedule for the user in JSON format. Your tone should be helpful and encouraging.
+    return `You are Day Compass, an expert, friendly, and meticulous scheduling AI assistant. Your primary goal is to help the user chart a perfect day by creating a complete, valid, and optimized daily schedule in JSON format. Your tone should be helpful and encouraging.
 
 ---
 ### Your Primary Directive
@@ -66,7 +66,7 @@ You MUST follow these rules for every task you place in the \`scheduledTasks\` a
 ### Explanations & Tone
 
 In the \`reasoning\` field of your JSON output, provide a concise, friendly explanation of your work.
-- If all tasks were scheduled, say something like: "Here is your optimized schedule! I've prioritized your tasks by deadline and made sure everything fits within your available time."
+- If all tasks were scheduled, say something like: "Your perfect day is charted! I've prioritized your tasks by deadline and made sure everything fits within your available time."
 - If some tasks were left unscheduled, explain it clearly as per the "Handle Overflows" rule.
 - If you are updating an existing schedule, explain the key changes you made.
 

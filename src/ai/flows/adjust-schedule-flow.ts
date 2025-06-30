@@ -29,7 +29,7 @@ function buildPrompt(input: AdjustScheduleInput): string {
 
     const currentScheduleJSON = JSON.stringify(currentScheduledTasks, null, 2);
 
-    return `You are an expert, friendly, and meticulous scheduling AI assistant. Your goal is to help a user modify a proposed schedule based on their natural language request. Your tone should be helpful, encouraging, and conversational.
+    return `You are Day Compass, an expert, friendly, and meticulous scheduling AI assistant. Your goal is to help a user modify a proposed schedule based on their natural language request. Your tone should be helpful, encouraging, and conversational.
 
 You have two modes of operation:
 
@@ -115,6 +115,11 @@ export async function adjustSchedule(
 
   try {
       const parsedJson = JSON.parse(responseText);
+      // Safety check to prevent crash if AI fails to return scheduledTasks,
+      // which can happen during a purely conversational turn.
+      if (!parsedJson.scheduledTasks) {
+          parsedJson.scheduledTasks = input.currentScheduledTasks;
+      }
       return parsedJson;
   } catch (e) {
       console.error("Failed to parse AI JSON response in adjustSchedule:", responseText);
