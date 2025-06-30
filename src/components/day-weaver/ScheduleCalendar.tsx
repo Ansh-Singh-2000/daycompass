@@ -148,8 +148,7 @@ export default function ScheduleCalendar({
   }
 
   const totalHours = endHour - startHour;
-  const hourSegments = Array.from({ length: totalHours }, (_, i) => startHour + i);
-  const allHourMarkers = [...hourSegments, endHour];
+  const hourSegments = Array.from({ length: totalHours + 1 }, (_, i) => startHour + i);
   const HOUR_HEIGHT_REM = 6; // h-24
 
   if (!isLoading && schedule.length === 0 && !hasTasks) {
@@ -172,13 +171,12 @@ export default function ScheduleCalendar({
       >
         {/* Time Column */}
         <div className="relative">
-          {allHourMarkers.map((hour, index) => {
-            const isLast = index === allHourMarkers.length - 1;
+          {hourSegments.map((hour, index) => {
             return (
                 <div
-                    key={`time-${hour}-${index}`}
-                    style={{ height: isLast ? 0 : `${HOUR_HEIGHT_REM}rem` }}
-                    className="text-right pr-2 border-t-2 border-slate-200 dark:border-slate-700"
+                    key={`time-${hour}`}
+                    className="relative text-right pr-2 border-t-2 border-slate-200 dark:border-slate-700"
+                    style={{ height: `${HOUR_HEIGHT_REM}rem` }}
                 >
                     <span className="text-xs font-medium text-gray-500 dark:text-gray-400 -translate-y-1/2 relative top-0">
                         {hour % 12 === 0 ? 12 : hour % 12}{' '}
@@ -192,9 +190,9 @@ export default function ScheduleCalendar({
         {/* Schedule Column */}
         <div className="relative">
           {/* Hour lines */}
-          {allHourMarkers.map((hour, index) => (
+          {hourSegments.map((hour, index) => (
             <div
-              key={`line-${hour}-${index}`}
+              key={`line-${hour}`}
               className="absolute w-full border-t-2 border-slate-200 dark:border-slate-700"
               style={{ top: `${index * HOUR_HEIGHT_REM}rem` }}
             />
@@ -269,7 +267,11 @@ export default function ScheduleCalendar({
                 transition={{ delay: index * 0.05 }}
                 className={cn(
                   'absolute p-3 text-sm rounded-lg shadow-lg transition-all duration-300 overflow-hidden',
-                  item.isCompleted ? 'bg-green-100/80 dark:bg-green-800/30 border border-green-200 dark:border-green-700/50' : 'bg-card dark:bg-slate-800',
+                   item.isCompleted
+                    ? 'bg-green-100/80 dark:bg-green-800/30 border border-green-200 dark:border-green-700/50'
+                    : item.isMissed
+                    ? 'bg-destructive/10 dark:bg-destructive/20 border-y border-dashed border-destructive/20 dark:border-destructive/40 opacity-80'
+                    : 'bg-card dark:bg-slate-800'
                 )}
                 style={{
                   top: `${top}rem`,
@@ -282,10 +284,17 @@ export default function ScheduleCalendar({
                 <div className="flex justify-between items-start h-full">
                   <div className="flex-1 overflow-hidden pr-2 flex flex-col justify-between h-full">
                     <div>
-                      <p className={cn('font-semibold leading-tight', item.isCompleted && 'line-through text-green-900/70 dark:text-green-300/80')}>
+                      <p className={cn('font-semibold leading-tight', 
+                        (item.isCompleted || item.isMissed) && 'line-through',
+                        item.isCompleted && 'text-green-900/70 dark:text-green-300/80',
+                        item.isMissed && 'text-destructive/90 dark:text-destructive/70'
+                      )}>
                         {item.name}
                       </p>
-                      <p className={cn('text-xs', item.isCompleted ? 'line-through text-green-800/70 dark:text-green-400/80' : 'text-muted-foreground')}>
+                      <p className={cn('text-xs text-muted-foreground',
+                        (item.isCompleted || item.isMissed) && 'line-through',
+                        item.isCompleted && 'text-green-800/70 dark:text-green-400/80'
+                      )}>
                         {format(startDate, 'HH:mm')} - {format(endDate, 'HH:mm')}
                       </p>
                     </div>
@@ -296,8 +305,19 @@ export default function ScheduleCalendar({
                   <Checkbox
                     checked={item.isCompleted}
                     onCheckedChange={() => onToggleComplete(item.id)}
-                    disabled={item.isCompleted}
-                    aria-label={item.isCompleted ? `Task "${item.name}" is complete` : `Mark "${item.name}" as complete`}
+                    disabled={item.isCompleted || item.isMissed}
+                    aria-label={
+                      item.isCompleted
+                        ? `Task "${item.name}" is complete`
+                        : item.isMissed
+                        ? `Task "${item.name}" was missed and cannot be changed`
+                        : `Mark "${item.name}" as complete`
+                    }
+                    title={
+                      item.isMissed
+                        ? 'This task was missed and cannot be changed.'
+                        : undefined
+                    }
                   />
                 </div>
               </FramerCard>

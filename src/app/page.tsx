@@ -202,6 +202,11 @@ export default function Home() {
       const task = tasksRef.current.find(t => t.id === taskId);
       if (task && !task.isCompleted) {
         setPoints(p => ({ ...p, losses: p.losses + 1 }));
+        setTasks(prevTasks =>
+          prevTasks.map(t =>
+            t.id === taskId ? { ...t, isMissed: true } : t
+          )
+        );
       }
   }, []);
 
@@ -210,7 +215,7 @@ export default function Home() {
     const newlyOverdueTasks: Task[] = [];
     
     tasksRef.current.forEach(task => {
-      if (task.endTime && !task.isCompleted && !task.overdueNotified) {
+      if (task.endTime && !task.isCompleted && !task.isMissed && !task.overdueNotified) {
         const itemEndTime = parseISO(task.endTime);
         if (isValid(itemEndTime) && now > itemEndTime) {
           newlyOverdueTasks.push(task);
@@ -275,21 +280,29 @@ export default function Home() {
 
   const handleDeleteTask = (id: string) => {
     const taskToDelete = tasks.find(t => t.id === id);
-    
-    // If a task has a start time, it means it's on the calendar.
-    // We'll archive it to preserve history, regardless of completion status.
-    if (taskToDelete?.startTime) {
-        setTasks(currentTasks => 
-            currentTasks.map(task => 
-                task.id === id ? { ...task, archived: true } : task
-            )
-        );
+    if (!taskToDelete) return;
+
+    // Check if the task was on the calendar and if its time has passed
+    if (taskToDelete.startTime && taskToDelete.endTime) {
+        const endTime = parseISO(taskToDelete.endTime);
+        if (isValid(endTime) && endTime < new Date()) {
+            // If its time has passed, archive it to keep it in the calendar history
+            setTasks(currentTasks =>
+                currentTasks.map(task =>
+                    task.id === id ? { ...task, archived: true } : task
+                )
+            );
+        } else {
+            // If its time has not passed yet, remove it completely
+            setTasks(currentTasks => currentTasks.filter(task => task.id !== id));
+        }
     } else {
-        // If it was never on the calendar, we can remove it completely.
+        // If it was never on the calendar, remove it completely.
         setTasks(currentTasks => currentTasks.filter(task => task.id !== id));
     }
     setReasoning(null);
   };
+
 
   const handlePrevDay = () => {
     setViewedDate(current => addDays(current, -1));

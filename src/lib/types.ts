@@ -11,6 +11,7 @@ export interface Task {
   startTime?: string; // Full ISO 8601 date string
   endTime?: string; // Full ISO 8601 date string
   isCompleted?: boolean;
+  isMissed?: boolean;
   overdueNotified?: boolean;
   archived?: boolean;
 }
