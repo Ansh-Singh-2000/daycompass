@@ -51,7 +51,7 @@ export default function Home() {
   const [tasks, setTasks] = useState<Task[]>(() => {
     if (typeof window === 'undefined') return initialTasks;
     try {
-        const saved = getCookie('day-weaver-tasks');
+        const saved = getCookie('day-compass-tasks');
         if (saved) {
             const parsed = JSON.parse(saved);
             return parsed.map((t: Task & { deadline: string | undefined }) => ({ ...t, deadline: t.deadline ? parseISO(t.deadline) : undefined }));
@@ -62,42 +62,42 @@ export default function Home() {
 
   const [startTime, setStartTime] = useState<string>(() => {
     if (typeof window === 'undefined') return '09:00';
-    return getCookie('day-weaver-startTime') || '09:00';
+    return getCookie('day-compass-startTime') || '09:00';
   });
 
   const [endTime, setEndTime] = useState<string>(() => {
     if (typeof window === 'undefined') return '21:00';
-    return getCookie('day-weaver-endTime') || '21:00';
+    return getCookie('day-compass-endTime') || '21:00';
   });
 
   const [wakeTime, setWakeTime] = useState<string>(() => {
     if (typeof window === 'undefined') return '07:00';
-    return getCookie('day-weaver-wakeTime') || '07:00';
+    return getCookie('day-compass-wakeTime') || '07:00';
   });
 
   const [sleepTime, setSleepTime] = useState<string>(() => {
     if (typeof window === 'undefined') return '23:00';
-    return getCookie('day-weaver-sleepTime') || '23:00';
+    return getCookie('day-compass-sleepTime') || '23:00';
   });
 
   const [blockedTimes, setBlockedTimes] = useState<BlockedTime[]>(() => {
     if (typeof window === 'undefined') return initialBlockedTimes;
     try {
-        const saved = getCookie('day-weaver-blockedTimes');
+        const saved = getCookie('day-compass-blockedTimes');
         return saved ? JSON.parse(saved) : initialBlockedTimes;
     } catch (e) { console.error("Failed to load blocked times from cookies", e); }
     return initialBlockedTimes;
   });
 
   const [model, setModel] = useState<string>(() => {
-    if (typeof window === 'undefined') return 'llama3-8b-8192';
-    return getCookie('day-weaver-model') || 'llama3-8b-8192';
+    if (typeof window === 'undefined') return 'llama3-70b-8192';
+    return getCookie('day-compass-model') || 'llama3-70b-8192';
   });
 
   const [points, setPoints] = useState<{gains: number, losses: number}>(() => {
     if (typeof window === 'undefined') return { gains: 0, losses: 0 };
     try {
-        const saved = getCookie('day-weaver-points');
+        const saved = getCookie('day-compass-points');
         return saved ? JSON.parse(saved) : { gains: 0, losses: 0 };
     } catch (e) { console.error("Failed to load points from cookies", e); }
     return { gains: 0, losses: 0 };
@@ -116,14 +116,14 @@ export default function Home() {
   // --- EFFECTS ---
 
   // Save state to cookies whenever it changes
-  useEffect(() => { setCookie('day-weaver-tasks', JSON.stringify(tasks), 365); }, [tasks]);
-  useEffect(() => { setCookie('day-weaver-startTime', startTime, 365); }, [startTime]);
-  useEffect(() => { setCookie('day-weaver-endTime', endTime, 365); }, [endTime]);
-  useEffect(() => { setCookie('day-weaver-wakeTime', wakeTime, 365); }, [wakeTime]);
-  useEffect(() => { setCookie('day-weaver-sleepTime', sleepTime, 365); }, [sleepTime]);
-  useEffect(() => { setCookie('day-weaver-blockedTimes', JSON.stringify(blockedTimes), 365); }, [blockedTimes]);
-  useEffect(() => { setCookie('day-weaver-model', model, 365); }, [model]);
-  useEffect(() => { setCookie('day-weaver-points', JSON.stringify(points), 365); }, [points]);
+  useEffect(() => { setCookie('day-compass-tasks', JSON.stringify(tasks), 365); }, [tasks]);
+  useEffect(() => { setCookie('day-compass-startTime', startTime, 365); }, [startTime]);
+  useEffect(() => { setCookie('day-compass-endTime', endTime, 365); }, [endTime]);
+  useEffect(() => { setCookie('day-compass-wakeTime', wakeTime, 365); }, [wakeTime]);
+  useEffect(() => { setCookie('day-compass-sleepTime', sleepTime, 365); }, [sleepTime]);
+  useEffect(() => { setCookie('day-compass-blockedTimes', JSON.stringify(blockedTimes), 365); }, [blockedTimes]);
+  useEffect(() => { setCookie('day-compass-model', model, 365); }, [model]);
+  useEffect(() => { setCookie('day-compass-points', JSON.stringify(points), 365); }, [points]);
   
   // Create a ref to hold the latest tasks array for use in callbacks
   const tasksRef = useRef(tasks);
