@@ -148,7 +148,7 @@ export default function ScheduleCalendar({
   }
 
   const totalHours = endHour - startHour;
-  const hourSegments = Array.from({ length: totalHours + 1 }, (_, i) => startHour + i);
+  const hourSegments = Array.from({ length: totalHours }, (_, i) => startHour + i);
   const HOUR_HEIGHT_REM = 6; // h-24
 
   if (!isLoading && schedule.length === 0 && !hasTasks) {
@@ -170,7 +170,7 @@ export default function ScheduleCalendar({
         style={{ height: `${totalHours * HOUR_HEIGHT_REM}rem` }}
       >
         {/* Time Column */}
-        <div className="relative">
+        <div className="relative border-b-2 border-slate-200 dark:border-slate-700">
           {hourSegments.map((hour, index) => {
             return (
                 <div
@@ -185,6 +185,12 @@ export default function ScheduleCalendar({
                 </div>
             )
           })}
+           <div className="absolute bottom-0 right-0 pr-2 translate-y-1/2">
+                <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                    {endHour % 12 === 0 ? 12 : endHour % 12}{' '}
+                    <span className="text-xs">{endHour < 12 || endHour === 24 ? 'AM' : 'PM'}</span>
+                </span>
+            </div>
         </div>
 
         {/* Schedule Column */}
@@ -197,6 +203,8 @@ export default function ScheduleCalendar({
               style={{ top: `${index * HOUR_HEIGHT_REM}rem` }}
             />
           ))}
+          <div className="absolute w-full border-b-2 border-slate-200 dark:border-slate-700 bottom-0" />
+
 
           {/* Blocked Times */}
           {blockedEvents.map((item) => {
@@ -298,9 +306,16 @@ export default function ScheduleCalendar({
                         {format(startDate, 'HH:mm')} - {format(endDate, 'HH:mm')}
                       </p>
                     </div>
-                     <Badge variant="outline" className={cn("capitalize w-fit text-xs mt-1", priorityStyles[item.priority])}>
-                        {item.priority}
-                    </Badge>
+                     <div className="flex items-center gap-1.5 flex-wrap mt-1">
+                        <Badge variant="outline" className={cn("capitalize w-fit text-xs", priorityStyles[item.priority])}>
+                            {item.priority}
+                        </Badge>
+                        {item.isMissed && (
+                            <Badge variant="destructive" className="w-fit text-xs">
+                            Missed
+                            </Badge>
+                        )}
+                    </div>
                   </div>
                   <Checkbox
                     checked={item.isCompleted}
