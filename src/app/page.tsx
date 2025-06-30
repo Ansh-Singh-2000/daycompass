@@ -15,7 +15,7 @@ import SettingsDialog from '@/components/day-weaver/SettingsDialog';
 import AdjustScheduleDialog from '@/components/day-weaver/AdjustScheduleDialog';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CalendarDays, ChevronLeft, ChevronRight, Smartphone } from 'lucide-react';
+import { Compass, ChevronLeft, ChevronRight, Smartphone } from 'lucide-react';
 import { addDays, format, parseISO, isValid } from 'date-fns';
 import { v4 as uuidv4 } from 'uuid';
 import { ToastAction } from '@/components/ui/toast';
