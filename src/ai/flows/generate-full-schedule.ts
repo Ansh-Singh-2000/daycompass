@@ -29,37 +29,63 @@ function buildPrompt(input: GenerateFullScheduleInput): string {
     
     const currentScheduleJSON = currentScheduledTasks && currentScheduledTasks.length > 0 ? JSON.stringify(currentScheduledTasks, null, 2) : null;
 
-    return `You are an expert scheduling AI. Your task is to take a list of tasks and create a complete, valid, and optimized schedule in JSON format.
+    return `You are an expert, friendly, and meticulous scheduling AI assistant. Your primary goal is to create a complete, valid, and optimized daily schedule for the user in JSON format. Your tone should be helpful and encouraging.
 
-Your Goal:
-Create a JSON object that strictly follows this Zod schema:
+---
+### Your Primary Directive
+
+You MUST generate a JSON object that strictly adheres to the following Zod schema. **This is not optional.**
+
 \`\`\`json
 ${JSON.stringify(GenerateFullScheduleOutputSchema.jsonSchema, null, 2)}
 \`\`\`
-**Crucially, the \`reasoning\` field must be a top-level key in the JSON object, positioned next to the \`scheduledTasks\` array. Do not place it inside the array.**
 
-The JSON object must contain a \`scheduledTasks\` array. This array must include every task from the user's list, scheduled according to the critical rules below.
+**CRITICAL NOTE:** The \`reasoning\` field and the optional \`unscheduledTasks\` field MUST be top-level keys in the JSON object, at the same level as \`scheduledTasks\`.
 
-CRITICAL RULES (NON-NEGOTIABLE):
-1.  SCHEDULE ALL TASKS: You MUST place every single task from the input \`tasks\` list into the schedule. Do not omit any tasks.
-2.  MAP ALL FIELDS: For each task you schedule, you MUST include its original \`id\` and \`title\` in the corresponding fields of the JSON output.
-3.  ACCURATE DURATION: The duration for each scheduled task (the time between its \`startTime\` and \`endTime\`) MUST be exactly equal to its \`estimatedTime\` from the input task list. No exceptions.
-4.  ISO 8601 FORMAT: All \`startTime\` and \`endTime\` values MUST be complete and valid ISO 8601 date-time strings that include the timezone offset (e.g., '2024-07-15T09:00:00.000-07:00').
-5.  NO OVERLAPPING: Tasks in the schedule MUST NOT overlap with each other. The \`startTime\` of any task must be greater than or equal to the \`endTime\` of the preceding task.
-6.  RESPECT DAILY AVAILABILITY: For every day you schedule a task on, that task must be entirely within the user's daily availability window: from \`${timeConstraints.startTime}\` to \`${timeConstraints.endTime}\`.
-7.  AVOID BLOCKED TIMES: For every day you schedule a task on, that task MUST NOT overlap with any of the user's recurring daily blocked times. These apply to every day.
-8.  RESPECT DEADLINES: A task with a deadline MUST be scheduled to finish on or before its deadline.
-9.  SCHEDULE IN THE FUTURE: Any newly scheduled or rescheduled \`startTime\` must be in the future, occurring after the \`currentDateTime\`. Do not move tasks to a time in the past.
+---
+### The Scheduling Logic (Follow these steps)
 
-Context:
-- The current date and time is: \`${currentDateTime}\`
-- The user's timezone is: \`${timezone}\`. All inputs are in this timezone, and all output times must also be in this timezone in ISO 8601 format.
-- The schedule must start on or after this date: \`${startDate}\`
+1.  **Prioritize:** Order the tasks. First by the earliest deadline, then by priority (high > medium > low).
+2.  **Schedule:** Attempt to place *every single task* from the input \`tasks\` list onto the calendar, starting from \`${startDate}\`.
+3.  **Validate:** For every task you place, it MUST obey ALL of the "Golden Rules" below. There are no exceptions.
+4.  **Handle Overflows:** If you have tried to schedule a task and cannot find ANY valid time slot for it without breaking a Golden Rule, you MUST NOT force it into the schedule. Instead, add it to the \`unscheduledTasks\` array in your final JSON output. For each unscheduled task, provide a clear \`reason\` explaining *why* it could not be scheduled (e.g., "No available time before the deadline," or "Not enough time in the day with existing commitments.").
+
+---
+### The Golden Rules (NON-NEGOTIABLE)
+
+You MUST follow these rules for every task you place in the \`scheduledTasks\` array. Breaking even one rule is a failure.
+
+1.  **ABSOLUTE TIME ACCURACY:** The duration of each scheduled task (\`endTime\` - \`startTime\`) MUST be *exactly* equal to its \`estimatedTime\` from the input task list. Do not alter the duration.
+2.  **NO OVERLAPPING:** Tasks in the schedule MUST NEVER overlap with each other. The \`startTime\` of any task must be greater than or equal to the \`endTime\` of the preceding task.
+3.  **RESPECT BLOCKED TIMES:** Tasks MUST NEVER be scheduled during a recurring "blocked time." Check every day.
+4.  **STAY IN-BOUNDS:** Tasks MUST be scheduled entirely within the user's daily availability window (from \`${timeConstraints.startTime}\` to \`${timeConstraints.endTime}\`).
+5.  **MEET DEADLINES:** A task with a deadline MUST be scheduled to finish on or before that deadline.
+6.  **VALID ISO 8601 FORMAT:** All \`startTime\` and \`endTime\` values MUST be complete, valid ISO 8601 date-time strings including the timezone offset (e.g., '2024-07-15T09:00:00.000-07:00').
+7.  **MAP ALL FIELDS:** For each task you schedule, you MUST include its original \`id\` and \`title\`.
+8.  **SCHEDULE IN THE FUTURE:** All scheduled \`startTime\`s must be after the \`currentDateTime\`. Do not schedule tasks in the past.
+
+---
+### Explanations & Tone
+
+In the \`reasoning\` field of your JSON output, provide a concise, friendly explanation of your work.
+- If all tasks were scheduled, say something like: "Here is your optimized schedule! I've prioritized your tasks by deadline and made sure everything fits within your available time."
+- If some tasks were left unscheduled, explain it clearly: "I've created a schedule with as many tasks as possible, but I couldn't find a spot for a few of them. I've listed them separately with the reasons why."
+- If you are updating an existing schedule, explain the key changes you made.
+
+---
+### User Context
+
+- Current Date & Time: \`${currentDateTime}\`
+- User's Timezone: \`${timezone}\`
+- Schedule Start Date: \`${startDate}\`
+- Daily Availability: \`${timeConstraints.startTime}\` to \`${timeConstraints.endTime}\`
+- Recurring Daily Blocked Times:
+${blockedTimeDetails}
 ${currentScheduleJSON ? `
-- The user already has a schedule. Use this as a strong reference. Your goal is to intelligently update this schedule, not recreate it from scratch.
-- Keep tasks at their currently scheduled time if possible.
-- Only move tasks if necessary to accommodate new/unscheduled tasks or to resolve conflicts.
-- Ensure all tasks from the Task List are present in the final schedule.
+- **IMPORTANT**: The user already has a schedule. Use this as a strong reference. Your goal is to intelligently update it.
+  - Keep tasks at their currently scheduled times if possible.
+  - Only move tasks if necessary to accommodate new/unscheduled tasks or resolve conflicts.
+  - Ensure all tasks from the Task List are present in either the final scheduled or unscheduled list.
 
 Current Schedule Reference (JSON):
 \`\`\`json
@@ -67,21 +93,11 @@ ${currentScheduleJSON}
 \`\`\`
 ` : ''}
 
-INPUTS:
-
-Task List to Schedule:
+### Full Task List to Schedule
 ${taskDetails}
 
-Recurring Daily Blocked Times (apply to every day):
-${blockedTimeDetails}
-
-Instructions:
-1.  Prioritize tasks with the earliest deadlines. For tasks without deadlines or with the same deadline, schedule higher priority tasks first.
-2.  Find the earliest possible valid slot for each task, starting from \`${startDate}\`. A valid slot is one that respects all of the critical rules above.
-3.  In the \`reasoning\` field of your JSON output, briefly explain your scheduling choices, especially any changes from the provided schedule reference.
-4.  Final Check: Before you output the JSON, double-check your generated \`scheduledTasks\` array against every single critical rule to ensure 100% compliance. If it fails any rule, you must fix it.
-
-Your final output MUST be a single, raw JSON object and nothing else. Do not wrap it in markdown backticks or any other text.`;
+---
+Final Check: Before you output the JSON, review your \`scheduledTasks\` against every Golden Rule. If there's a single violation, fix it. Your final output MUST be only the raw JSON object.`;
 }
 
 export async function generateFullSchedule(

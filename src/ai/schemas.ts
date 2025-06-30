@@ -37,14 +37,21 @@ export const GenerateFullScheduleInputSchema = z.object({
   currentScheduledTasks: z.array(AIScheduledTaskSchema).optional(),
 });
 
+const UnscheduledTaskSchema = z.object({
+    id: z.string().describe("The ID of the unscheduled task."),
+    title: z.string().describe("The title of the unscheduled task."),
+    reason: z.string().describe("The specific reason why this task could not be scheduled.")
+});
+
 // Output for both the generation and adjustment flows
 export const GenerateFullScheduleOutputSchema = z.object({
   scheduledTasks: z.array(AIScheduledTaskSchema),
-  reasoning: z.string()
+  reasoning: z.string(),
+  unscheduledTasks: z.array(UnscheduledTaskSchema).optional().describe("A list of tasks that could not be scheduled, if any."),
 });
 
 // Input for the schedule adjustment flow
 export const AdjustScheduleInputSchema = GenerateFullScheduleInputSchema.extend({
-    currentScheduledTasks: GenerateFullScheduleOutputSchema.shape.scheduledTasks,
+    currentScheduledTasks: z.array(AIScheduledTaskSchema),
     userRequest: z.string(),
 });

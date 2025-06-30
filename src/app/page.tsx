@@ -345,6 +345,17 @@ export default function Home() {
         });
         setProposedSchedule(enrichedProposedSchedule);
         setReasoning(result.data.reasoning);
+
+        if (result.data.unscheduledTasks && result.data.unscheduledTasks.length > 0) {
+            const unscheduledTitles = result.data.unscheduledTasks.map(t => `"${t.title}"`).join(', ');
+            toast({
+                variant: "destructive",
+                title: "Could Not Schedule All Tasks",
+                description: `The AI could not find a valid time for: ${unscheduledTitles}. Check the AI's reasoning in the adjustment dialog for more details.`,
+                duration: 10000,
+            });
+        }
+        
         setIsAdjustDialogOpen(true);
     } else {
       toast({
