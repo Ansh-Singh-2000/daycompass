@@ -72,15 +72,16 @@ export default function AdjustScheduleDialog({
   }, [chatHistory]);
 
   useEffect(() => {
-    // When the dialog opens, focus the input field. This avoids refocusing
-    // after every AI response, which caused an unwanted highlight effect.
-    if (isOpen) {
+    // When the dialog opens, or after an AI response cycle completes,
+    // gracefully focus the input field. This prevents the whole dialog
+    // from getting a focus ring.
+    if (isOpen && !isAdjusting) {
       const timer = setTimeout(() => {
         inputRef.current?.focus();
-      }, 100); // Small delay to allow for dialog animation.
+      }, 100); // Small delay allows for dialog/state changes to settle.
       return () => clearTimeout(timer);
     }
-  }, [isOpen]);
+  }, [isOpen, isAdjusting]);
 
 
   const handleChatSubmit = async (e: React.FormEvent) => {
