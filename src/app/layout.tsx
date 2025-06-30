@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { ThemeProvider } from '@/components/ThemeProvider';
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://daycompass.vercel.app'),
   title: 'Day Compass',
   description: 'An intelligent daily planner to help you chart the perfect day.',
   openGraph: {
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
     siteName: 'Day Compass',
     images: [
       {
-        url: 'https://daycompass.vercel.app/og-image.png', // The path to your image in the `public` folder
+        url: '/og-image.png', // The path to your image in the `public` folder
         width: 1200,
         height: 630,
         alt: 'Day Compass Application Interface',
@@ -25,7 +26,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Day Compass',
     description: 'An intelligent daily planner to help you chart the perfect day.',
-    images: ['https://daycompass.vercel.app/og-image.png'], // The path to your image in the `public` folder
+    images: ['/og-image.png'], // The path to your image in the `public` folder
   },
 };
 
