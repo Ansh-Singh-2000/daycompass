@@ -1,8 +1,8 @@
-# ✨ Day Weaver ✨
+# ✨ Day Compass ✨
 
-**An intelligent daily planner that uses AI to help you weave the perfect day.**
+**An intelligent daily planner that uses AI to help you chart the perfect day.**
 
-Day Weaver is a smart, interactive single-page application designed to help users, particularly students, manage their tasks and optimize their daily schedules. It leverages a powerful AI assistant to automatically generate and refine schedules based on task priority, duration, and deadlines, all while adapting to the user's personal constraints like working hours and recurring breaks.
+Day Compass is a smart, interactive single-page application designed to help users, particularly students, manage their tasks and optimize their daily schedules. It leverages a powerful AI assistant to automatically generate and refine schedules based on task priority, duration, and deadlines, all while adapting to the user's personal constraints like working hours and recurring breaks.
 
 ---
 

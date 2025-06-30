@@ -1,6 +1,6 @@
-# Day Weaver: System Logic Documentation
+# Day Compass: System Logic Documentation
 
-This document explains the core logic behind the **Points System** and the **Overdue Task Notification System** in the Day Weaver application.
+This document explains the core logic behind the **Points System** and the **Overdue Task Notification System** in the Day Compass application.
 
 ---
 

@@ -4,8 +4,8 @@ import { Toaster } from "@/components/ui/toaster"
 import { ThemeProvider } from '@/components/ThemeProvider';
 
 export const metadata: Metadata = {
-  title: 'Day Weaver',
-  description: 'An intelligent daily planner to help you weave the perfect day.',
+  title: 'Day Compass',
+  description: 'An intelligent daily planner to help you chart the perfect day.',
 };
 
 export default function RootLayout({

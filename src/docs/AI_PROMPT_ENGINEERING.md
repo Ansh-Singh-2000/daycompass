@@ -1,6 +1,6 @@
-# Day Weaver: AI Prompt Engineering Guide
+# Day Compass: AI Prompt Engineering Guide
 
-This document provides a detailed breakdown of the prompt engineering strategies used in the Day Weaver application. The core of the AI's intelligence relies on carefully constructed prompts sent to the Groq API to ensure it returns structured, reliable, and helpful JSON data.
+This document provides a detailed breakdown of the prompt engineering strategies used in the Day Compass application. The core of the AI's intelligence relies on carefully constructed prompts sent to the Groq API to ensure it returns structured, reliable, and helpful JSON data.
 
 ---
 

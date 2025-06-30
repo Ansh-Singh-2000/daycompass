@@ -493,17 +493,15 @@ export default function Home() {
 
     const result = await refineSchedule(input);
 
-    if (result.success && result.data) {
-        if (result.data.scheduledTasks && Array.isArray(result.data.scheduledTasks)) {
-            const enrichedProposedSchedule = result.data.scheduledTasks.map(scheduledTask => {
-              const originalTask = tasks.find(t => t.id === scheduledTask.id);
-              return {
-                  ...scheduledTask,
-                  priority: originalTask?.priority || 'medium',
-              };
-            });
-            setProposedSchedule(enrichedProposedSchedule);
-        }
+    if (result.success && result.data && result.data.scheduledTasks) {
+        const enrichedProposedSchedule = result.data.scheduledTasks.map(scheduledTask => {
+          const originalTask = tasks.find(t => t.id === scheduledTask.id);
+          return {
+              ...scheduledTask,
+              priority: originalTask?.priority || 'medium',
+          };
+        });
+        setProposedSchedule(enrichedProposedSchedule);
         setReasoning(result.data.reasoning);
     } else {
        toast({
@@ -559,7 +557,7 @@ export default function Home() {
             <Smartphone className="h-4 w-4" />
             <AlertTitle>Optimized for Desktop</AlertTitle>
             <AlertDescription>
-              For the best experience, please use Day Weaver on a larger screen.
+              For the best experience, please use Day Compass on a larger screen.
             </AlertDescription>
           </Alert>
         )}
@@ -611,7 +609,7 @@ export default function Home() {
                   <div className="absolute inset-0 flex items-center justify-center bg-card/50 backdrop-blur-sm z-10 rounded-lg">
                       <div className="flex flex-col items-center gap-4">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-                        <p className="text-muted-foreground">Weaving your perfect schedule...</p>
+                        <p className="text-muted-foreground">Charting your perfect schedule...</p>
                       </div>
                     </div>
                 )}

@@ -1,12 +1,12 @@
-# Day Weaver: Application Architecture
+# Day Compass: Application Architecture
 
-This document provides a high-level overview of the Day Weaver application's architecture, focusing on its structure, state management, and core components.
+This document provides a high-level overview of the Day Compass application's architecture, focusing on its structure, state management, and core components.
 
 ---
 
 ## 1. Overall Philosophy
 
-Day Weaver is a client-centric single-page application built with Next.js and React. Its primary features are:
+Day Compass is a client-centric single-page application built with Next.js and React. Its primary features are:
 
 -   **Client-Side Rendering**: The main page (`/`) is a client component (`'use client'`) to allow for rich, immediate user interactivity.
 -   **Server Actions**: All communication with the backend AI logic is handled through Next.js Server Actions (`src/app/actions.ts`), providing a secure and efficient way to call server-side functions from the client without creating API endpoints.
