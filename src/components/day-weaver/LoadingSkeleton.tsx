@@ -15,7 +15,7 @@ export default function LoadingSkeleton() {
                     {/* Simplified Header Skeleton */}
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2 sm:gap-3">
-                            <Skeleton className="h-12 w-12 sm:h-16 sm:w-16" />
+                            <Skeleton className="h-14 w-14 sm:h-20 sm:w-20" />
                             <Skeleton className="h-8 sm:h-9 w-36 sm:w-48" />
                         </div>
                         <div className="flex items-center gap-2 sm:gap-4">

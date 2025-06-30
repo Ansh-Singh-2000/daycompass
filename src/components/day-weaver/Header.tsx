@@ -13,11 +13,11 @@ export default function Header({ onSettingsClick, points }: HeaderProps) {
     <header className="flex items-center justify-between">
       <div className="flex items-center gap-2 sm:gap-3">
         <Image
-          src="/compass-logo.png"
+          src="/compass-logo.png?v=2"
           alt="Day Compass Logo"
           width={500}
           height={500}
-          className="h-12 w-12 sm:h-16 sm:w-16"
+          className="h-14 w-14 sm:h-20 sm:w-20"
         />
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
           Day Compass
