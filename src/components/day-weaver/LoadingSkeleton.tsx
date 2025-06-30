@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Compass, Smartphone } from "lucide-react";
+import { Smartphone } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -14,12 +14,12 @@ export default function LoadingSkeleton() {
                 <div className="px-4 lg:px-6 py-3">
                     {/* Simplified Header Skeleton */}
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <Compass className="h-6 w-6 text-primary" />
-                            <Skeleton className="h-8 w-32" />
+                        <div className="flex items-center gap-2 sm:gap-3">
+                            <Skeleton className="h-6 w-6 sm:h-8 sm:w-8 rounded-full" />
+                            <Skeleton className="h-8 sm:h-9 w-36 sm:w-48" />
                         </div>
-                        <div className="flex items-center gap-4">
-                            <Skeleton className="h-9 w-24 rounded-lg" />
+                        <div className="flex items-center gap-2 sm:gap-4">
+                            <Skeleton className="hidden sm:flex h-9 w-24 rounded-lg" />
                             <div className="flex items-center gap-2">
                                 <Skeleton className="h-10 w-10 rounded-md" />
                                 <Skeleton className="h-10 w-10 rounded-md" />
