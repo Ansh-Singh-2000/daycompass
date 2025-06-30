@@ -9,11 +9,11 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Day Compass',
     description: 'An intelligent daily planner to help you chart the perfect day.',
-    url: 'https://day-compass.app', // You can replace this with your actual domain when you deploy
+    url: 'https://daycompass.vercel.app/',
     siteName: 'Day Compass',
     images: [
       {
-        url: '/og-image.png', // The path to your image in the `public` folder
+        url: 'https://daycompass.vercel.app/og-image.png', // The path to your image in the `public` folder
         width: 1200,
         height: 630,
         alt: 'Day Compass Application Interface',
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Day Compass',
     description: 'An intelligent daily planner to help you chart the perfect day.',
-    images: ['/og-image.png'], // The path to your image in the `public` folder
+    images: ['https://daycompass.vercel.app/og-image.png'], // The path to your image in the `public` folder
   },
 };
 
