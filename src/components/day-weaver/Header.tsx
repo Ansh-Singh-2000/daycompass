@@ -17,7 +17,7 @@ export default function Header({ onSettingsClick, points }: HeaderProps) {
           alt="Day Compass Logo"
           width={500}
           height={500}
-          className="h-6 w-6 sm:h-8 sm:w-8"
+          className="h-8 w-8 sm:h-10 sm:w-10"
         />
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
           Day Compass
