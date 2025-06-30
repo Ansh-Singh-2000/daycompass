@@ -275,13 +275,17 @@ export default function Home() {
 
   const handleDeleteTask = (id: string) => {
     const taskToDelete = tasks.find(t => t.id === id);
-    if (taskToDelete?.isCompleted) {
+    
+    // If a task has a start time, it means it's on the calendar.
+    // We'll archive it to preserve history, regardless of completion status.
+    if (taskToDelete?.startTime) {
         setTasks(currentTasks => 
             currentTasks.map(task => 
                 task.id === id ? { ...task, archived: true } : task
             )
         );
     } else {
+        // If it was never on the calendar, we can remove it completely.
         setTasks(currentTasks => currentTasks.filter(task => task.id !== id));
     }
     setReasoning(null);
