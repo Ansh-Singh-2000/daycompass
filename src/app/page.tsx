@@ -73,40 +73,82 @@ export default function Home() {
   // --- EFFECTS ---
 
   // Effect for loading from localStorage on mount (client-side only).
-  // This approach avoids hydration errors.
+  // This includes a one-time migration from cookies to localStorage.
   useEffect(() => {
     try {
-      const savedTasks = loadFromLocalStorage<any[]>('day-compass-tasks');
-      if (savedTasks) {
-        setTasks(savedTasks.map((t: Task & { deadline?: string }) => ({
-          ...t,
-          deadline: t.deadline ? parseISO(t.deadline) : undefined,
-        })));
-      }
+        // --- One-time migration from cookies to localStorage ---
+        const migrationFlag = 'day-compass-migrated-v1';
+        if (!loadFromLocalStorage(migrationFlag)) {
+            console.log("Checking for data to migrate from cookies...");
+            const cookieKeyMap = {
+                'day-weaver-tasks': 'day-compass-tasks',
+                'day-weaver-startTime': 'day-compass-startTime',
+                'day-weaver-endTime': 'day-compass-endTime',
+                'day-weaver-wakeTime': 'day-compass-wakeTime',
+                'day-weaver-sleepTime': 'day-compass-sleepTime',
+                'day-weaver-blockedTimes': 'day-compass-blockedTimes',
+                'day-weaver-model': 'day-compass-model',
+                'day-weaver-points': 'day-compass-points'
+            };
+            
+            let migrated = false;
+            for (const [cookieKey, localKey] of Object.entries(cookieKeyMap)) {
+                const cookieRawValue = document.cookie.split('; ').find(row => row.startsWith(`${cookieKey}=`))?.split('=')[1];
+                
+                if (cookieRawValue) {
+                    try {
+                        // Don't overwrite if there's already newer data in localStorage
+                        if (!loadFromLocalStorage(localKey)) {
+                            const value = JSON.parse(decodeURIComponent(cookieRawValue));
+                            saveToLocalStorage(localKey, value);
+                            migrated = true;
+                        }
+                        // Delete old cookie regardless
+                        document.cookie = `${cookieKey}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+                    } catch (e) {
+                        console.error(`Could not migrate cookie ${cookieKey}`, e);
+                    }
+                }
+            }
+            if (migrated) console.log("Migration successful!");
+            
+            // Set flag so this doesn't run again
+            saveToLocalStorage(migrationFlag, true);
+        }
+        // --- End of migration ---
 
-      const savedStartTime = loadFromLocalStorage<string>('day-compass-startTime');
-      if (savedStartTime) setStartTime(savedStartTime);
+        // Now, load from localStorage as usual
+        const savedTasks = loadFromLocalStorage<any[]>('day-compass-tasks');
+        if (savedTasks) {
+            setTasks(savedTasks.map((t: Task & { deadline?: string }) => ({
+                ...t,
+                deadline: t.deadline ? parseISO(t.deadline) : undefined,
+            })));
+        }
 
-      const savedEndTime = loadFromLocalStorage<string>('day-compass-endTime');
-      if (savedEndTime) setEndTime(savedEndTime);
-      
-      const savedWakeTime = loadFromLocalStorage<string>('day-compass-wakeTime');
-      if (savedWakeTime) setWakeTime(savedWakeTime);
-      
-      const savedSleepTime = loadFromLocalStorage<string>('day-compass-sleepTime');
-      if (savedSleepTime) setSleepTime(savedSleepTime);
+        const savedStartTime = loadFromLocalStorage<string>('day-compass-startTime');
+        if (savedStartTime) setStartTime(savedStartTime);
 
-      const savedBlockedTimes = loadFromLocalStorage<BlockedTime[]>('day-compass-blockedTimes');
-      if (savedBlockedTimes) setBlockedTimes(savedBlockedTimes);
+        const savedEndTime = loadFromLocalStorage<string>('day-compass-endTime');
+        if (savedEndTime) setEndTime(savedEndTime);
+        
+        const savedWakeTime = loadFromLocalStorage<string>('day-compass-wakeTime');
+        if (savedWakeTime) setWakeTime(savedWakeTime);
+        
+        const savedSleepTime = loadFromLocalStorage<string>('day-compass-sleepTime');
+        if (savedSleepTime) setSleepTime(savedSleepTime);
 
-      const savedModel = loadFromLocalStorage<string>('day-compass-model');
-      if (savedModel) setModel(savedModel);
+        const savedBlockedTimes = loadFromLocalStorage<BlockedTime[]>('day-compass-blockedTimes');
+        if (savedBlockedTimes) setBlockedTimes(savedBlockedTimes);
 
-      const savedPoints = loadFromLocalStorage<{gains: number, losses: number}>('day-compass-points');
-      if (savedPoints) setPoints(savedPoints);
+        const savedModel = loadFromLocalStorage<string>('day-compass-model');
+        if (savedModel) setModel(savedModel);
+
+        const savedPoints = loadFromLocalStorage<{gains: number, losses: number}>('day-compass-points');
+        if (savedPoints) setPoints(savedPoints);
 
     } catch (error) {
-        console.error("Error loading from localStorage", error);
+        console.error("Error during hydration or migration", error);
         // If loading fails, the app will just use the default state
     } finally {
         setTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
