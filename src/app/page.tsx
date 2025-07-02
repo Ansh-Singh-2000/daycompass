@@ -83,17 +83,26 @@ export default function Home() {
             
             let migrated = false;
             for (const [cookieKey, localKey] of Object.entries(cookieKeyMap)) {
-                const cookieRawValue = document.cookie.split('; ').find(row => row.startsWith(`${cookieKey}=`))?.split('=')[1];
+                const cookieRaw = document.cookie.split('; ').find(row => row.startsWith(`${cookieKey}=`));
                 
-                if (cookieRawValue) {
+                if (cookieRaw) {
                     try {
-                        // Don't overwrite if there's already newer data in localStorage
                         if (!loadFromLocalStorage(localKey)) {
-                            const value = JSON.parse(cookieRawValue);
-                            saveToLocalStorage(localKey, value);
+                            const cookieEncodedValue = cookieRaw.substring(cookieKey.length + 1);
+                            const decodedValue = decodeURIComponent(cookieEncodedValue);
+
+                            let valueToStore;
+                            try {
+                                valueToStore = JSON.parse(decodedValue);
+                            } catch (e) {
+                                valueToStore = decodedValue;
+                            }
+                            
+                            saveToLocalStorage(localKey, valueToStore);
                             migrated = true;
+                            console.log(`Migrated ${cookieKey} successfully.`);
                         }
-                        // Delete old cookie regardless
+                        
                         document.cookie = `${cookieKey}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
                     } catch (e) {
                         console.error(`Could not migrate cookie ${cookieKey}`, e);
@@ -102,7 +111,6 @@ export default function Home() {
             }
             if (migrated) console.log("Migration successful!");
             
-            // Set flag so this doesn't run again
             saveToLocalStorage(migrationFlag, true);
         }
         // --- END: ONE-TIME COOKIE TO LOCALSTORAGE MIGRATION SCRIPT ---
