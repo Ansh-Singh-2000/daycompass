@@ -3,7 +3,10 @@
 import { generateFullSchedule, type GenerateFullScheduleInput, type GenerateFullScheduleOutput } from '@/ai/flows/generate-full-schedule';
 import { adjustSchedule, type AdjustScheduleInput, type AdjustScheduleOutput } from '@/ai/flows/adjust-schedule-flow';
 
-async function handleAIError(error: unknown) {
+type SuccessResponse<T> = { success: true; data: T };
+type ErrorResponse = { success: false; error: string };
+
+async function handleAIError(error: unknown): Promise<ErrorResponse> {
     let errorMessage = 'An unexpected error occurred with the AI. Please try again.';
     if (error instanceof Error) {
         if (error.message.includes('GROQ_API_KEY')) {
@@ -16,7 +19,7 @@ async function handleAIError(error: unknown) {
     return { success: false, error: errorMessage };
 }
 
-export async function createSchedule(input: GenerateFullScheduleInput): Promise<{ success: true; data: GenerateFullScheduleOutput; } | { success: false; error: string; }> {
+export async function createSchedule(input: GenerateFullScheduleInput): Promise<SuccessResponse<GenerateFullScheduleOutput> | ErrorResponse> {
   try {
     const result = await generateFullSchedule(input);
     return { success: true, data: result };
@@ -25,7 +28,7 @@ export async function createSchedule(input: GenerateFullScheduleInput): Promise<
   }
 }
 
-export async function refineSchedule(input: AdjustScheduleInput): Promise<{ success: true; data: AdjustScheduleOutput; } | { success: false; error: string; }> {
+export async function refineSchedule(input: AdjustScheduleInput): Promise<SuccessResponse<AdjustScheduleOutput> | ErrorResponse> {
     try {
         const result = await adjustSchedule(input);
         return { success: true, data: result };
