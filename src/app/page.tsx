@@ -25,17 +25,6 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import Footer from '@/components/day-weaver/Footer';
 import LoadingSkeleton from '@/components/day-weaver/LoadingSkeleton';
 
-const today = new Date();
-const initialTasks: Task[] = [
-  { id: uuidv4(), title: 'Physics - Kinematics Problem Set', estimatedTime: 120, priority: 'high', deadline: addDays(today, 3) },
-  { id: uuidv4(), title: 'Chemistry - Chemical Bonding Revision', estimatedTime: 90, priority: 'medium', deadline: addDays(today, 5) },
-  { id: uuidv4(), title: 'Maths - Integral Calculus Practice', estimatedTime: 120, priority: 'high', deadline: addDays(today, 2) },
-  { id: uuidv4(), title: 'JEE Mock Test - Paper 1', estimatedTime: 180, priority: 'high', deadline: addDays(today, 1) },
-  { id: uuidv4(), title: 'Mock Test Analysis', estimatedTime: 60, priority: 'medium', deadline: addDays(today, 1) },
-  { id: uuidv4(), title: 'Organic Chemistry - Reaction Mechanisms', estimatedTime: 75, priority: 'high', deadline: addDays(today, 0) },
-  { id: uuidv4(), title: 'Physics - Rotational Motion', estimatedTime: 90, priority: 'medium', deadline: addDays(today, 4) },
-];
-
 const initialBlockedTimes: BlockedTime[] = [
     { id: 'bt-1', title: 'Lunch Break', startTime: '13:00', endTime: '14:00' },
     { id: 'bt-2', title: 'Evening Walk', startTime: '18:00', endTime: '18:30' },
@@ -51,7 +40,7 @@ export default function Home() {
 
   // Initialize state with static defaults to prevent hydration mismatch.
   // The actual data will be loaded from localStorage in the useEffect hook.
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [startTime, setStartTime] = useState<string>('09:00');
   const [endTime, setEndTime] = useState<string>('21:00');
   const [wakeTime, setWakeTime] = useState<string>('07:00');
@@ -120,11 +109,25 @@ export default function Home() {
 
         // Now, load from localStorage as usual
         const savedTasks = loadFromLocalStorage<any[]>('day-compass-tasks');
-        if (savedTasks) {
+        if (savedTasks && savedTasks.length > 0) {
             setTasks(savedTasks.map((t: Task & { deadline?: string }) => ({
                 ...t,
                 deadline: t.deadline ? parseISO(t.deadline) : undefined,
             })));
+        } else {
+            // If no tasks are saved, set the initial example tasks.
+            // This logic is now client-side only, avoiding hydration errors.
+            const today = new Date();
+            const initialTasks: Task[] = [
+              { id: uuidv4(), title: 'Physics - Kinematics Problem Set', estimatedTime: 120, priority: 'high', deadline: addDays(today, 3) },
+              { id: uuidv4(), title: 'Chemistry - Chemical Bonding Revision', estimatedTime: 90, priority: 'medium', deadline: addDays(today, 5) },
+              { id: uuidv4(), title: 'Maths - Integral Calculus Practice', estimatedTime: 120, priority: 'high', deadline: addDays(today, 2) },
+              { id: uuidv4(), title: 'JEE Mock Test - Paper 1', estimatedTime: 180, priority: 'high', deadline: addDays(today, 1) },
+              { id: uuidv4(), title: 'Mock Test Analysis', estimatedTime: 60, priority: 'medium', deadline: addDays(today, 1) },
+              { id: uuidv4(), title: 'Organic Chemistry - Reaction Mechanisms', estimatedTime: 75, priority: 'high', deadline: addDays(today, 0) },
+              { id: uuidv4(), title: 'Physics - Rotational Motion', estimatedTime: 90, priority: 'medium', deadline: addDays(today, 4) },
+            ];
+            setTasks(initialTasks);
         }
 
         const savedStartTime = loadFromLocalStorage<string>('day-compass-startTime');
