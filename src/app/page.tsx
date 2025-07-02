@@ -110,6 +110,7 @@ export default function Home() {
         // Now, load from localStorage as usual
         const savedTasks = loadFromLocalStorage<any[]>('day-compass-tasks');
         if (savedTasks && savedTasks.length > 0) {
+            // Important: Dates are stored as strings in JSON. They need to be parsed back into Date objects.
             setTasks(savedTasks.map((t: Task & { deadline?: string }) => ({
                 ...t,
                 deadline: t.deadline ? parseISO(t.deadline) : undefined,
