@@ -71,14 +71,14 @@ export default function Home() {
         if (!loadFromLocalStorage(migrationFlag)) {
             console.log("Checking for data to migrate from cookies...");
             const cookieKeyMap = {
-                'day-weaver-tasks': 'day-compass-tasks',
-                'day-weaver-startTime': 'day-compass-startTime',
-                'day-weaver-endTime': 'day-compass-endTime',
-                'day-weaver-wakeTime': 'day-compass-wakeTime',
-                'day-weaver-sleepTime': 'day-compass-sleepTime',
-                'day-weaver-blockedTimes': 'day-compass-blockedTimes',
-                'day-weaver-model': 'day-compass-model',
-                'day-weaver-points': 'day-compass-points'
+                'day-compass-tasks': 'day-compass-tasks',
+                'day-compass-startTime': 'day-compass-startTime',
+                'day-compass-endTime': 'day-compass-endTime',
+                'day-compass-wakeTime': 'day-compass-wakeTime',
+                'day-compass-sleepTime': 'day-compass-sleepTime',
+                'day-compass-blockedTimes': 'day-compass-blockedTimes',
+                'day-compass-model': 'day-compass-model',
+                'day-compass-points': 'day-compass-points'
             };
             
             let migrated = false;
@@ -537,7 +537,7 @@ export default function Home() {
     const result = await refineSchedule(input);
 
     if (result.success) {
-      if (result.data?.scheduledTasks) {
+      if (result.data.scheduledTasks) {
           const enrichedProposedSchedule = result.data.scheduledTasks.map((scheduledTask: any) => {
             const originalTask = tasks.find(t => t.id === scheduledTask.id);
             return {
@@ -547,7 +547,7 @@ export default function Home() {
           });
           setProposedSchedule(enrichedProposedSchedule);
       }
-      if(result.data?.reasoning) {
+      if(result.data.reasoning) {
         setReasoning(result.data.reasoning);
       }
     } else {
