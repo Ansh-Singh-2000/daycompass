@@ -45,59 +45,20 @@ export default function Home() {
   const { toast } = useToast();
   const actionedToastIds = useRef(new Set<string>());
   const isMobile = useIsMobile();
+  
+  // --- STATE & HYDRATION ---
   const [isHydrated, setIsHydrated] = useState(false);
 
-  // --- STATE PERSISTENCE & HYDRATION ---
-  const [tasks, setTasks] = useState<Task[]>(() => {
-    if (typeof window === 'undefined') return initialTasks;
-    const saved = loadFromLocalStorage<any[]>('day-compass-tasks');
-    if (saved) {
-      try {
-        return saved.map((t: Task & { deadline?: string }) => ({
-          ...t,
-          deadline: t.deadline ? parseISO(t.deadline) : undefined,
-        }));
-      } catch (e) {
-        console.error("Failed to parse tasks from localStorage", e);
-      }
-    }
-    return initialTasks;
-  });
-
-  const [startTime, setStartTime] = useState<string>(() => {
-    if (typeof window === 'undefined') return '09:00';
-    return loadFromLocalStorage<string>('day-compass-startTime') || '09:00';
-  });
-
-  const [endTime, setEndTime] = useState<string>(() => {
-    if (typeof window === 'undefined') return '21:00';
-    return loadFromLocalStorage<string>('day-compass-endTime') || '21:00';
-  });
-
-  const [wakeTime, setWakeTime] = useState<string>(() => {
-    if (typeof window === 'undefined') return '07:00';
-    return loadFromLocalStorage<string>('day-compass-wakeTime') || '07:00';
-  });
-
-  const [sleepTime, setSleepTime] = useState<string>(() => {
-    if (typeof window === 'undefined') return '23:00';
-    return loadFromLocalStorage<string>('day-compass-sleepTime') || '23:00';
-  });
-
-  const [blockedTimes, setBlockedTimes] = useState<BlockedTime[]>(() => {
-    if (typeof window === 'undefined') return initialBlockedTimes;
-    return loadFromLocalStorage<BlockedTime[]>('day-compass-blockedTimes') || initialBlockedTimes;
-  });
-
-  const [model, setModel] = useState<string>(() => {
-    if (typeof window === 'undefined') return 'llama3-70b-8192';
-    return loadFromLocalStorage<string>('day-compass-model') || 'llama3-70b-8192';
-  });
-
-  const [points, setPoints] = useState<{gains: number, losses: number}>(() => {
-    if (typeof window === 'undefined') return { gains: 0, losses: 0 };
-    return loadFromLocalStorage<{gains: number, losses: number}>('day-compass-points') || { gains: 0, losses: 0 };
-  });
+  // Initialize state with static defaults to prevent hydration mismatch.
+  // The actual data will be loaded from localStorage in the useEffect hook.
+  const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  const [startTime, setStartTime] = useState<string>('09:00');
+  const [endTime, setEndTime] = useState<string>('21:00');
+  const [wakeTime, setWakeTime] = useState<string>('07:00');
+  const [sleepTime, setSleepTime] = useState<string>('23:00');
+  const [blockedTimes, setBlockedTimes] = useState<BlockedTime[]>(initialBlockedTimes);
+  const [model, setModel] = useState<string>('llama3-70b-8192');
+  const [points, setPoints] = useState<{gains: number, losses: number}>({ gains: 0, losses: 0 });
 
   // Transient state (not persisted)
   const [isGenerating, setIsGenerating] = useState(false);
@@ -111,15 +72,58 @@ export default function Home() {
   
   // --- EFFECTS ---
 
-  // Save state to localStorage whenever it changes
-  useEffect(() => { saveToLocalStorage('day-compass-tasks', tasks); }, [tasks]);
-  useEffect(() => { saveToLocalStorage('day-compass-startTime', startTime); }, [startTime]);
-  useEffect(() => { saveToLocalStorage('day-compass-endTime', endTime); }, [endTime]);
-  useEffect(() => { saveToLocalStorage('day-compass-wakeTime', wakeTime); }, [wakeTime]);
-  useEffect(() => { saveToLocalStorage('day-compass-sleepTime', sleepTime); }, [sleepTime]);
-  useEffect(() => { saveToLocalStorage('day-compass-blockedTimes', blockedTimes); }, [blockedTimes]);
-  useEffect(() => { saveToLocalStorage('day-compass-model', model); }, [model]);
-  useEffect(() => { saveToLocalStorage('day-compass-points', points); }, [points]);
+  // Effect for loading from localStorage on mount (client-side only).
+  // This approach avoids hydration errors.
+  useEffect(() => {
+    try {
+      const savedTasks = loadFromLocalStorage<any[]>('day-compass-tasks');
+      if (savedTasks) {
+        setTasks(savedTasks.map((t: Task & { deadline?: string }) => ({
+          ...t,
+          deadline: t.deadline ? parseISO(t.deadline) : undefined,
+        })));
+      }
+
+      const savedStartTime = loadFromLocalStorage<string>('day-compass-startTime');
+      if (savedStartTime) setStartTime(savedStartTime);
+
+      const savedEndTime = loadFromLocalStorage<string>('day-compass-endTime');
+      if (savedEndTime) setEndTime(savedEndTime);
+      
+      const savedWakeTime = loadFromLocalStorage<string>('day-compass-wakeTime');
+      if (savedWakeTime) setWakeTime(savedWakeTime);
+      
+      const savedSleepTime = loadFromLocalStorage<string>('day-compass-sleepTime');
+      if (savedSleepTime) setSleepTime(savedSleepTime);
+
+      const savedBlockedTimes = loadFromLocalStorage<BlockedTime[]>('day-compass-blockedTimes');
+      if (savedBlockedTimes) setBlockedTimes(savedBlockedTimes);
+
+      const savedModel = loadFromLocalStorage<string>('day-compass-model');
+      if (savedModel) setModel(savedModel);
+
+      const savedPoints = loadFromLocalStorage<{gains: number, losses: number}>('day-compass-points');
+      if (savedPoints) setPoints(savedPoints);
+
+    } catch (error) {
+        console.error("Error loading from localStorage", error);
+        // If loading fails, the app will just use the default state
+    } finally {
+        setTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
+        setIsHydrated(true);
+    }
+  }, []); // Empty dependency array means this runs once on mount.
+
+  // Effects for saving to localStorage whenever state changes.
+  // These will only run after the initial hydration is complete.
+  useEffect(() => { if(isHydrated) saveToLocalStorage('day-compass-tasks', tasks); }, [tasks, isHydrated]);
+  useEffect(() => { if(isHydrated) saveToLocalStorage('day-compass-startTime', startTime); }, [startTime, isHydrated]);
+  useEffect(() => { if(isHydrated) saveToLocalStorage('day-compass-endTime', endTime); }, [endTime, isHydrated]);
+  useEffect(() => { if(isHydrated) saveToLocalStorage('day-compass-wakeTime', wakeTime); }, [wakeTime, isHydrated]);
+  useEffect(() => { if(isHydrated) saveToLocalStorage('day-compass-sleepTime', sleepTime); }, [sleepTime, isHydrated]);
+  useEffect(() => { if(isHydrated) saveToLocalStorage('day-compass-blockedTimes', blockedTimes); }, [blockedTimes, isHydrated]);
+  useEffect(() => { if(isHydrated) saveToLocalStorage('day-compass-model', model); }, [model, isHydrated]);
+  useEffect(() => { if(isHydrated) saveToLocalStorage('day-compass-points', points); }, [points, isHydrated]);
   
   // Create a ref to hold the latest tasks array for use in callbacks
   const tasksRef = useRef(tasks);
@@ -127,11 +131,6 @@ export default function Home() {
     tasksRef.current = tasks;
   }, [tasks]);
 
-  // Set timezone on mount and mark as hydrated to prevent SSR/client mismatch
-  useEffect(() => {
-    setTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
-    setIsHydrated(true);
-  }, []);
 
   // --- DERIVED STATE ---
   const scheduledTasksByDate = useMemo(() => {
@@ -257,6 +256,7 @@ export default function Home() {
   });
 
   useEffect(() => {
+    if (!isHydrated) return; // Don't run interval until hydrated
     const check = () => checkOverdueTasksRef.current();
     const initialCheckTimeout = setTimeout(check, 1000); 
     const intervalId = setInterval(check, 60000); 
@@ -265,7 +265,7 @@ export default function Home() {
       clearTimeout(initialCheckTimeout);
       clearInterval(intervalId);
     };
-  }, []);
+  }, [isHydrated]);
 
 
   const handleAddTask = (task: Omit<Task, 'id'>) => {
