@@ -396,7 +396,7 @@ export default function Home() {
     const result = await createSchedule(input);
     
     if (result.success) {
-        const enrichedProposedSchedule = result.data.scheduledTasks.map(scheduledTask => {
+        const enrichedProposedSchedule = result.data.scheduledTasks.map((scheduledTask: any) => {
           const originalTask = tasks.find(t => t.id === scheduledTask.id);
           return {
               ...scheduledTask,
@@ -538,7 +538,7 @@ export default function Home() {
 
     if (result.success) {
       if (result.data?.scheduledTasks) {
-          const enrichedProposedSchedule = result.data.scheduledTasks.map(scheduledTask => {
+          const enrichedProposedSchedule = result.data.scheduledTasks.map((scheduledTask: any) => {
             const originalTask = tasks.find(t => t.id === scheduledTask.id);
             return {
                 ...scheduledTask,
