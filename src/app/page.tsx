@@ -76,7 +76,8 @@ export default function Home() {
   // This includes a one-time migration from cookies to localStorage.
   useEffect(() => {
     try {
-        // --- One-time migration from cookies to localStorage ---
+        // --- START: ONE-TIME COOKIE TO LOCALSTORAGE MIGRATION SCRIPT ---
+        // This script can be safely removed in a future version after most users have migrated.
         const migrationFlag = 'day-compass-migrated-v1';
         if (!loadFromLocalStorage(migrationFlag)) {
             console.log("Checking for data to migrate from cookies...");
@@ -115,7 +116,7 @@ export default function Home() {
             // Set flag so this doesn't run again
             saveToLocalStorage(migrationFlag, true);
         }
-        // --- End of migration ---
+        // --- END: ONE-TIME COOKIE TO LOCALSTORAGE MIGRATION SCRIPT ---
 
         // Now, load from localStorage as usual
         const savedTasks = loadFromLocalStorage<any[]>('day-compass-tasks');
