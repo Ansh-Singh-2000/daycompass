@@ -395,7 +395,7 @@ export default function Home() {
 
     const result = await createSchedule(input);
     
-    if (result.success && result.data) {
+    if (result.success) {
         const enrichedProposedSchedule = result.data.scheduledTasks.map(scheduledTask => {
           const originalTask = tasks.find(t => t.id === scheduledTask.id);
           return {
@@ -411,7 +411,7 @@ export default function Home() {
       toast({
         variant: "destructive",
         title: "Scheduling Failed",
-        description: result.error || "An unknown error occurred.",
+        description: result.error,
       });
     }
     setIsGenerating(false);
@@ -536,21 +536,25 @@ export default function Home() {
 
     const result = await refineSchedule(input);
 
-    if (result.success && result.data && result.data.scheduledTasks) {
-        const enrichedProposedSchedule = result.data.scheduledTasks.map(scheduledTask => {
-          const originalTask = tasks.find(t => t.id === scheduledTask.id);
-          return {
-              ...scheduledTask,
-              priority: originalTask?.priority || 'medium',
-          };
-        });
-        setProposedSchedule(enrichedProposedSchedule);
+    if (result.success) {
+      if (result.data?.scheduledTasks) {
+          const enrichedProposedSchedule = result.data.scheduledTasks.map(scheduledTask => {
+            const originalTask = tasks.find(t => t.id === scheduledTask.id);
+            return {
+                ...scheduledTask,
+                priority: originalTask?.priority || 'medium',
+            };
+          });
+          setProposedSchedule(enrichedProposedSchedule);
+      }
+      if(result.data?.reasoning) {
         setReasoning(result.data.reasoning);
+      }
     } else {
        toast({
         variant: "destructive",
         title: "Adjustment Failed",
-        description: result.error || "Could not adjust the schedule.",
+        description: result.error,
       });
     }
 
