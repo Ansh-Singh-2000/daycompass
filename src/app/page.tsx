@@ -89,7 +89,7 @@ export default function Home() {
                     try {
                         // Don't overwrite if there's already newer data in localStorage
                         if (!loadFromLocalStorage(localKey)) {
-                            const value = JSON.parse(decodeURIComponent(cookieRawValue));
+                            const value = JSON.parse(cookieRawValue);
                             saveToLocalStorage(localKey, value);
                             migrated = true;
                         }
