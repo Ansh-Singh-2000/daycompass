@@ -1,7 +1,7 @@
 'use server';
 
-import { generateFullSchedule, type GenerateFullScheduleInput } from '@/ai/flows/generate-full-schedule';
-import { adjustSchedule, type AdjustScheduleInput } from '@/ai/flows/adjust-schedule-flow';
+import { generateFullSchedule, type GenerateFullScheduleInput, type GenerateFullScheduleOutput } from '@/ai/flows/generate-full-schedule';
+import { adjustSchedule, type AdjustScheduleInput, type AdjustScheduleOutput } from '@/ai/flows/adjust-schedule-flow';
 
 async function handleAIError(error: unknown) {
     let errorMessage = 'An unexpected error occurred with the AI. Please try again.';
@@ -16,7 +16,7 @@ async function handleAIError(error: unknown) {
     return { success: false, error: errorMessage };
 }
 
-export async function createSchedule(input: GenerateFullScheduleInput) {
+export async function createSchedule(input: GenerateFullScheduleInput): Promise<{ success: true; data: GenerateFullScheduleOutput; } | { success: false; error: string; }> {
   try {
     const result = await generateFullSchedule(input);
     return { success: true, data: result };
@@ -25,7 +25,7 @@ export async function createSchedule(input: GenerateFullScheduleInput) {
   }
 }
 
-export async function refineSchedule(input: AdjustScheduleInput) {
+export async function refineSchedule(input: AdjustScheduleInput): Promise<{ success: true; data: AdjustScheduleOutput; } | { success: false; error: string; }> {
     try {
         const result = await adjustSchedule(input);
         return { success: true, data: result };
