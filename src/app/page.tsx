@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { getCookie, setCookie } from '@/lib/cookies';
+import { loadFromLocalStorage, saveToLocalStorage } from '@/lib/storage';
 import type { Task, BlockedTime, ProposedTask, TaskPriority } from '@/lib/types';
 import { createSchedule, refineSchedule } from './actions';
 import { useToast } from "@/hooks/use-toast";
@@ -50,57 +50,53 @@ export default function Home() {
   // --- STATE PERSISTENCE & HYDRATION ---
   const [tasks, setTasks] = useState<Task[]>(() => {
     if (typeof window === 'undefined') return initialTasks;
-    try {
-        const saved = getCookie('day-compass-tasks');
-        if (saved) {
-            const parsed = JSON.parse(saved);
-            return parsed.map((t: Task & { deadline: string | undefined }) => ({ ...t, deadline: t.deadline ? parseISO(t.deadline) : undefined }));
-        }
-    } catch (e) { console.error("Failed to load tasks from cookies", e); }
+    const saved = loadFromLocalStorage<any[]>('day-compass-tasks');
+    if (saved) {
+      try {
+        return saved.map((t: Task & { deadline?: string }) => ({
+          ...t,
+          deadline: t.deadline ? parseISO(t.deadline) : undefined,
+        }));
+      } catch (e) {
+        console.error("Failed to parse tasks from localStorage", e);
+      }
+    }
     return initialTasks;
   });
 
   const [startTime, setStartTime] = useState<string>(() => {
     if (typeof window === 'undefined') return '09:00';
-    return getCookie('day-compass-startTime') || '09:00';
+    return loadFromLocalStorage<string>('day-compass-startTime') || '09:00';
   });
 
   const [endTime, setEndTime] = useState<string>(() => {
     if (typeof window === 'undefined') return '21:00';
-    return getCookie('day-compass-endTime') || '21:00';
+    return loadFromLocalStorage<string>('day-compass-endTime') || '21:00';
   });
 
   const [wakeTime, setWakeTime] = useState<string>(() => {
     if (typeof window === 'undefined') return '07:00';
-    return getCookie('day-compass-wakeTime') || '07:00';
+    return loadFromLocalStorage<string>('day-compass-wakeTime') || '07:00';
   });
 
   const [sleepTime, setSleepTime] = useState<string>(() => {
     if (typeof window === 'undefined') return '23:00';
-    return getCookie('day-compass-sleepTime') || '23:00';
+    return loadFromLocalStorage<string>('day-compass-sleepTime') || '23:00';
   });
 
   const [blockedTimes, setBlockedTimes] = useState<BlockedTime[]>(() => {
     if (typeof window === 'undefined') return initialBlockedTimes;
-    try {
-        const saved = getCookie('day-compass-blockedTimes');
-        return saved ? JSON.parse(saved) : initialBlockedTimes;
-    } catch (e) { console.error("Failed to load blocked times from cookies", e); }
-    return initialBlockedTimes;
+    return loadFromLocalStorage<BlockedTime[]>('day-compass-blockedTimes') || initialBlockedTimes;
   });
 
   const [model, setModel] = useState<string>(() => {
     if (typeof window === 'undefined') return 'llama3-70b-8192';
-    return getCookie('day-compass-model') || 'llama3-70b-8192';
+    return loadFromLocalStorage<string>('day-compass-model') || 'llama3-70b-8192';
   });
 
   const [points, setPoints] = useState<{gains: number, losses: number}>(() => {
     if (typeof window === 'undefined') return { gains: 0, losses: 0 };
-    try {
-        const saved = getCookie('day-compass-points');
-        return saved ? JSON.parse(saved) : { gains: 0, losses: 0 };
-    } catch (e) { console.error("Failed to load points from cookies", e); }
-    return { gains: 0, losses: 0 };
+    return loadFromLocalStorage<{gains: number, losses: number}>('day-compass-points') || { gains: 0, losses: 0 };
   });
 
   // Transient state (not persisted)
@@ -115,15 +111,15 @@ export default function Home() {
   
   // --- EFFECTS ---
 
-  // Save state to cookies whenever it changes
-  useEffect(() => { setCookie('day-compass-tasks', JSON.stringify(tasks), 365); }, [tasks]);
-  useEffect(() => { setCookie('day-compass-startTime', startTime, 365); }, [startTime]);
-  useEffect(() => { setCookie('day-compass-endTime', endTime, 365); }, [endTime]);
-  useEffect(() => { setCookie('day-compass-wakeTime', wakeTime, 365); }, [wakeTime]);
-  useEffect(() => { setCookie('day-compass-sleepTime', sleepTime, 365); }, [sleepTime]);
-  useEffect(() => { setCookie('day-compass-blockedTimes', JSON.stringify(blockedTimes), 365); }, [blockedTimes]);
-  useEffect(() => { setCookie('day-compass-model', model, 365); }, [model]);
-  useEffect(() => { setCookie('day-compass-points', JSON.stringify(points), 365); }, [points]);
+  // Save state to localStorage whenever it changes
+  useEffect(() => { saveToLocalStorage('day-compass-tasks', tasks); }, [tasks]);
+  useEffect(() => { saveToLocalStorage('day-compass-startTime', startTime); }, [startTime]);
+  useEffect(() => { saveToLocalStorage('day-compass-endTime', endTime); }, [endTime]);
+  useEffect(() => { saveToLocalStorage('day-compass-wakeTime', wakeTime); }, [wakeTime]);
+  useEffect(() => { saveToLocalStorage('day-compass-sleepTime', sleepTime); }, [sleepTime]);
+  useEffect(() => { saveToLocalStorage('day-compass-blockedTimes', blockedTimes); }, [blockedTimes]);
+  useEffect(() => { saveToLocalStorage('day-compass-model', model); }, [model]);
+  useEffect(() => { saveToLocalStorage('day-compass-points', points); }, [points]);
   
   // Create a ref to hold the latest tasks array for use in callbacks
   const tasksRef = useRef(tasks);
