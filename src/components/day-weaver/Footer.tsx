@@ -56,7 +56,7 @@ export default function Footer() {
         </div>
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="outline" size="sm">Contact Me</Button>
+            <Button variant="outline" size="sm">Reach Out</Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-2" side="top" align="end">
             <div className="flex flex-col gap-1">
