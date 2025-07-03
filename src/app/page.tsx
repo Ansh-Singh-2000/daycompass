@@ -86,17 +86,16 @@ export default function Home() {
                 
                 if (cookieRaw) {
                     try {
+                        const cookieValue = cookieRaw.substring(cookieKey.length + 1);
                         if (!loadFromLocalStorage(localKey)) {
-                            // The cookie value is the string after the first '='
-                            const cookieValue = cookieRaw.substring(cookieKey.length + 1);
-                            
                             let valueToStore;
                             try {
-                                // First, try to parse it as JSON. This will work for structured data.
-                                // We also decode URI components to handle characters like %2C for commas.
-                                valueToStore = JSON.parse(decodeURIComponent(cookieValue));
+                                // First, try to decode URI components to handle characters like %2C for commas.
+                                const decodedValue = decodeURIComponent(cookieValue);
+                                // Then, try to parse it as JSON. This will work for structured data.
+                                valueToStore = JSON.parse(decodedValue);
                             } catch (e) {
-                                // If parsing fails, it's likely a plain string (like the model name).
+                                // If parsing fails, it's likely a plain string that doesn't need parsing.
                                 // We still decode it in case it contains encoded characters.
                                 valueToStore = decodeURIComponent(cookieValue);
                             }
