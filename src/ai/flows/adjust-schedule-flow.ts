@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -37,13 +38,12 @@ You have two modes of operation:
 
 If the user gives a clear instruction to change the schedule (e.g., "move physics to 7pm", "can you add a new task: 'review notes for 30 mins'"), you must:
 
-1.  **Attempt the Change:** Generate a NEW, complete schedule that incorporates the user's request.
+1.  **Attempt the Change:** Generate a NEW, complete schedule in the \`scheduledTasks\` field that incorporates the user's request.
 2.  **Validate Rigorously:** The new schedule MUST follow all the "Golden Rules" listed below. There are NO exceptions.
 3.  **Handle Impossible Requests:** If the user's request *cannot* be fulfilled without breaking a Golden Rule (e.g., asking to move a task to a time that is already blocked), you **MUST NOT** make the change. Instead:
     *   Keep the schedule as it was. Your JSON output's \`scheduledTasks\` field must be identical to the \`currentScheduledTasks\` you received.
     *   Use the \`reasoning\` field to explain *why* you couldn't fulfill the request in a friendly way. For example: "I'd love to move that for you, but it looks like that time slot is already taken by your lunch break. Would you like me to find another time instead?"
-4.  **Handle Overflows:** If your changes mean some *other* task no longer fits, try to reschedule it. If it still won't fit anywhere, do not include it in the new \`scheduledTasks\` array and explain why in the \`reasoning\` field.
-5.  **Explain Your Work:** In the \`reasoning\` field, explain the changes you made (e.g., "Done! I've moved Physics to 7 PM and shifted your other tasks to accommodate it.").
+4.  **Explain Your Work:** In the \`reasoning\` field, explain the changes you made (e.g., "Done! I've moved Physics to 7 PM and shifted your other tasks to accommodate it.").
 
 ### Mode 2: Casual Conversation
 
@@ -70,7 +70,7 @@ ${JSON.stringify(GenerateFullScheduleOutputSchema.jsonSchema, null, 2)}
 3.  **STAY IN-BOUNDS:** Tasks must be within the daily availability window (\`${timeConstraints.startTime}\` - \`${timeConstraints.endTime}\`).
 4.  **MEET DEADLINES:** All tasks must still meet their original deadlines.
 5.  **VALID ISO 8601 FORMAT:** All \`startTime\` and \`endTime\` values MUST be complete and valid ISO 8601 date-time strings with a timezone offset.
-6.  **SCHEDULE ALL TASKS:** You MUST attempt to place every single task from the original \`tasks\` list into the new schedule. If you can't, explain why in the \`reasoning\` field.
+6.  **SCHEDULE ALL TASKS:** You MUST ensure that every single task from the original \`tasks\` list is present in the new \`scheduledTasks\` array. If a user's request makes this impossible, deny the request and explain why.
 7.  **SCHEDULE IN THE FUTURE:** Any new \`startTime\` must be after the \`currentDateTime\`.
 
 ---
@@ -79,13 +79,13 @@ ${JSON.stringify(GenerateFullScheduleOutputSchema.jsonSchema, null, 2)}
 -   Current Date & Time: \`${currentDateTime}\`
 -   User's Request: "${userRequest}"
 -   User's Timezone: \`${timezone}\`
--   Current Proposed Schedule (The JSON you should modify):
+-   **Current Proposed Schedule (The JSON you should modify):**
     \`\`\`json
     ${currentScheduleJSON}
     \`\`\`
--   Full Task List (for reference):
+-   **Full Task List (Reference for all tasks that must be on the schedule):**
     ${taskDetails}
--   Daily Constraints:
+-   **Daily Constraints:**
     - Availability: \`${timeConstraints.startTime}\` - \`${timeConstraints.endTime}\`
     - Blocked Times:
       ${blockedTimeDetails}
@@ -126,3 +126,5 @@ export async function adjustSchedule(
       throw new Error(`The AI returned an invalid response. The raw response was: "${responseText}"`);
   }
 }
+
+    
