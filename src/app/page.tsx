@@ -87,13 +87,17 @@ export default function Home() {
                 if (cookieRaw) {
                     try {
                         if (!loadFromLocalStorage(localKey)) {
+                            // The cookie value is the string after the first '='
                             const cookieValue = cookieRaw.substring(cookieKey.length + 1);
                             
                             let valueToStore;
                             try {
+                                // First, decode the URL-encoded characters (like %22 for quotes)
                                 const decodedValue = decodeURIComponent(cookieValue);
+                                // Then, try to parse it as JSON. If it fails, use the decoded string directly.
                                 valueToStore = JSON.parse(decodedValue);
                             } catch (e) {
+                                // This handles non-JSON values like the model name string
                                 valueToStore = decodeURIComponent(cookieValue);
                             }
                             
@@ -102,6 +106,7 @@ export default function Home() {
                             console.log(`Migrated ${cookieKey} successfully.`);
                         }
                         
+                        // Clean up the old cookie
                         document.cookie = `${cookieKey}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
                     } catch (e) {
                         console.error(`Could not migrate cookie ${cookieKey}`, e);
@@ -117,8 +122,9 @@ export default function Home() {
         // Now, load from localStorage as usual
         const savedTasks = loadFromLocalStorage<any[]>('day-compass-tasks');
         if (savedTasks && savedTasks.length > 0) {
-            setTasks(savedTasks.map((t: Task & { deadline?: string }) => ({
+            setTasks(savedTasks.map((t: any) => ({
                 ...t,
+                // Ensure deadline is a Date object if it exists
                 deadline: t.deadline ? parseISO(t.deadline) : undefined,
             })));
         } else {
@@ -207,6 +213,7 @@ export default function Home() {
   const currentSchedule = scheduledTasksByDate[dateKey] || [];
   const isLoading = isGenerating || isAdjusting;
   const isAdjustDisabled = useMemo(() => {
+    // Disable if there are no active (not completed, not missed) scheduled tasks
     return !tasks.some(t => t.startTime && !t.isCompleted && !t.isMissed);
   }, [tasks]);
   const hasTasks = useMemo(() => tasks.some(t => t.startTime), [tasks]);
@@ -352,6 +359,7 @@ export default function Home() {
   };
 
   const handleGenerateSchedule = async () => {
+    // Tasks to be scheduled are active ones (not completed, not missed)
     const tasksToSchedule = tasks.filter(t => !t.isCompleted && !t.isMissed);
     if (tasksToSchedule.length === 0) {
       toast({
@@ -365,6 +373,7 @@ export default function Home() {
     setIsGenerating(true);
     setReasoning(null);
 
+    // AI context includes all scheduled items from today onwards
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
 
@@ -398,7 +407,7 @@ export default function Home() {
     const result = await createSchedule(input);
     
     if (result.success) {
-        const enrichedProposedSchedule = result.data.scheduledTasks.map((scheduledTask: any) => {
+        const enrichedProposedSchedule = result.data.scheduledTasks.map((scheduledTask) => {
           const originalTask = tasks.find(t => t.id === scheduledTask.id);
           return {
               ...scheduledTask,
@@ -420,8 +429,13 @@ export default function Home() {
   };
 
   const handleOpenAdjustment = () => {
+    // The context for adjustment is all scheduled tasks from today onwards
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
     const currentOnCalendar = tasks
-        .filter(t => t.startTime && !t.isCompleted && !t.isMissed)
+        .filter(t => t.startTime && isValid(parseISO(t.startTime)))
+        .filter(t => parseISO(t.startTime!) >= startOfToday)
         .map(t => ({
             id: t.id,
             title: t.title,
@@ -430,10 +444,16 @@ export default function Home() {
             priority: t.priority
         }));
     
-    if (currentOnCalendar.length === 0) {
+    // Check if there are any *active* tasks to adjust in the context
+    const activeTasksToAdjust = currentOnCalendar.filter(p => {
+        const originalTask = tasks.find(t => t.id === p.id);
+        return originalTask && !originalTask.isCompleted && !originalTask.isMissed;
+    });
+
+    if (activeTasksToAdjust.length === 0) {
         toast({
             title: "Nothing to Adjust",
-            description: "There are no active tasks on your calendar. Generate a schedule first.",
+            description: "There are no active tasks on your calendar for today or the future.",
         });
         return;
     }
@@ -516,6 +536,7 @@ export default function Home() {
   const handleAdjustSchedule = async (userRequest: string) => {
     setIsAdjusting(true);
 
+    // The definitive list of tasks that MUST be scheduled are the active ones.
     const tasksToSchedule = tasks.filter(t => !t.isCompleted && !t.isMissed);
 
     const input = {
@@ -540,7 +561,7 @@ export default function Home() {
 
     if (result.success) {
       if (result.data.scheduledTasks) {
-          const enrichedProposedSchedule = result.data.scheduledTasks.map((scheduledTask: any) => {
+          const enrichedProposedSchedule = result.data.scheduledTasks.map((scheduledTask) => {
             const originalTask = tasks.find(t => t.id === scheduledTask.id);
             return {
                 ...scheduledTask,
