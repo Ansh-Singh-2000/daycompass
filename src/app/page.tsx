@@ -88,14 +88,19 @@ export default function Home() {
                 if (cookieRaw) {
                     try {
                         if (!loadFromLocalStorage(localKey)) {
-                            const cookieEncodedValue = cookieRaw.substring(cookieKey.length + 1);
-                            const decodedValue = decodeURIComponent(cookieEncodedValue);
-
+                            // The value is the part of the string after "key="
+                            const cookieValue = cookieRaw.substring(cookieKey.length + 1);
+                            
+                            // It's crucial to try parsing as JSON, but fall back to the raw value.
+                            // Some values are strings (like the model name), others are objects.
                             let valueToStore;
                             try {
+                                // Important: Cookies might be URL-encoded, so decode them first.
+                                const decodedValue = decodeURIComponent(cookieValue);
                                 valueToStore = JSON.parse(decodedValue);
                             } catch (e) {
-                                valueToStore = decodedValue;
+                                // If parsing fails, it's likely a simple string value.
+                                valueToStore = decodeURIComponent(cookieValue);
                             }
                             
                             saveToLocalStorage(localKey, valueToStore);
@@ -103,6 +108,7 @@ export default function Home() {
                             console.log(`Migrated ${cookieKey} successfully.`);
                         }
                         
+                        // Clean up the old cookie
                         document.cookie = `${cookieKey}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
                     } catch (e) {
                         console.error(`Could not migrate cookie ${cookieKey}`, e);
@@ -111,6 +117,7 @@ export default function Home() {
             }
             if (migrated) console.log("Migration successful!");
             
+            // Set the flag so we don't run this again.
             saveToLocalStorage(migrationFlag, true);
         }
         // --- END: ONE-TIME COOKIE TO LOCALSTORAGE MIGRATION SCRIPT ---
@@ -364,7 +371,8 @@ export default function Home() {
   };
 
   const handleGenerateSchedule = async () => {
-    const tasksToSchedule = tasks.filter(t => !t.isCompleted);
+    // AI should not try to reschedule tasks that are already completed or missed.
+    const tasksToSchedule = tasks.filter(t => !t.isCompleted && !t.isMissed);
     if (tasksToSchedule.length === 0) {
       toast({
         variant: "destructive",
@@ -377,12 +385,19 @@ export default function Home() {
     setIsGenerating(true);
     setReasoning(null);
 
-    const currentUncompletedSchedule = tasks.filter(t => t.startTime && !t.isCompleted).map(t => ({
-      id: t.id,
-      title: t.title,
-      startTime: t.startTime!,
-      endTime: t.endTime!,
-    }));
+    // Provide context for today and all future days, but not past days.
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    const scheduleForAI = tasks
+      .filter(t => t.startTime && isValid(parseISO(t.startTime)))
+      .filter(t => parseISO(t.startTime!) >= startOfToday)
+      .map(t => ({
+          id: t.id,
+          title: t.title,
+          startTime: t.startTime!,
+          endTime: t.endTime!,
+      }));
 
     const input = {
       model,
@@ -398,7 +413,7 @@ export default function Home() {
       currentDateTime: format(new Date(), "yyyy-MM-dd'T'HH:mm:ss.SSSXXX"),
       startDate: format(new Date(), 'yyyy-MM-dd'),
       timezone,
-      currentScheduledTasks: currentUncompletedSchedule.length > 0 ? currentUncompletedSchedule : undefined,
+      currentScheduledTasks: scheduleForAI.length > 0 ? scheduleForAI : undefined,
     };
 
     const result = await createSchedule(input);
@@ -522,7 +537,7 @@ export default function Home() {
   const handleAdjustSchedule = async (userRequest: string) => {
     setIsAdjusting(true);
 
-    const tasksToSchedule = tasks.filter(t => !t.isCompleted);
+    const tasksToSchedule = tasks.filter(t => !t.isCompleted && !t.isMissed);
 
     const input = {
       model,
