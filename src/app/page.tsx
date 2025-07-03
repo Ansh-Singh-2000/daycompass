@@ -92,12 +92,12 @@ export default function Home() {
                             
                             let valueToStore;
                             try {
-                                // First, decode the URL-encoded characters (like %22 for quotes)
-                                const decodedValue = decodeURIComponent(cookieValue);
-                                // Then, try to parse it as JSON. If it fails, use the decoded string directly.
-                                valueToStore = JSON.parse(decodedValue);
+                                // First, try to parse it as JSON. This will work for structured data.
+                                // We also decode URI components to handle characters like %2C for commas.
+                                valueToStore = JSON.parse(decodeURIComponent(cookieValue));
                             } catch (e) {
-                                // This handles non-JSON values like the model name string
+                                // If parsing fails, it's likely a plain string (like the model name).
+                                // We still decode it in case it contains encoded characters.
                                 valueToStore = decodeURIComponent(cookieValue);
                             }
                             
@@ -213,8 +213,17 @@ export default function Home() {
   const currentSchedule = scheduledTasksByDate[dateKey] || [];
   const isLoading = isGenerating || isAdjusting;
   const isAdjustDisabled = useMemo(() => {
-    // Disable if there are no active (not completed, not missed) scheduled tasks
-    return !tasks.some(t => t.startTime && !t.isCompleted && !t.isMissed);
+    // Disable if there are no active (not completed, not missed) scheduled tasks for today or future
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    return !tasks.some(t => 
+        t.startTime && 
+        !t.isCompleted && 
+        !t.isMissed &&
+        isValid(parseISO(t.startTime)) &&
+        parseISO(t.startTime) >= startOfToday
+    );
   }, [tasks]);
   const hasTasks = useMemo(() => tasks.some(t => t.startTime), [tasks]);
   
@@ -453,7 +462,7 @@ export default function Home() {
     if (activeTasksToAdjust.length === 0) {
         toast({
             title: "Nothing to Adjust",
-            description: "There are no active tasks on your calendar for today or the future.",
+            description: "There are no active, scheduled tasks for today or the future.",
         });
         return;
     }
