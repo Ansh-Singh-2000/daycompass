@@ -57,7 +57,13 @@ export default function TaskForm({ onAddTask }: TaskFormProps) {
       priority: data.priority as TaskPriority,
       deadline: data.deadline,
     });
-    form.reset();
+    // Reset the form, but carry over the priority and time for the next task.
+    form.reset({
+      title: "",
+      estimatedTime: data.estimatedTime,
+      priority: data.priority,
+      deadline: undefined,
+    });
   };
 
   return (
@@ -108,7 +114,7 @@ export default function TaskForm({ onAddTask }: TaskFormProps) {
             name="priority"
             render={({ field }) => (
               <FormItem className="w-[120px]">
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Priority" />
