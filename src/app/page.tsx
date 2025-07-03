@@ -66,7 +66,6 @@ export default function Home() {
   useEffect(() => {
     try {
         // --- START: ONE-TIME COOKIE TO LOCALSTORAGE MIGRATION SCRIPT ---
-        // This script can be safely removed in a future version after most users have migrated.
         const migrationFlag = 'day-compass-migrated-v1';
         if (!loadFromLocalStorage(migrationFlag)) {
             console.log("Checking for data to migrate from cookies...");
@@ -88,18 +87,13 @@ export default function Home() {
                 if (cookieRaw) {
                     try {
                         if (!loadFromLocalStorage(localKey)) {
-                            // The value is the part of the string after "key="
                             const cookieValue = cookieRaw.substring(cookieKey.length + 1);
                             
-                            // It's crucial to try parsing as JSON, but fall back to the raw value.
-                            // Some values are strings (like the model name), others are objects.
                             let valueToStore;
                             try {
-                                // Important: Cookies might be URL-encoded, so decode them first.
                                 const decodedValue = decodeURIComponent(cookieValue);
                                 valueToStore = JSON.parse(decodedValue);
                             } catch (e) {
-                                // If parsing fails, it's likely a simple string value.
                                 valueToStore = decodeURIComponent(cookieValue);
                             }
                             
@@ -108,7 +102,6 @@ export default function Home() {
                             console.log(`Migrated ${cookieKey} successfully.`);
                         }
                         
-                        // Clean up the old cookie
                         document.cookie = `${cookieKey}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
                     } catch (e) {
                         console.error(`Could not migrate cookie ${cookieKey}`, e);
@@ -117,7 +110,6 @@ export default function Home() {
             }
             if (migrated) console.log("Migration successful!");
             
-            // Set the flag so we don't run this again.
             saveToLocalStorage(migrationFlag, true);
         }
         // --- END: ONE-TIME COOKIE TO LOCALSTORAGE MIGRATION SCRIPT ---
@@ -125,14 +117,11 @@ export default function Home() {
         // Now, load from localStorage as usual
         const savedTasks = loadFromLocalStorage<any[]>('day-compass-tasks');
         if (savedTasks && savedTasks.length > 0) {
-            // Important: Dates are stored as strings in JSON. They need to be parsed back into Date objects.
             setTasks(savedTasks.map((t: Task & { deadline?: string }) => ({
                 ...t,
                 deadline: t.deadline ? parseISO(t.deadline) : undefined,
             })));
         } else {
-            // If no tasks are saved, set the initial example tasks.
-            // This logic is now client-side only, avoiding hydration errors.
             const today = new Date();
             const initialTasks: Task[] = [
               { id: uuidv4(), title: 'Physics - Kinematics Problem Set', estimatedTime: 120, priority: 'high', deadline: addDays(today, 3) },
@@ -169,15 +158,13 @@ export default function Home() {
 
     } catch (error) {
         console.error("Error during hydration or migration", error);
-        // If loading fails, the app will just use the default state
     } finally {
         setTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
         setIsHydrated(true);
     }
-  }, []); // Empty dependency array means this runs once on mount.
+  }, []); 
 
   // Effects for saving to localStorage whenever state changes.
-  // These will only run after the initial hydration is complete.
   useEffect(() => { if(isHydrated) saveToLocalStorage('day-compass-tasks', tasks); }, [tasks, isHydrated]);
   useEffect(() => { if(isHydrated) saveToLocalStorage('day-compass-startTime', startTime); }, [startTime, isHydrated]);
   useEffect(() => { if(isHydrated) saveToLocalStorage('day-compass-endTime', endTime); }, [endTime, isHydrated]);
@@ -187,7 +174,6 @@ export default function Home() {
   useEffect(() => { if(isHydrated) saveToLocalStorage('day-compass-model', model); }, [model, isHydrated]);
   useEffect(() => { if(isHydrated) saveToLocalStorage('day-compass-points', points); }, [points, isHydrated]);
   
-  // Create a ref to hold the latest tasks array for use in callbacks
   const tasksRef = useRef(tasks);
   useEffect(() => {
     tasksRef.current = tasks;
@@ -213,7 +199,6 @@ export default function Home() {
             }
         }
     });
-    // Sort each day's schedule
     Object.values(byDate).forEach(day => day.sort((a,b) => a.startTime!.localeCompare(b.startTime!)));
     return byDate;
   }, [tasks]);
@@ -222,7 +207,7 @@ export default function Home() {
   const currentSchedule = scheduledTasksByDate[dateKey] || [];
   const isLoading = isGenerating || isAdjusting;
   const isAdjustDisabled = useMemo(() => {
-    return !tasks.some(t => t.startTime && !t.isCompleted);
+    return !tasks.some(t => t.startTime && !t.isCompleted && !t.isMissed);
   }, [tasks]);
   const hasTasks = useMemo(() => tasks.some(t => t.startTime), [tasks]);
   
@@ -318,7 +303,7 @@ export default function Home() {
   });
 
   useEffect(() => {
-    if (!isHydrated) return; // Don't run interval until hydrated
+    if (!isHydrated) return; 
     const check = () => checkOverdueTasksRef.current();
     const initialCheckTimeout = setTimeout(check, 1000); 
     const intervalId = setInterval(check, 60000); 
@@ -340,22 +325,18 @@ export default function Home() {
     const taskToDelete = tasks.find(t => t.id === id);
     if (!taskToDelete) return;
 
-    // Check if the task was on the calendar and if its time has passed
     if (taskToDelete.startTime && taskToDelete.endTime) {
         const endTime = parseISO(taskToDelete.endTime);
         if (isValid(endTime) && endTime < new Date()) {
-            // If its time has passed, archive it to keep it in the calendar history
             setTasks(currentTasks =>
                 currentTasks.map(task =>
                     task.id === id ? { ...task, archived: true } : task
                 )
             );
         } else {
-            // If its time has not passed yet, remove it completely
             setTasks(currentTasks => currentTasks.filter(task => task.id !== id));
         }
     } else {
-        // If it was never on the calendar, remove it completely.
         setTasks(currentTasks => currentTasks.filter(task => task.id !== id));
     }
     setReasoning(null);
@@ -371,7 +352,6 @@ export default function Home() {
   };
 
   const handleGenerateSchedule = async () => {
-    // AI should not try to reschedule tasks that are already completed or missed.
     const tasksToSchedule = tasks.filter(t => !t.isCompleted && !t.isMissed);
     if (tasksToSchedule.length === 0) {
       toast({
@@ -385,7 +365,6 @@ export default function Home() {
     setIsGenerating(true);
     setReasoning(null);
 
-    // Provide context for today and all future days, but not past days.
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
 
@@ -442,7 +421,7 @@ export default function Home() {
 
   const handleOpenAdjustment = () => {
     const currentOnCalendar = tasks
-        .filter(t => t.startTime && !t.isCompleted)
+        .filter(t => t.startTime && !t.isCompleted && !t.isMissed)
         .map(t => ({
             id: t.id,
             title: t.title,

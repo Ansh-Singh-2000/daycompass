@@ -35,10 +35,8 @@ function buildPrompt(input: AdjustScheduleInput): string {
 You have two modes of operation:
 
 ### Mode 1: Schedule Modification
-
 If the user gives a clear instruction to change the schedule (e.g., "move physics to 7pm", "can you add a new task: 'review notes for 30 mins'"), you must:
-
-1.  **Attempt the Change:** Generate a NEW, complete schedule in the \`scheduledTasks\` field that incorporates the user's request.
+1.  **Generate a NEW Schedule:** Create a NEW, complete schedule in the \`scheduledTasks\` field that incorporates the user's request.
 2.  **Validate Rigorously:** The new schedule MUST follow all the "Golden Rules" listed below. There are NO exceptions.
 3.  **Handle Impossible Requests:** If the user's request *cannot* be fulfilled without breaking a Golden Rule (e.g., asking to move a task to a time that is already blocked), you **MUST NOT** make the change. Instead:
     *   Keep the schedule as it was. Your JSON output's \`scheduledTasks\` field must be identical to the \`currentScheduledTasks\` you received.
@@ -46,16 +44,13 @@ If the user gives a clear instruction to change the schedule (e.g., "move physic
 4.  **Explain Your Work:** In the \`reasoning\` field, explain the changes you made (e.g., "Done! I've moved Physics to 7 PM and shifted your other tasks to accommodate it.").
 
 ### Mode 2: Casual Conversation
-
 If the user asks a question, makes a comment, or the request is unclear (e.g., "why is this scheduled then?", "that looks good", "hi"), you must:
-
 *   **DO NOT CHANGE THE SCHEDULE.** Your primary goal is to be a helpful conversational partner.
 *   **CRITICAL:** Your JSON output MUST contain the \`scheduledTasks\` key, and its value MUST be the *exact* same array as the \`currentScheduledTasks\` you were given.
 *   In the \`reasoning\` field, provide a helpful, friendly, and casual response. Answer their question or acknowledge their comment in a natural way. (e.g., "Great question! I put 'Mock Test Analysis' right after the test so the details are still fresh in your mind. We can move it if you'd like!").
 
 ---
 ### Your Primary Directive
-
 You MUST ALWAYS return a JSON object that strictly adheres to the following Zod schema.
 
 \`\`\`json
@@ -64,7 +59,6 @@ ${JSON.stringify(GenerateFullScheduleOutputSchema.jsonSchema, null, 2)}
 
 ---
 ### The Golden Rules (Apply to ALL Schedule Modifications)
-
 1.  **ABSOLUTE TIME ACCURACY:** The duration for each scheduled task (\`endTime\` - \`startTime\`) MUST exactly match its \`estimatedTime\`.
 2.  **NO OVERLAPPING:** Tasks MUST NOT overlap with each other or with recurring blocked times.
 3.  **STAY IN-BOUNDS:** Tasks must be within the daily availability window (\`${timeConstraints.startTime}\` - \`${timeConstraints.endTime}\`).
@@ -83,7 +77,7 @@ ${JSON.stringify(GenerateFullScheduleOutputSchema.jsonSchema, null, 2)}
     \`\`\`json
     ${currentScheduleJSON}
     \`\`\`
--   **Full Task List (Reference for all tasks that must be on the schedule):**
+-   **Full Task List (This is the definitive list of all tasks that must be on the final schedule):**
     ${taskDetails}
 -   **Daily Constraints:**
     - Availability: \`${timeConstraints.startTime}\` - \`${timeConstraints.endTime}\`
@@ -110,13 +104,10 @@ export async function adjustSchedule(
     throw new Error('AI returned an empty response.');
   }
   
-  // Handle <think> tags by removing them
   responseText = responseText.replace(/<think>[\s\S]*?<\/think>/, '').trim();
 
   try {
       const parsedJson = JSON.parse(responseText);
-      // Safety check to prevent crash if AI fails to return scheduledTasks,
-      // which can happen during a purely conversational turn.
       if (!parsedJson.scheduledTasks) {
           parsedJson.scheduledTasks = input.currentScheduledTasks;
       }
@@ -126,5 +117,3 @@ export async function adjustSchedule(
       throw new Error(`The AI returned an invalid response. The raw response was: "${responseText}"`);
   }
 }
-
-    
