@@ -249,25 +249,34 @@ export default function Home() {
   }, []);
   
   const handleToastDismiss = useCallback((taskId: string) => {
-      if (actionedToastIds.current.has(taskId)) {
-        actionedToastIds.current.delete(taskId);
-        return;
-      }
-      const task = tasksRef.current.find(t => t.id === taskId);
-      if (task && !task.isCompleted) {
-        setPoints(p => ({ ...p, losses: p.losses + 1 }));
-        setTasks(prevTasks =>
-          prevTasks.map(t =>
-            t.id === taskId ? { ...t, isMissed: true } : t
-          )
-        );
-      }
+    // If the toast was closed because the user clicked the action button ("Yes, I did!"),
+    // we just need to mark it as notified and prevent the penalty.
+    if (actionedToastIds.current.has(taskId)) {
+      actionedToastIds.current.delete(taskId);
+      setTasks(prevTasks => prevTasks.map(t =>
+        t.id === taskId ? { ...t, overdueNotified: true } : t
+      ));
+      return;
+    }
+
+    // If we get here, the user clicked "X" to dismiss.
+    const task = tasksRef.current.find(t => t.id === taskId);
+    if (task && !task.isCompleted) {
+      // Penalize, and mark as 'missed' and 'notified' to resolve it permanently.
+      setPoints(p => ({ ...p, losses: p.losses + 1 }));
+      setTasks(prevTasks =>
+        prevTasks.map(t =>
+          t.id === taskId ? { ...t, isMissed: true, overdueNotified: true } : t
+        )
+      );
+    }
   }, []);
 
   const checkOverdueTasks = useCallback(() => {
     const now = new Date();
     const newlyOverdueTasks: Task[] = [];
     
+    // Find tasks that are overdue but haven't been permanently dealt with.
     tasksRef.current.forEach(task => {
       if (task.endTime && !task.isCompleted && !task.isMissed && !task.overdueNotified) {
         const itemEndTime = parseISO(task.endTime);
@@ -278,13 +287,8 @@ export default function Home() {
     });
 
     if (newlyOverdueTasks.length > 0) {
-      const taskIdsToMark = new Set(newlyOverdueTasks.map(t => t.id));
-      setTasks(currentTasks => 
-        currentTasks.map(t => 
-          taskIdsToMark.has(t.id) ? { ...t, overdueNotified: true } : t
-        )
-      );
-
+      // We no longer mark the task as notified here. We only do it after user interaction.
+      // This ensures the toast reappears on refresh if it hasn't been dealt with.
       newlyOverdueTasks.forEach((task) => {
         toast({
           variant: 'destructive',
@@ -301,6 +305,7 @@ export default function Home() {
           ),
           onOpenChange: (open) => {
             if (!open) {
+                // This will now correctly set the 'overdueNotified' flag after any interaction.
                 handleToastDismiss(task.id);
             }
           },
