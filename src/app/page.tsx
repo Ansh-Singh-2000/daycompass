@@ -90,13 +90,11 @@ export default function Home() {
                         if (!loadFromLocalStorage(localKey)) {
                             let valueToStore;
                             try {
-                                // First, try to decode URI components to handle characters like %2C for commas.
                                 const decodedValue = decodeURIComponent(cookieValue);
-                                // Then, try to parse it as JSON. This will work for structured data.
+                                // Try to parse it as JSON. If it fails, use the decoded string.
                                 valueToStore = JSON.parse(decodedValue);
                             } catch (e) {
-                                // If parsing fails, it's likely a plain string that doesn't need parsing.
-                                // We still decode it in case it contains encoded characters.
+                                // If parsing fails, it's a plain string.
                                 valueToStore = decodeURIComponent(cookieValue);
                             }
                             
@@ -105,7 +103,6 @@ export default function Home() {
                             console.log(`Migrated ${cookieKey} successfully.`);
                         }
                         
-                        // Clean up the old cookie
                         document.cookie = `${cookieKey}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
                     } catch (e) {
                         console.error(`Could not migrate cookie ${cookieKey}`, e);
@@ -387,7 +384,10 @@ export default function Home() {
 
     const scheduleForAI = tasks
       .filter(t => t.startTime && isValid(parseISO(t.startTime)))
-      .filter(t => parseISO(t.startTime!) >= startOfToday)
+      .filter(t => {
+          const startTime = parseISO(t.startTime!);
+          return isValid(startTime) && startTime >= startOfToday;
+      })
       .map(t => ({
           id: t.id,
           title: t.title,
@@ -443,7 +443,10 @@ export default function Home() {
 
     const currentOnCalendar = tasks
         .filter(t => t.startTime && isValid(parseISO(t.startTime)))
-        .filter(t => parseISO(t.startTime!) >= startOfToday)
+        .filter(t => {
+          const startTime = parseISO(t.startTime!);
+          return isValid(startTime) && startTime >= startOfToday;
+        })
         .map(t => ({
             id: t.id,
             title: t.title,
@@ -452,7 +455,6 @@ export default function Home() {
             priority: t.priority
         }));
     
-    // Check if there are any *active* tasks to adjust in the context
     const activeTasksToAdjust = currentOnCalendar.filter(p => {
         const originalTask = tasks.find(t => t.id === p.id);
         return originalTask && !originalTask.isCompleted && !originalTask.isMissed;
@@ -473,46 +475,45 @@ export default function Home() {
 
   const handleApplySchedule = (finalSchedule: ProposedTask[]) => {
     const invalidTasks: string[] = [];
-    const scheduledMap = new Map<string, ProposedTask>();
     finalSchedule.forEach(task => {
         if (!isValid(parseISO(task.startTime)) || !isValid(parseISO(task.endTime))) {
             invalidTasks.push(task.title);
-        } else {
-            scheduledMap.set(task.id, task);
         }
     });
 
     setTasks(currentTasks => {
         const newScheduleMap = new Map(finalSchedule.map(t => [t.id, t]));
 
-        const originalUncompletedTasks = currentTasks.filter(t => !t.isCompleted).map(t => t.id);
-        const tasksToUnschedule = originalUncompletedTasks.filter(id => !newScheduleMap.has(id));
-
         return currentTasks.map(task => {
-            if (task.isCompleted) {
+            // Rule 1: If a task is already completed or missed, it's part of the historical record.
+            // We should NEVER modify it when applying a new schedule.
+            if (task.isCompleted || task.isMissed) {
                 return task;
             }
-
+        
+            // From here on, we are only dealing with active, uncompleted, non-missed tasks.
+        
+            // Rule 2: If this active task IS in the new schedule from the AI...
             if (newScheduleMap.has(task.id)) {
+                // ...update its schedule information and reset its state.
                 const scheduledInfo = newScheduleMap.get(task.id)!;
                 return {
                     ...task,
                     startTime: scheduledInfo.startTime,
                     endTime: scheduledInfo.endTime,
                     isCompleted: false, 
-                    overdueNotified: false, 
+                    overdueNotified: false,
                 };
             }
-            
-            if (tasksToUnschedule.includes(task.id)) {
-                 return {
-                    ...task,
-                    startTime: undefined,
-                    endTime: undefined,
-                };
-            }
-
-            return task;
+        
+            // Rule 3: If this active task IS NOT in the new schedule from the AI...
+            // ...it means the AI couldn't find a spot for it, or it was never scheduled in the first place.
+            // We must ensure its schedule information is cleared, returning it to the "unscheduled" pool.
+            return {
+                ...task,
+                startTime: undefined,
+                endTime: undefined,
+            };
         });
     });
     
@@ -544,8 +545,23 @@ export default function Home() {
   const handleAdjustSchedule = async (userRequest: string) => {
     setIsAdjusting(true);
 
-    // The definitive list of tasks that MUST be scheduled are the active ones.
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
     const tasksToSchedule = tasks.filter(t => !t.isCompleted && !t.isMissed);
+    const scheduleForAI = tasks
+      .filter(t => t.startTime && isValid(parseISO(t.startTime)))
+      .filter(t => {
+          const startTime = parseISO(t.startTime!);
+          return isValid(startTime) && startTime >= startOfToday;
+      })
+      .map(t => ({
+          id: t.id,
+          title: t.title,
+          startTime: t.startTime!,
+          endTime: t.endTime!,
+      }));
+
 
     const input = {
       model,
@@ -560,7 +576,7 @@ export default function Home() {
       timeConstraints: { startTime, endTime },
       currentDateTime: format(new Date(), "yyyy-MM-dd'T'HH:mm:ss.SSSXXX"),
       startDate: format(new Date(), 'yyyy-MM-dd'),
-      currentScheduledTasks: proposedSchedule.map(({priority, ...rest}) => rest),
+      currentScheduledTasks: scheduleForAI,
       userRequest: userRequest,
       timezone,
     };
