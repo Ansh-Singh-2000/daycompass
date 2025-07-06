@@ -108,7 +108,9 @@ export async function adjustSchedule(
 
   try {
       const parsedJson = JSON.parse(responseText);
-      if (!parsedJson.scheduledTasks) {
+      // Failsafe: if the AI returns a valid JSON but an empty/null scheduledTasks array,
+      // fall back to the original schedule to prevent a blank screen.
+      if (!parsedJson.scheduledTasks || parsedJson.scheduledTasks.length === 0) {
           parsedJson.scheduledTasks = input.currentScheduledTasks;
       }
       return parsedJson;

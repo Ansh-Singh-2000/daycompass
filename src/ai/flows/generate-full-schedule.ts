@@ -45,8 +45,8 @@ ${JSON.stringify(GenerateFullScheduleOutputSchema.jsonSchema, null, 2)}
 ### The Scheduling Logic (Follow these steps)
 
 1.  **Prioritize:** Order the tasks in the 'Full Task List to Schedule' section. First by the earliest deadline, then by priority (high > medium > low).
-2.  **Schedule:** Place *every single task* from that list onto the calendar, integrating them with the 'Current Schedule Reference' if it exists.
-3.  **Validate:** For every task you place, it MUST obey ALL of the "Golden Rules" below. There are no exceptions.
+2.  **Schedule:** Place *every single task* from that list onto the calendar.
+3.  **Validate:** For every task you place, it MUST obey ALL of the "Golden Rules" below. There are no exceptions. Find the earliest possible time slot for each task that respects all rules.
 4.  **Handle Overflows:** If you have tried to schedule a task and cannot find ANY valid time slot for it without breaking a Golden Rule, you MUST NOT include that task in the final \`scheduledTasks\` array. You MUST mention this clearly in the \`reasoning\` field, explaining which tasks could not be scheduled and why (e.g., "I've created your schedule, but couldn't find a spot for 'Task X' before its deadline.").
 
 ---
@@ -81,16 +81,15 @@ In the \`reasoning\` field of your JSON output, provide a concise, friendly expl
     ${blockedTimeDetails}
 
 ### Current Schedule Reference (for today and future days)
-This is the user's existing schedule. Your goal is to intelligently update it.
--   Keep these tasks at their currently scheduled times if possible.
--   Only move these tasks if necessary to accommodate new/unscheduled tasks or resolve conflicts.
+This is the user's existing schedule, including completed and missed tasks for today. It serves as a map of "busy" time slots.
+-   Your new schedule must not conflict with these existing items.
 -   JSON Reference:
     \`\`\`json
     ${currentScheduleJSON}
     \`\`\`
 
 ### Full Task List to Schedule
-This list contains **only** the tasks that need to be placed on the calendar.
+This list contains **only** the active tasks that need to be placed on the calendar.
 ${taskDetails}
 
 ---
@@ -124,5 +123,3 @@ export async function generateFullSchedule(
       throw new Error(`The AI returned an invalid response. The raw response was: "${responseText}"`);
   }
 }
-
-    
